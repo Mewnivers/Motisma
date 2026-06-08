@@ -1,38 +1,36 @@
-# Contribuer à Rotom'Pau
+# Contributing to Rotom'Pau
 
-Merci de l'intérêt porté au projet. Ce dépôt accompagne la communauté Pokémon GO de
-Pau ; les contributions sont les bienvenues, qu'il s'agisse de code, de documentation
-ou de retours d'usage.
+Thanks for your interest in the project. This repository supports the Pokémon GO
+community of Pau; contributions are welcome, whether code, documentation, or usage
+feedback.
 
-## Avant de commencer
+## Before you start
 
-Le projet est en phase de conception. La pile technique (langage, librairie de
-génération de carte) n'est pas encore figée : les propositions sur ces choix sont
-utiles et attendues.
+The project is in the design phase. The technology stack (language, map-rendering
+library) is not yet fixed: proposals on these choices are useful and expected.
 
-## Signaler un problème ou proposer une idée
+## Reporting an issue or suggesting an idea
 
-- Ouvrez une *issue* en décrivant clairement le besoin, le contexte et, si possible,
-  un exemple.
-- Pour une fonctionnalité, expliquez l'usage côté joueur avant l'aspect technique.
+- Open an issue with a clear description of the need, the context, and an example if
+  possible.
+- For a feature, explain the player-facing use case before the technical aspect.
 
-## Proposer une modification
+## Proposing a change
 
-1. Créez une branche dédiée à partir de `main`.
-2. Faites des commits clairs et atomiques, avec des messages explicites.
-3. Vérifiez qu'aucun secret n'est inclus (token Discord, identifiants). Les secrets
-   vont dans un fichier `.env` local, jamais dans le dépôt.
-4. Ouvrez une *pull request* en décrivant le changement et son intérêt.
+1. Create a dedicated branch from `main`.
+2. Make clear, atomic commits with explicit messages.
+3. Make sure no secret is included (Discord token, credentials). Secrets go in a local
+   `.env` file, never in the repository.
+4. Open a pull request describing the change and its value.
 
-## Sécurité
+## Security
 
-Le token du bot et toute information sensible ne doivent jamais être committés. Le
-fichier `.env` est ignoré par git ; partez toujours de `.env.example`. En cas
-d'exposition accidentelle d'un secret, régénérez-le immédiatement depuis le portail
-développeur Discord.
+The bot token and any sensitive information must never be committed. The `.env` file
+is ignored by git; always start from `.env.example`. If a secret is accidentally
+exposed, regenerate it immediately from the Discord developer portal.
 
-## Esprit du projet
+## Project spirit
 
-Rotom'Pau vise à renforcer le lien local sans jamais exposer d'information
-personnelle. Toute contribution doit respecter ce principe : pas de géolocalisation,
-pas d'adresse, uniquement des données déclaratives et agrégées.
+Rotom'Pau aims to strengthen local connections without ever exposing personal
+information. Every contribution must respect this principle: no geolocation, no
+address, only declarative and aggregated data.

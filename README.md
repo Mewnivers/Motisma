@@ -1,77 +1,76 @@
 # Rotom'Pau
 
-Bot Discord pour la communauté Pokémon GO de Pau.
+A Discord bot for the Pokémon GO community of Pau, France.
 
-L'objectif est double : permettre à chaque joueur de constater qu'il n'est pas isolé
-dans son secteur, et faciliter l'organisation des sorties, sans jamais révéler
-d'information personnelle.
+It serves two goals: letting each player see that they are not isolated in their area,
+and making it easy to organize outings, without ever revealing any personal
+information.
 
-## Fonctionnalités prévues
+## Planned features
 
-### Carte des secteurs
-- Affiche les secteurs de jeu de Pau (Beaumont, Pesquidoux, Lons, etc.) avec un
-  compteur de joueurs par secteur.
-- Une commande `/carte` renvoie une image (PNG) directement dans Discord, sans
-  dépendre d'un site externe.
-- Les données proviennent des rôles Discord que les joueurs choisissent eux-mêmes
-  via « Salons et rôles ». Aucune saisie supplémentaire, aucun doublon.
-- Aucune position ni adresse n'est exposée : seul le secteur volontairement
-  sélectionné par le joueur est pris en compte.
-- Un secteur n'affiche son compteur qu'à partir de trois joueurs, afin de préserver
-  l'anonymat.
+### Area map
+- Displays the play areas of Pau (Beaumont, Pesquidoux, Lons, etc.) with a player
+  count per area.
+- A `/map` command returns an image (PNG) directly in Discord, with no external
+  website required.
+- Data comes from the Discord roles that players assign to themselves through
+  "Channels & Roles". No extra input, no duplicates.
+- No location or address is ever exposed: only the area a player voluntarily selected
+  is counted.
+- An area only shows its counter once at least three players have joined it, to
+  preserve anonymity.
 
-### Rendez-vous
-- Une commande crée un fil (thread) temporaire pour une sortie : lieu, heure et
-  inscriptions par réaction.
-- Le fil est archivé ou supprimé automatiquement après l'événement.
-- Un rappel automatique est envoyé avant le rendez-vous.
+### Meetups
+- A command creates a temporary thread for an outing: place, time, and sign-ups by
+  reaction.
+- The thread is archived or deleted automatically after the event.
+- A reminder is sent automatically before the meetup.
 
-## Principe de conception
+## Design principle
 
-Le bot s'appuie sur une source de vérité unique : les rôles « secteur » des joueurs.
+The bot relies on a single source of truth: the players' "area" roles.
 
 ```
-Joueur sur Discord
-   |  (choisit son secteur via « Salons et rôles »)
+Player on Discord
+   |  (selects their area through "Channels & Roles")
    v
-Rotom'Pau  --- lit les rôles --->  Rôles « secteur » (permanents)
+Rotom'Pau  --- reads roles --->  "Area" roles (permanent)
    |
-   |-- /carte  -> génère un PNG des secteurs avec compteurs
-   '-- /rdv    -> crée un fil temporaire pour une sortie
+   |-- /map   -> generates a PNG of the areas with counters
+   '-- /rdv   -> creates a temporary thread for an outing
 ```
 
-| Élément              | Rôle                            | Forme                  | Durée de vie |
-|----------------------|---------------------------------|------------------------|--------------|
-| Rôles « secteur »    | Alimenter la carte              | Rôles « Salons et rôles » | Permanent    |
-| Fils de rendez-vous  | Organiser une sortie            | Threads créés par le bot  | Éphémère     |
+| Element            | Purpose                     | Form                     | Lifetime  |
+|--------------------|-----------------------------|--------------------------|-----------|
+| "Area" roles       | Feed the map                | "Channels & Roles" roles | Permanent |
+| Meetup threads     | Organize an outing          | Threads created by the bot | Ephemeral |
 
-## Confidentialité
+## Privacy
 
-- Aucune géolocalisation, aucune adresse, aucune position individuelle.
-- Le secteur est déclaratif et volontaire : le joueur sélectionne lui-même son rôle.
-- La carte n'affiche que des compteurs agrégés par secteur, jamais un joueur isolé
-  (seuil minimum de trois joueurs).
+- No geolocation, no address, no individual position.
+- The area is declarative and voluntary: the player selects their own role.
+- The map only shows aggregated counts per area, never an isolated player (minimum
+  threshold of three players).
 
-## État du projet
+## Project status
 
-Projet en phase d'étude et de conception. L'implémentation interviendra dans un
-second temps. La pile technique (langage, librairie de génération de carte) reste à
-définir.
+The project is in the design phase. Implementation will come later. The technology
+stack (language, map-rendering library) is still to be decided.
 
-## Feuille de route
+## Roadmap
 
-- [ ] Définir la liste des secteurs de Pau et créer les rôles correspondants
-- [ ] Préparer le fond de carte (image de base avec les secteurs)
-- [ ] Prototype : commande `/carte` générant un PNG avec compteurs
-- [ ] Commande `/rdv` : création de fil temporaire et inscriptions
-- [ ] Rappels automatiques avant les sorties
-- [ ] Application web interactive en complément du PNG (optionnel)
+- [ ] Define the list of Pau areas and create the matching roles
+- [ ] Prepare the base map (background image with the areas drawn)
+- [ ] Prototype: `/map` command generating a PNG with counters
+- [ ] `/rdv` command: temporary thread creation and sign-ups
+- [ ] Automatic reminders before outings
+- [ ] Optional interactive web app to complement the PNG
 
-## Licence
+## License
 
-Distribué sous licence MIT. Voir le fichier `LICENSE`.
+Released under the MIT License. See the `LICENSE` file.
 
 ---
 
-Projet communautaire, non affilié à Niantic ni à The Pokémon Company.
-Pokémon est une marque de Nintendo, Creatures Inc. et GAME FREAK inc.
+Community project, not affiliated with Niantic or The Pokémon Company.
+Pokémon is a trademark of Nintendo, Creatures Inc. and GAME FREAK inc.

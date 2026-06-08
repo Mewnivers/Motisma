@@ -1,4 +1,4 @@
-# Secrets — ne JAMAIS committer le token du bot
+# Secrets — NEVER commit the bot token
 .env
 .env.*
 !.env.example
@@ -20,7 +20,7 @@ venv/
 env/
 *.egg-info/
 
-# Logs / divers
+# Logs / misc
 *.log
 .DS_Store
 .idea/
