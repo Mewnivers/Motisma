@@ -27,3 +27,17 @@ env/
 .vscode/
 dist/
 build/
+
+# generated map artifacts
+assets/basemap_*.png
+map_*.png
+preview_*.png
+
+# local scratch (image work, not part of the project)
+Sans titre.png
+scripts/clean-neon.mjs
+scripts/remove-bg.mjs
+scripts/preview.mjs
+scripts/map-mock.mjs
+scripts/map-geojson-mock.mjs
+scripts/map-real-mock.mjs

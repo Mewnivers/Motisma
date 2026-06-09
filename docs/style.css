@@ -1,0 +1,189 @@
+:root {
+  --cold: rgb(44, 125, 160);
+  --hot: rgb(244, 121, 31);
+  --ink: #12151a;
+  --panel: rgba(18, 21, 26, 0.86);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #fff;
+  background: #0d1014;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1000;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cold), var(--hot));
+  box-shadow: 0 0 12px rgba(244, 121, 31, 0.6);
+  flex: none;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.2px;
+}
+
+.sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.stat {
+  text-align: right;
+  line-height: 1.1;
+}
+
+.total {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.total-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+#map {
+  flex: 1;
+  width: 100%;
+  background: #0d1014;
+}
+
+.legend {
+  background: var(--panel);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.scale {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scale-bar {
+  width: 160px;
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--cold), var(--hot));
+}
+
+.scale-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.note strong {
+  color: #fff;
+}
+
+.updated {
+  margin-left: 8px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* count badge sitting on each zone */
+.badge {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 19px;
+  color: #fff;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.badge.muted {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.badge-label {
+  margin-top: 3px;
+  padding: 2px 8px;
+  border-radius: 11px;
+  background: rgba(18, 21, 26, 0.85);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+}
+
+.popup h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.popup .count {
+  font-size: 13px;
+  color: #444;
+}
+
+@media (max-width: 560px) {
+  .scale-bar {
+    width: 110px;
+  }
+  .topbar h1 {
+    font-size: 16px;
+  }
+}

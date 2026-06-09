@@ -54,8 +54,43 @@ Rotom'Pau  --- reads roles --->  "Area" roles (permanent)
 
 ## Project status
 
-The project is in the design phase. Implementation will come later. The technology
-stack (language, map-rendering library) is still to be decided.
+Early implementation. The bot connects, registers its slash commands, and provides a
+first version of `/map` (text summary) and `/rdv` (temporary thread). PNG map
+rendering and reminders are still on the roadmap.
+
+## Tech stack
+
+- Node.js (>= 18), ES modules
+- [discord.js](https://discord.js.org/) v14
+- Map PNG rendering: planned with a canvas library (e.g. `@napi-rs/canvas`)
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env      # then fill in DISCORD_TOKEN, CLIENT_ID, GUILD_ID
+npm run deploy            # register the slash commands on the guild
+npm start                 # start the bot
+```
+
+Enable the **Server Members Intent** in the Discord Developer Portal
+(Bot > Privileged Gateway Intents) — it is required to count players per area.
+
+## Project structure
+
+```
+src/
+  index.js            Bot entry point (client, command loading, events)
+  deploy-commands.js  Registers slash commands on the guild
+  config.js           Loads and validates environment variables
+  config/sectors.js   Play areas of Pau and their role IDs
+  commands/
+    map.js            /map  — players per area
+    rdv.js            /rdv  — create a temporary outing thread
+  services/
+    sectors.js        Counts members per sector role
+    mapRenderer.js    PNG map rendering (planned)
+```
 
 ## Roadmap
 

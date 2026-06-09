@@ -1,0 +1,11 @@
+{
+  "updatedAt": "2026-06-09T10:00:00Z",
+  "minVisiblePlayers": 3,
+  "sectors": {
+    "Pau Centre": 9,
+    "Pau Université": 5,
+    "Pau Le Hameau": 3,
+    "Lons": 12,
+    "Billère": 2
+  }
+}
