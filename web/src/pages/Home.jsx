@@ -16,7 +16,7 @@ export default function Home() {
           <span className="hero-badge">Communauté Pokémon GO · Pau</span>
           <h1>On n'est jamais seul à jouer près de chez soi.</h1>
           <p className="hero-lead">
-            Rotom rassemble les dresseurs de Pau : une carte des secteurs, un classement,
+            POGO PAU rassemble les dresseurs de Pau : une carte des secteurs, un classement,
             les sorties et tout ce qu'il faut pour jouer ensemble.
           </p>
           <div className="hero-actions">
@@ -44,9 +44,9 @@ export default function Home() {
 
       <section className="about" id="apropos">
         <div className="about-inner">
-          <h2>C'est quoi, Rotom ?</h2>
+          <h2>C'est quoi, POGO PAU ?</h2>
           <p>
-            Rotom est l'outil de la communauté Pokémon GO de <strong>Pau</strong> : un bot Discord et
+            POGO PAU est l'outil de la communauté Pokémon GO de <strong>Pau</strong> : un bot Discord et
             ce site, pensés pour que personne ne joue dans son coin. On y voit où sont les autres
             dresseurs, on organise des sorties et on suit la progression de chacun.
           </p>

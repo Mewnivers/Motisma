@@ -13,7 +13,7 @@ await app.register(authRoutes);
 await app.register(leaderboardRoutes);
 await app.register(statsRoutes);
 
-app.get('/api/health', async () => ({ ok: true, service: 'rotom-server' }));
+app.get('/api/health', async () => ({ ok: true, service: 'pogo-pau-server' }));
 
 await initSchema();
 

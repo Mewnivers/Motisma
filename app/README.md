@@ -20,7 +20,7 @@ python3 -m http.server 8099
 
 ## Deploy
 
-Served by the VPS nginx at `rotom-pogo.mxrine-mz.dev`.
+Served by the VPS nginx at `pogo-pau.mxrine-mz.dev`.
 See [`../deploy/README.md`](../deploy/README.md) for the one-time setup and the
 `publish.sh` update command. Only aggregated counts are published — never
 member identities.

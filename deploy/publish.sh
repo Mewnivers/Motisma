@@ -5,7 +5,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WEBROOT="/var/www/rotom-pogo"
+WEBROOT="/var/www/pogo-pau"
 
 # Copy every site file (.html/.css/.js/.json/.geojson), skipping docs like README.md.
 shopt -s nullglob

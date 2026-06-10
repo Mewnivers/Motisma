@@ -56,48 +56,40 @@ body {
 }
 
 .brand-text {
-  display: flex;
-  flex-direction: column;
   font-size: 18px;
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: 0.2px;
-}
-
-.brand-text small {
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.55);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 1.6px;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 20px;
 }
 
 .nav-links a,
 .link-btn {
   font: inherit;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.62);
   text-decoration: none;
   background: none;
   border: 0;
-  padding: 7px 12px;
-  border-radius: 8px;
+  border-bottom: 2px solid transparent;
+  padding: 6px 2px;
   cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
 }
 
 .nav-links a:hover,
 .link-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
 .nav-links a.active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  border-bottom-color: var(--hot);
 }
 
 .nav-right {
@@ -693,36 +685,92 @@ code {
   color: rgba(255, 255, 255, 0.75);
 }
 
-/* ---- site footer ---- */
-.site-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--panel);
-}
-
-.footer-inner {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 18px 20px;
+/* ---- floating help badge ---- */
+.help-badge {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1500;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
-.footer-links {
+.help-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--cold), var(--hot));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.help-toggle:hover {
+  transform: translateY(-2px);
+}
+
+.help-menu {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  min-width: 240px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #161a21;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
-.footer-links a {
-  color: rgba(255, 255, 255, 0.7);
+.help-item {
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.82);
   text-decoration: none;
 }
 
-.footer-links a:hover {
+.help-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.help-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ---- legal pages (terms / privacy) ---- */
+.legal h2 {
+  margin: 26px 0 8px;
+  font-size: 18px;
+}
+
+.legal p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.legal ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.legal li {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.legal strong {
   color: #fff;
 }
 

@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import { config, oauthReady } from './config.js';
 
-const SESSION_COOKIE = 'rotom_session';
-const STATE_COOKIE = 'rotom_oauth_state';
+const SESSION_COOKIE = 'pogo_session';
+const STATE_COOKIE = 'pogo_oauth_state';
 const SESSION_TTL = 7 * 24 * 3600; // seconds
 
 function baseCookie(maxAge) {

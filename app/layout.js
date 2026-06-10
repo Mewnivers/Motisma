@@ -29,7 +29,7 @@ function navbarHTML() {
   return `
     <a class="brand" href="index.html">
       <span class="dot"></span>
-      <span class="brand-text">Rotom<small>Pau · Pokémon GO</small></span>
+      <span class="brand-text">POGO PAU<small>Pau · Pokémon GO</small></span>
     </a>
     <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
     <nav class="nav-links" id="nav-links">${links}</nav>
@@ -46,7 +46,7 @@ function navbarHTML() {
 function footerHTML() {
   return `
     <div class="footer-inner">
-      <span>Rotom — communauté Pokémon GO de Pau</span>
+      <span>POGO PAU — communauté Pokémon GO de Pau</span>
       <nav class="footer-links">
         <a href="index.html#apropos">À propos</a>
         <a href="${DISCORD_INVITE}" target="_blank" rel="noopener">Discord</a>

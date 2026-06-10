@@ -1,11 +1,11 @@
-# Deploy Rotom on the VPS
+# Deploy POGO PAU on the VPS
 
 The site is the **React app** in `web/` (built to static files, served by the
 system nginx) plus the **web API** in `server/` (a Docker service alongside the
-bot and Postgres). Domain: `rotom-pogo.mxrine-mz.dev` (already on the VPS).
+bot and Postgres). Domain: `pogo-pau.mxrine-mz.dev` (already on the VPS).
 
 ```
-browser ──► nginx ──┬─ /            ► /var/www/rotom-pogo   (React build)
+browser ──► nginx ──┬─ /            ► /var/www/pogo-pau   (React build)
                     └─ /api/         ► 127.0.0.1:3100        (Fastify, Docker)
                                         └─ db (compose)      ► Postgres
 ```
@@ -14,25 +14,25 @@ browser ──► nginx ──┬─ /            ► /var/www/rotom-pogo   (Rea
 
 ```bash
 # 1. Web root, owned by you so future updates need no sudo
-sudo mkdir -p /var/www/rotom-pogo
-sudo chown -R "$USER:$USER" /var/www/rotom-pogo
+sudo mkdir -p /var/www/pogo-pau
+sudo chown -R "$USER:$USER" /var/www/pogo-pau
 
 # 2. Build & publish the React site
 bash ~/Projects/Rotom/deploy/publish-web.sh
 
 # 3. Install the nginx vhost (SPA fallback + /api proxy)
-sudo cp ~/Projects/Rotom/deploy/nginx/rotom-pogo.conf \
-        /etc/nginx/sites-available/rotom-pogo
-sudo ln -sf /etc/nginx/sites-available/rotom-pogo \
-            /etc/nginx/sites-enabled/rotom-pogo
+sudo cp ~/Projects/Rotom/deploy/nginx/pogo-pau.conf \
+        /etc/nginx/sites-available/pogo-pau
+sudo ln -sf /etc/nginx/sites-available/pogo-pau \
+            /etc/nginx/sites-enabled/pogo-pau
 sudo nginx -t && sudo systemctl reload nginx
 
 # 4. HTTPS (Certbot mirrors the config into the 443 block)
-sudo certbot --nginx -d rotom-pogo.mxrine-mz.dev
+sudo certbot --nginx -d pogo-pau.mxrine-mz.dev
 ```
 
 > Already had the old static config with SSL? Just re-run `sudo certbot --nginx
-> -d rotom-pogo.mxrine-mz.dev` after step 3 so the new `location` blocks are
+> -d pogo-pau.mxrine-mz.dev` after step 3 so the new `location` blocks are
 > copied into the existing HTTPS server block.
 
 ## Start the API (Docker)
@@ -48,7 +48,7 @@ curl -s localhost:3100/api/health     # -> {"ok":true,...}
 ```
 
 In the Discord Developer Portal (**OAuth2 → Redirects**) register:
-`https://rotom-pogo.mxrine-mz.dev/api/auth/callback`.
+`https://pogo-pau.mxrine-mz.dev/api/auth/callback`.
 
 ## Updating afterwards
 

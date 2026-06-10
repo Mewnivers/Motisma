@@ -17,10 +17,7 @@ export default function Navbar() {
     <header className="navbar">
       <Link to="/" className="brand" onClick={() => setOpen(false)}>
         <span className="dot" />
-        <span className="brand-text">
-          Rotom
-          <small>Pokémon GO · Pau</small>
-        </span>
+        <span className="brand-text">POGO PAU</span>
       </Link>
 
       <nav className={`nav-links${open ? ' open' : ''}`}>

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WEBROOT="/var/www/rotom-pogo"
+WEBROOT="/var/www/pogo-pau"
 
 echo "Building web/ ..."
 cd "$REPO/web"

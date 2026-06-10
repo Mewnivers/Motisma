@@ -1,7 +1,7 @@
 {
-  "name": "rotom-server",
+  "name": "pogo-pau-server",
   "version": "0.1.0",
-  "description": "Rotom web API: Discord auth, Pokemon GO profiles, stats leaderboard.",
+  "description": "POGO PAU web API: Discord auth, Pokemon GO profiles, stats leaderboard.",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
