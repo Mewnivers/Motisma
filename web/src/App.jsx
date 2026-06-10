@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import HelpBadge from './components/HelpBadge.jsx';
+import Splash from './components/Splash.jsx';
 import Home from './pages/Home.jsx';
 import Carte from './pages/Carte.jsx';
 import Classement from './pages/Classement.jsx';
@@ -14,6 +15,7 @@ import NotFound from './pages/NotFound.jsx';
 export default function App() {
   return (
     <>
+      <Splash />
       <Navbar />
       <main>
         <Routes>
