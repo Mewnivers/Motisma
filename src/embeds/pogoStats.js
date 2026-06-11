@@ -1,4 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
+import { TEAMS } from '../features/teamRole.js';
 
 const BRAND = 0xffffff; // white
 const fr = (n) => Number(n).toLocaleString('fr-FR');
@@ -23,9 +24,10 @@ export function buildPogoStatsEmbed(user, ign, stats) {
   const level = stats.pogo_level ?? null;
   const into = stats.pogo_level_xp != null ? Number(stats.pogo_level_xp) : null;
   const span = stats.pogo_level_xp_max != null ? Number(stats.pogo_level_xp_max) : null;
+  const team = TEAMS[stats.pogo_team] ?? null;
 
   const embed = new EmbedBuilder()
-    .setColor(BRAND)
+    .setColor(team?.color ?? BRAND)
     .setAuthor({ name: `Profil Pokémon GO — ${ign || user.username}`, iconURL: user.displayAvatarURL() })
     .setThumbnail(user.displayAvatarURL({ size: 256 }));
 
@@ -44,6 +46,7 @@ export function buildPogoStatsEmbed(user, ign, stats) {
   }
 
   const fields = [];
+  if (team) fields.push({ name: 'Équipe', value: `${team.emoji} ${team.label}`, inline: true });
   if (stats.pogo_xp != null) fields.push({ name: '✨ Total XP', value: fr(stats.pogo_xp), inline: true });
   if (stats.pogo_pokedex != null) fields.push({ name: '🔴 Pokémon capturés', value: fr(stats.pogo_pokedex), inline: true });
   if (stats.pogo_distance != null) fields.push({ name: '👟 Distance', value: `${fr(stats.pogo_distance)} km`, inline: true });

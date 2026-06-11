@@ -5,6 +5,7 @@ import { AttachmentBuilder, Events } from 'discord.js';
 import { config } from '../config.js';
 import { JOIN_BUTTON_ID } from '../embeds/classement.js';
 import { buildPogoStatsEmbed } from '../embeds/pogoStats.js';
+import { applyTeamRole } from './teamRole.js';
 import { extractStats, hasVision } from './visionExtract.js';
 import {
   setClassementOptIn,
@@ -54,7 +55,7 @@ async function onDirectMessage(message) {
 
   await message.channel.sendTyping().catch(() => {});
 
-  const stats = { level: null, levelXp: null, levelXpMax: null, xp: null, pokedex: null, distance: null, pokestops: null };
+  const stats = { level: null, levelXp: null, levelXpMax: null, xp: null, pokedex: null, distance: null, pokestops: null, team: null };
   for (const url of urls) {
     const s = await extractStats(url);
     for (const k of Object.keys(stats)) stats[k] = stats[k] ?? s[k];
@@ -68,6 +69,14 @@ async function onDirectMessage(message) {
   }
 
   await setPogoStats(message.author.id, stats);
+
+  // Sync the team role from the detected colour (exclusive).
+  if (stats.team) {
+    const guild = message.client.guilds.cache.get(config.guildId);
+    const member = guild ? await guild.members.fetch(message.author.id).catch(() => null) : null;
+    if (member) await applyTeamRole(member, stats.team);
+  }
+
   const stored = await getPogoStats(message.author.id);
   const profile = await getPogoProfile(message.author.id);
   await message

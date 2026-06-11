@@ -71,6 +71,14 @@ export const config = {
   presenceGameType: (process.env.PRESENCE_GAME_TYPE || 'playing').toLowerCase(),
   // Online state: online | idle | dnd | invisible.
   presenceStatus: (process.env.PRESENCE_STATUS || 'online').toLowerCase(),
+  // --- Pokémon GO team roles (detected from the level/XP colour on screenshots) ---
+  // Assigned automatically (and kept exclusive) on verification or stats update.
+  // Empty = no auto role for that team.
+  teamRoles: {
+    mystic: process.env.TEAM_ROLE_MYSTIC || '', // Sagesse (bleu)
+    valor: process.env.TEAM_ROLE_VALOR || '', // Bravoure (rouge)
+    instinct: process.env.TEAM_ROLE_INSTINCT || '', // Intuition (jaune)
+  },
   // --- Monthly PoGo classement ---
   // Role synced with classement participation (assigned on opt-in / via the
   // participation embed button). Empty = opt-in is tracked in the DB only.

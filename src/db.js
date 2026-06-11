@@ -35,6 +35,7 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS pogo_pokedex      INT,
       ADD COLUMN IF NOT EXISTS pogo_distance     NUMERIC(10,1),
       ADD COLUMN IF NOT EXISTS pogo_pokestops    BIGINT,
+      ADD COLUMN IF NOT EXISTS pogo_team         TEXT,
       ADD COLUMN IF NOT EXISTS classement        BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS stats_updated_at  TIMESTAMPTZ;
   `);
@@ -108,17 +109,17 @@ export async function getPogoProfile(discordId) {
  * When a new level is read, its progress-bar pair (levelXp/levelXpMax) is stored
  * with it; when the level isn't on the screenshot, all three keep their values.
  * @param {string} discordId
- * @param {{ level?, levelXp?, levelXpMax?, xp?, pokedex?, distance?, pokestops? }} stats
+ * @param {{ level?, levelXp?, levelXpMax?, xp?, pokedex?, distance?, pokestops?, team? }} stats
  */
 export async function setPogoStats(
   discordId,
-  { level = null, levelXp = null, levelXpMax = null, xp = null, pokedex = null, distance = null, pokestops = null },
+  { level = null, levelXp = null, levelXpMax = null, xp = null, pokedex = null, distance = null, pokestops = null, team = null },
 ) {
   if (!pool) return;
   await pool.query(
     `INSERT INTO pogo_profiles
-       (discord_id, pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, stats_updated_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())
+       (discord_id, pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, pogo_team, stats_updated_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())
      ON CONFLICT (discord_id) DO UPDATE SET
        pogo_level        = COALESCE(EXCLUDED.pogo_level, pogo_profiles.pogo_level),
        pogo_level_xp     = COALESCE(EXCLUDED.pogo_level_xp, pogo_profiles.pogo_level_xp),
@@ -127,20 +128,21 @@ export async function setPogoStats(
        pogo_pokedex      = COALESCE(EXCLUDED.pogo_pokedex, pogo_profiles.pogo_pokedex),
        pogo_distance     = COALESCE(EXCLUDED.pogo_distance, pogo_profiles.pogo_distance),
        pogo_pokestops    = COALESCE(EXCLUDED.pogo_pokestops, pogo_profiles.pogo_pokestops),
+       pogo_team         = COALESCE(EXCLUDED.pogo_team, pogo_profiles.pogo_team),
        stats_updated_at  = now(),
        updated_at        = now()`,
-    [discordId, level, levelXp, levelXpMax, xp, pokedex, distance, pokestops],
+    [discordId, level, levelXp, levelXpMax, xp, pokedex, distance, pokestops, team],
   );
 }
 
 /**
  * @returns {Promise<{ pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp,
- *   pogo_pokedex, pogo_distance, pogo_pokestops } | null>}
+ *   pogo_pokedex, pogo_distance, pogo_pokestops, pogo_team } | null>}
  */
 export async function getPogoStats(discordId) {
   if (!pool) return null;
   const { rows } = await pool.query(
-    `SELECT pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops
+    `SELECT pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, pogo_team
      FROM pogo_profiles WHERE discord_id = $1`,
     [discordId],
   );

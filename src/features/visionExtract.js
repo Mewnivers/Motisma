@@ -43,9 +43,10 @@ const STATS_PROMPT = [
   '- "caught" : "Pokémon capturés" / "Pokémon attrapés" (un entier).',
   '- "distance_km" : "Distance parcourue" / "Distance marchée" en kilomètres (un nombre décimal, ex. "376,3 km" → 376.3).',
   '- "pokestops" : "PokéStops visités" (un entier).',
+  '- "team" : la COULEUR du numéro de niveau et de la barre de progression indique l’équipe. BLEU → "mystic", ROUGE → "valor", JAUNE/OR → "instinct". Si la couleur est indéterminée ou absente, mets "".',
   'Ignore les séparateurs de milliers (espaces, points, virgules). La virgule décimale du km devient un point.',
-  'Réponds STRICTEMENT en JSON : {"level": number, "level_xp_current": number, "level_xp_needed": number, "total_xp": number, "caught": number, "distance_km": number, "pokestops": number}.',
-  'Mets 0 (ou 0.0 pour la distance) pour toute valeur que tu ne vois pas. N’invente jamais une valeur.',
+  'Réponds STRICTEMENT en JSON : {"level": number, "level_xp_current": number, "level_xp_needed": number, "total_xp": number, "caught": number, "distance_km": number, "pokestops": number, "team": string}.',
+  'Mets 0 (ou 0.0 pour la distance, "" pour team) pour toute valeur que tu ne vois pas. N’invente jamais une valeur.',
 ].join('\n');
 
 /** Fetch an image URL and return { data: base64, mimeType }. */
@@ -94,7 +95,10 @@ const EMPTY_STATS = {
   pokedex: null,
   distance: null,
   pokestops: null,
+  team: null,
 };
+
+const TEAMS = new Set(['mystic', 'valor', 'instinct']);
 
 // Strip thousands separators (spaces/dots) and round to an integer > 0, else null.
 function toInt(v) {
@@ -148,6 +152,7 @@ export async function extractStats(imageUrl) {
       pokedex: toInt(parsed.caught),
       distance: toKm(parsed.distance_km),
       pokestops: toInt(parsed.pokestops),
+      team: TEAMS.has(String(parsed.team ?? '').toLowerCase()) ? String(parsed.team).toLowerCase() : null,
     };
   } catch (error) {
     console.error('[vision] Stats extraction failed:', error);

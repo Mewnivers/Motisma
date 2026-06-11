@@ -1,9 +1,13 @@
 import { Events, PermissionFlagsBits } from 'discord.js';
 import { config } from '../config.js';
 import { sendWelcome } from './welcome.js';
-import { extractProfile, hasVision } from './visionExtract.js';
-import { setPogoIgn, setPogoFriendCode } from '../db.js';
+import { extractProfile, extractStats, hasVision } from './visionExtract.js';
+import { applyTeamRole, TEAMS } from './teamRole.js';
+import { setPogoIgn, setPogoFriendCode, setPogoStats } from '../db.js';
 import { formatFriendCode } from '../commands/set-pogo.js';
+
+const STAT_KEYS = ['level', 'levelXp', 'levelXpMax', 'xp', 'pokedex', 'distance', 'pokestops', 'team'];
+const emptyStats = () => Object.fromEntries(STAT_KEYS.map((k) => [k, null]));
 
 /**
  * Newcomer verification flow (reaction-based, 2 screenshots supported):
@@ -37,7 +41,9 @@ function imageUrls(message) {
 async function updateDetection(channel, rec) {
   const namePart = rec.name ? `**${rec.name}**` : '❔';
   const codePart = rec.code ? `**${formatFriendCode(rec.code)}**` : '❔';
-  const content = `🔎 Pseudo : ${namePart} · Code ami : ${codePart}\nUn modo valide avec ${VALIDATE}.`;
+  const team = TEAMS[rec.stats.team];
+  const teamPart = team ? ` · Équipe : ${team.emoji} **${team.label}**` : '';
+  const content = `🔎 Pseudo : ${namePart} · Code ami : ${codePart}${teamPart}\nUn modo valide avec ${VALIDATE}.`;
   if (rec.detection) await rec.detection.edit(content).catch(() => {});
   else rec.detection = await channel.send(content).catch(() => null);
 }
@@ -63,7 +69,7 @@ async function onMessage(message) {
 
   let rec = reviews.get(member.id);
   if (!rec) {
-    rec = { name: null, code: null, photoMsgIds: new Set(), detection: null };
+    rec = { name: null, code: null, stats: emptyStats(), photoMsgIds: new Set(), detection: null };
     reviews.set(member.id, rec);
   }
   rec.photoMsgIds.add(message.id);
@@ -73,10 +79,14 @@ async function onMessage(message) {
 
   if (hasVision()) {
     for (const url of urls) {
-      if (rec.name && rec.code) break;
-      const { trainerName, friendCode } = await extractProfile(url);
-      if (!rec.name && trainerName) rec.name = trainerName;
-      if (!rec.code && friendCode) rec.code = friendCode;
+      if (!rec.name || !rec.code) {
+        const { trainerName, friendCode } = await extractProfile(url);
+        if (!rec.name && trainerName) rec.name = trainerName;
+        if (!rec.code && friendCode) rec.code = friendCode;
+      }
+      // Read stats + team from the profile screenshot (team = level/XP colour).
+      const s = await extractStats(url);
+      for (const k of STAT_KEYS) rec.stats[k] = rec.stats[k] ?? s[k];
     }
     await updateDetection(message.channel, rec);
   }
@@ -139,12 +149,15 @@ async function onReaction(reaction, user) {
 
   let name = rec?.name ?? null;
   let code = rec?.code ?? null;
-  if (hasVision() && (!name || !code)) {
+  const stats = rec?.stats ?? emptyStats();
+  if (hasVision() && (!name || !code || !stats.team)) {
     for (const url of imageUrls(message)) {
-      if (name && code) break;
+      if (name && code && stats.team) break;
       const p = await extractProfile(url);
       name = name || p.trainerName;
       code = code || p.friendCode;
+      const s = await extractStats(url);
+      for (const k of STAT_KEYS) stats[k] = stats[k] ?? s[k];
     }
   }
 
@@ -162,6 +175,14 @@ async function onReaction(reaction, user) {
     );
   }
 
+  // Store the read stats and assign the team role (exclusive) automatically.
+  if (STAT_KEYS.some((k) => stats[k] != null)) {
+    await setPogoStats(target.id, stats).catch((e) =>
+      console.error('[verification] Failed to store stats:', e?.message ?? e),
+    );
+  }
+  const teamAssigned = stats.team ? await applyTeamRole(target, stats.team, `Validé par ${user.tag}`) : false;
+
   // Clean up: delete the screenshots and the detection message.
   const photoIds = rec ? [...rec.photoMsgIds] : [message.id];
   for (const id of photoIds) await channel.messages.delete(id).catch(() => {});
@@ -171,6 +192,7 @@ async function onReaction(reaction, user) {
   const bits = [];
   if (name) bits.push(`pseudo **${name}**`);
   if (code) bits.push(`code ami **${formatFriendCode(code)}**`);
+  if (teamAssigned && TEAMS[stats.team]) bits.push(`équipe ${TEAMS[stats.team].emoji} **${TEAMS[stats.team].label}**`);
   const suffix = bits.length ? ` (${bits.join(' · ')})` : '';
   const confirm = await channel
     .send(`${VALIDATE} ${target} a été validé par ${user}.${suffix}`)

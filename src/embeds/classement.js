@@ -16,12 +16,12 @@ export function buildClassementEmbed() {
     .setThumbnail('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png')
     .setDescription(
       [
-        '### Et si on savait enfin qui est le meilleur dresseur de Pau ? 👀',
+        '### Et si on savait enfin qui est le meilleur dresseur de Pau ?',
         '',
         'Chaque mois, la communauté se compare sur plusieurs tableaux :',
-        '> ⭐ **Niveau** · ✨ **XP totale** · 🔴 **Captures** · 👟 **Distance** · 🛑 **PokéStops**',
+        '> **Niveau** · **XP totale** · **Captures** · **Distance** · **PokéStops**',
         '',
-        'Que tu sois lvl 50 ou en pleine montée, **ta place t’attend**. 🚀',
+        'Que tu sois lvl 50 ou en pleine montée, **ta place t’attend**.',
       ].join('\n'),
     )
     .addFields(
@@ -31,7 +31,7 @@ export function buildClassementEmbed() {
       },
       {
         name: '📸  Zéro saisie, juste une capture',
-        value: 'Envoie-moi en MP une **photo de ton profil** : je lis ton niveau, ton XP, tes captures, ta distance et tes PokéStops **automatiquement**. Magique. ✨',
+        value: 'Envoie-moi en MP une **photo de ton profil** : je lis ton niveau, ton XP, tes captures, ta distance et tes PokéStops **automatiquement**.',
       },
       {
         name: '🔔  On s’occupe du reste',
