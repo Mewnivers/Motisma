@@ -39,7 +39,7 @@ function imageUrls(message) {
     .map((a) => a.url);
 }
 
-const STAT_FIELDS = ['level', 'levelXp', 'levelXpMax', 'xp', 'pokedex', 'distance', 'pokestops', 'team'];
+const STAT_FIELDS = ['level', 'levelXp', 'levelXpMax', 'xp', 'pokedex', 'distance', 'pokestops', 'eggs', 'team'];
 const fr = (n) => Number(n).toLocaleString('fr-FR');
 
 // In Pokémon GO these counters only ever grow, so a value LOWER than the one we
@@ -54,6 +54,7 @@ const REGRESSION_CHECKS = [
   ['captures', 'pogo_pokedex', 'pokedex', 5, 0.01],
   ['distance', 'pogo_distance', 'distance', 1, 0.01],
   ['PokéStops', 'pogo_pokestops', 'pokestops', 5, 0.01],
+  ['œufs éclos', 'pogo_eggs', 'eggs', 5, 0.01],
 ];
 
 function statRegressions(prev, stats) {
@@ -186,6 +187,7 @@ const REMINDER_TEXT = [
   'Salut ! C’est le moment de rafraîchir tes stats pour le classement de la communauté de Pau.',
   '',
   '📸 **Réponds à ce message avec une capture de ton profil** (niveau, Total XP, Pokémon capturés, distance, PokéStops) et je m’occupe du reste.',
+  '⚠️ Pense à **fermer le bandeau des récompenses** pour bien voir tes stats, et ajoute une capture de ton **badge « Œufs éclos »** 🥚 (médaille Éleveur) si tu veux mettre à jour ce compteur.',
   '',
   'Pas envie ce mois-ci ? Ignore simplement ce message. Pour quitter le classement : `/classement-pogo quitter`.',
 ].join('\n');
@@ -229,10 +231,15 @@ const ONBOARDING_TEXT = [
   '• 🔴 tes **Pokémon capturés**',
   '• 👟 ta **distance parcourue**',
   '• 🛑 tes **PokéStops visités**',
+  '• 🥚 tes **œufs éclos**',
   '',
   '📸 **Où trouver l’écran ?** Dans le jeu, touche ton **avatar en bas à gauche**, puis l’onglet où s’affichent tes statistiques (distance, captures, PokéStops, Total XP). Une capture nette suffit — **exemple ci-dessous** 👇',
   '',
-  'Tu peux m’envoyer une nouvelle capture quand tu veux pour te mettre à jour. Pour quitter le classement : `/classement-pogo quitter`.',
+  '⚠️ **Pense à fermer le bandeau des récompenses** (en bas de l’écran) pour qu’il ne cache pas tes statistiques.',
+  '',
+  '🥚 **Pour les œufs éclos**, envoie aussi une capture de ton **badge « Œufs éclos »** (médaille Éleveur) : touche ton avatar → onglet **Médailles**.',
+  '',
+  'Tu peux m’envoyer une ou plusieurs captures quand tu veux pour te mettre à jour. Pour quitter le classement : `/classement-pogo quitter`.',
 ].join('\n');
 
 // Example screenshots attached to the onboarding DM: the shared profile example

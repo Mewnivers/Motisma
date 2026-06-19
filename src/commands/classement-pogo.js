@@ -13,6 +13,7 @@ const STATS = {
   pokedex: { column: 'pogo_pokedex', label: 'Pokémon capturés', emoji: '🔴', fmt: (v) => `**${fr(v)}** capturés` },
   distance: { column: 'pogo_distance', label: 'Distance parcourue', emoji: '👟', fmt: (v) => `**${fr(v)}** km` },
   pokestops: { column: 'pogo_pokestops', label: 'PokéStops visités', emoji: '🛑', fmt: (v) => `**${fr(v)}** PokéStops` },
+  eggs: { column: 'pogo_eggs', label: 'Œufs éclos', emoji: '🥚', fmt: (v) => `**${fr(v)}** œufs éclos` },
 };
 
 export const data = new SlashCommandBuilder()
@@ -32,6 +33,7 @@ export const data = new SlashCommandBuilder()
             { name: 'Pokémon capturés', value: 'pokedex' },
             { name: 'Distance parcourue', value: 'distance' },
             { name: 'PokéStops visités', value: 'pokestops' },
+            { name: 'Œufs éclos', value: 'eggs' },
           ),
       ),
   )

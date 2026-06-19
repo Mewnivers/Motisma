@@ -35,6 +35,7 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS pogo_pokedex      INT,
       ADD COLUMN IF NOT EXISTS pogo_distance     NUMERIC(10,1),
       ADD COLUMN IF NOT EXISTS pogo_pokestops    BIGINT,
+      ADD COLUMN IF NOT EXISTS pogo_eggs         BIGINT,
       ADD COLUMN IF NOT EXISTS pogo_team         TEXT,
       ADD COLUMN IF NOT EXISTS classement        BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS stats_updated_at  TIMESTAMPTZ;
@@ -113,13 +114,13 @@ export async function getPogoProfile(discordId) {
  */
 export async function setPogoStats(
   discordId,
-  { level = null, levelXp = null, levelXpMax = null, xp = null, pokedex = null, distance = null, pokestops = null, team = null },
+  { level = null, levelXp = null, levelXpMax = null, xp = null, pokedex = null, distance = null, pokestops = null, eggs = null, team = null },
 ) {
   if (!pool) return;
   await pool.query(
     `INSERT INTO pogo_profiles
-       (discord_id, pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, pogo_team, stats_updated_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())
+       (discord_id, pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, pogo_eggs, pogo_team, stats_updated_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now(), now())
      ON CONFLICT (discord_id) DO UPDATE SET
        pogo_level        = COALESCE(EXCLUDED.pogo_level, pogo_profiles.pogo_level),
        pogo_level_xp     = COALESCE(EXCLUDED.pogo_level_xp, pogo_profiles.pogo_level_xp),
@@ -128,10 +129,11 @@ export async function setPogoStats(
        pogo_pokedex      = COALESCE(EXCLUDED.pogo_pokedex, pogo_profiles.pogo_pokedex),
        pogo_distance     = COALESCE(EXCLUDED.pogo_distance, pogo_profiles.pogo_distance),
        pogo_pokestops    = COALESCE(EXCLUDED.pogo_pokestops, pogo_profiles.pogo_pokestops),
+       pogo_eggs         = COALESCE(EXCLUDED.pogo_eggs, pogo_profiles.pogo_eggs),
        pogo_team         = COALESCE(EXCLUDED.pogo_team, pogo_profiles.pogo_team),
        stats_updated_at  = now(),
        updated_at        = now()`,
-    [discordId, level, levelXp, levelXpMax, xp, pokedex, distance, pokestops, team],
+    [discordId, level, levelXp, levelXpMax, xp, pokedex, distance, pokestops, eggs, team],
   );
 }
 
@@ -142,7 +144,7 @@ export async function setPogoStats(
 export async function getPogoStats(discordId) {
   if (!pool) return null;
   const { rows } = await pool.query(
-    `SELECT pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, pogo_team
+    `SELECT pogo_level, pogo_level_xp, pogo_level_xp_max, pogo_xp, pogo_pokedex, pogo_distance, pogo_pokestops, pogo_eggs, pogo_team
      FROM pogo_profiles WHERE discord_id = $1`,
     [discordId],
   );
@@ -156,7 +158,7 @@ export async function resetPogoStats(discordId) {
     `UPDATE pogo_profiles SET
        pogo_level = NULL, pogo_level_xp = NULL, pogo_level_xp_max = NULL,
        pogo_xp = NULL, pogo_pokedex = NULL, pogo_distance = NULL,
-       pogo_pokestops = NULL, pogo_team = NULL, stats_updated_at = NULL,
+       pogo_pokestops = NULL, pogo_eggs = NULL, pogo_team = NULL, stats_updated_at = NULL,
        updated_at = now()
      WHERE discord_id = $1`,
     [discordId],
@@ -219,7 +221,7 @@ export async function classementParticipantIds() {
  */
 export async function topPogoStat(column, limit = 10) {
   if (!pool) return [];
-  const allowed = { pogo_level: 1, pogo_xp: 1, pogo_pokedex: 1, pogo_distance: 1, pogo_pokestops: 1 };
+  const allowed = { pogo_level: 1, pogo_xp: 1, pogo_pokedex: 1, pogo_distance: 1, pogo_pokestops: 1, pogo_eggs: 1 };
   if (!allowed[column]) throw new Error(`Invalid stat column: ${column}`);
   const { rows } = await pool.query(
     `SELECT discord_id, ${column} AS value

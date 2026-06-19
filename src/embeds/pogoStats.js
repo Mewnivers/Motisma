@@ -51,6 +51,7 @@ export function buildPogoStatsEmbed(user, ign, stats) {
   if (stats.pogo_pokedex != null) fields.push({ name: '🔴 Pokémon capturés', value: fr(stats.pogo_pokedex), inline: true });
   if (stats.pogo_distance != null) fields.push({ name: '👟 Distance', value: `${fr(stats.pogo_distance)} km`, inline: true });
   if (stats.pogo_pokestops != null) fields.push({ name: '🛑 PokéStops visités', value: fr(stats.pogo_pokestops), inline: true });
+  if (stats.pogo_eggs != null) fields.push({ name: '🥚 Œufs éclos', value: fr(stats.pogo_eggs), inline: true });
   if (fields.length) embed.addFields(fields);
 
   embed.setFooter({ text: 'Classement : /classement-pogo voir' });

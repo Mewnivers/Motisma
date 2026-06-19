@@ -12,11 +12,20 @@ export function hasVision() {
 }
 
 const PROMPT = [
-  'Regarde cette capture d’écran Pokémon GO. Extrais, uniquement s’ils sont visibles :',
-  '- le nom de dresseur (le pseudo affiché),',
-  '- le code ami (un nombre à 12 chiffres, parfois écrit "1234 5678 9012").',
+  'Tu lis une capture d’écran Pokémon GO (écran de profil ou "Ajouter un ami"). Extrais avec le plus grand soin :',
+  '- "trainer_name" : le PSEUDO du dresseur. Sur le profil, c’est le grand texte EN HAUT, au-dessus du niveau et à côté de l’avatar. Sur l’écran "Ajouter un ami", c’est le nom affiché juste au-dessus du code ami. Transcris-le EXACTEMENT, caractère par caractère : respecte majuscules/minuscules, accents, chiffres et symboles. Ne traduis pas, n’invente pas, n’ajoute aucun espace. Même si l’image est floue, sombre ou de faible qualité, fais de ton mieux pour le déchiffrer.',
+  '- "friend_code" : le code ami à 12 chiffres (souvent écrit "1234 5678 9012").',
   'Réponds STRICTEMENT en JSON : {"trainer_name": string, "friend_code": string}.',
-  'Mets une chaîne vide pour toute valeur absente de l’image.',
+  'Mets une chaîne vide UNIQUEMENT si la valeur est réellement absente ou totalement illisible.',
+].join('\n');
+
+// Used as a second pass when the first read returns no name: insist on the
+// pseudo alone (Gemini is non-deterministic, a focused retry often gets it).
+const NAME_RETRY_PROMPT = [
+  'Cette capture d’écran Pokémon GO contient le PSEUDO d’un dresseur, mais il est peut-être petit, flou ou peu contrasté.',
+  'Concentre-toi UNIQUEMENT sur ce pseudo : le grand texte en haut du profil (au-dessus du niveau, à côté de l’avatar), ou le nom au-dessus du code ami sur l’écran "Ajouter un ami".',
+  'Lis-le caractère par caractère et transcris-le EXACTEMENT (majuscules, accents, chiffres et symboles compris). Ne le laisse vide que s’il n’y a vraiment aucun pseudo visible.',
+  'Réponds STRICTEMENT en JSON : {"trainer_name": string, "friend_code": string}.',
 ].join('\n');
 
 // Gemini's free tier occasionally returns 503/429 under load — retry transient errors.
@@ -43,7 +52,8 @@ const STATS_PROMPT = [
   '- "caught" : "Pokémon capturés" / "Pokémon attrapés" (un entier).',
   '- "distance_km" : "Distance parcourue" / "Distance marchée" en kilomètres (un nombre décimal, ex. "376,3 km" → 376.3).',
   '- "pokestops" : "PokéStops visités" (un entier).',
-  '- "team" : la COULEUR du numéro de niveau et de la barre de progression indique l’équipe. BLEU → "mystic", ROUGE → "valor", JAUNE/OR → "instinct". Si la couleur est indéterminée ou absente, mets "".',
+  '- "eggs_hatched" : le nombre total d’ŒUFS ÉCLOS, visible sur le badge/médaille "Œufs éclos" (médaille Éleveur) ou dans les statistiques. Un entier.',
+  '- "team" : l’ÉQUIPE du joueur. Indices, dans l’ordre : (a) la couleur du numéro de niveau et de la barre de progression — BLEU → "mystic", ROUGE → "valor", JAUNE → "instinct". (b) ATTENTION : aux niveaux élevés (40+), cet anneau/barre devient DORÉ ou argenté (prestige) — ce n’est PAS la couleur de l’équipe, ne le prends pas pour du jaune Intuition. Dans ce cas, fie-toi à l’emblème d’équipe ou à tout autre élément nettement coloré : Sagesse/mystic = BLEU (oiseau Artikodin), Bravoure/valor = ROUGE (Sulfura), Intuition/instinct = JAUNE (Électhor). Réponds "mystic", "valor" ou "instinct" ; si vraiment indéterminable, mets "".',
   'Ignore les séparateurs de milliers (espaces, points, virgules). La virgule décimale du km devient un point.',
   '',
   'AUTHENTICITÉ — ne signale QUE les fraudes ÉVIDENTES. Une capture de téléphone est presque toujours compressée (JPEG) : le flou léger, le bruit, les artefacts de compression autour du texte, la faible résolution et les espaces séparateurs de milliers sont NORMAUX et ne sont JAMAIS de la retouche.',
@@ -51,7 +61,7 @@ const STATS_PROMPT = [
   '- "tampering_suspected" : true UNIQUEMENT si un nombre a visiblement été RÉÉCRIT ou COLLÉ : police nettement différente du reste de l’interface, chiffres d’une autre taille/couleur que les libellés voisins, rectangle de fond collé derrière un nombre, chiffres qui se chevauchent ou clairement désalignés. Si l’image est simplement floue, compressée ou de mauvaise qualité, ce n’est PAS de la retouche. En cas de doute, mets TOUJOURS false.',
   '- "tampering_reason" : si (et seulement si) tampering_suspected vaut true, une courte explication précise en français (ex. "le Total XP est dans une police différente du reste"). Sinon "".',
   '',
-  'Réponds STRICTEMENT en JSON : {"level": number, "level_xp_current": number, "level_xp_needed": number, "total_xp": number, "caught": number, "distance_km": number, "pokestops": number, "team": string, "is_pogo_screenshot": boolean, "tampering_suspected": boolean, "tampering_reason": string}.',
+  'Réponds STRICTEMENT en JSON : {"level": number, "level_xp_current": number, "level_xp_needed": number, "total_xp": number, "caught": number, "distance_km": number, "pokestops": number, "eggs_hatched": number, "team": string, "is_pogo_screenshot": boolean, "tampering_suspected": boolean, "tampering_reason": string}.',
   'Mets 0 (ou 0.0 pour la distance, "" pour team) pour toute valeur que tu ne vois pas. N’invente jamais une valeur.',
 ].join('\n');
 
@@ -63,8 +73,26 @@ async function fetchImage(imageUrl) {
   return { data, mimeType };
 }
 
+/** One Gemini pass for the name + friend code with the given prompt. */
+async function readProfile(data, mimeType, prompt) {
+  const response = await generateWithRetry({
+    model: config.visionModel,
+    contents: [{ inlineData: { mimeType, data } }, { text: prompt }],
+    config: { responseMimeType: 'application/json' },
+  });
+  const text = response?.text;
+  if (!text) return { trainerName: null, friendCode: null };
+  const parsed = JSON.parse(text);
+  const trainerName = String(parsed.trainer_name ?? '').trim() || null;
+  const digits = String(parsed.friend_code ?? '').replace(/\D/g, '');
+  const friendCode = digits.length === 12 ? digits : null;
+  return { trainerName, friendCode };
+}
+
 /**
  * Extract the trainer name and/or 12-digit friend code from a screenshot.
+ * If the name doesn't come through, a second insistent pass is attempted so a
+ * low-quality screenshot still gets read (the name is critical for validation).
  * @param {string} imageUrl  publicly fetchable image URL (e.g. a Discord attachment)
  * @returns {Promise<{ trainerName: string|null, friendCode: string|null }>}
  */
@@ -73,20 +101,15 @@ export async function extractProfile(imageUrl) {
 
   try {
     const { data, mimeType } = await fetchImage(imageUrl);
-    const response = await generateWithRetry({
-      model: config.visionModel,
-      contents: [{ inlineData: { mimeType, data } }, { text: PROMPT }],
-      config: { responseMimeType: 'application/json' },
-    });
+    let result = await readProfile(data, mimeType, PROMPT);
 
-    const text = response.text;
-    if (!text) return { trainerName: null, friendCode: null };
-
-    const parsed = JSON.parse(text);
-    const trainerName = String(parsed.trainer_name ?? '').trim() || null;
-    const digits = String(parsed.friend_code ?? '').replace(/\D/g, '');
-    const friendCode = digits.length === 12 ? digits : null;
-    return { trainerName, friendCode };
+    if (!result.trainerName) {
+      const retry = await readProfile(data, mimeType, NAME_RETRY_PROMPT).catch(() => null);
+      if (retry?.trainerName) {
+        result = { trainerName: retry.trainerName, friendCode: result.friendCode ?? retry.friendCode };
+      }
+    }
+    return result;
   } catch (error) {
     console.error('[vision] Profile extraction failed:', error);
     return { trainerName: null, friendCode: null };
@@ -105,6 +128,7 @@ const EMPTY_STATS = {
   pokedex: null,
   distance: null,
   pokestops: null,
+  eggs: null,
   team: null,
   authenticity: TRUSTED,
 };
@@ -160,9 +184,12 @@ export async function extractStats(imageUrl) {
     // Deterministic sanity checks: some values are physically impossible in
     // Pokémon GO, so they prove the image was edited no matter what the AI
     // tampering analysis concludes. (Trainer level caps at 80; a margin is kept.)
+    // NB: from level 75+, the XP can legitimately EXCEED the level's threshold —
+    // levelling up also requires finishing tasks (the "1/4" steps icon) — so the
+    // XP-overflow check only applies below level 75.
     let sanityReason = null;
     if (lvl != null && lvl > 85) sanityReason = `niveau impossible (${lvl})`;
-    else if (xpCur != null && xpMax != null && xpCur > xpMax)
+    else if (lvl != null && lvl < 75 && xpCur != null && xpMax != null && xpCur > xpMax)
       sanityReason = 'barre d’XP incohérente (XP du niveau supérieure au palier requis)';
 
     const llmSuspected = parsed.tampering_suspected === true;
@@ -177,6 +204,7 @@ export async function extractStats(imageUrl) {
       pokedex: toInt(parsed.caught),
       distance: toKm(parsed.distance_km),
       pokestops: toInt(parsed.pokestops),
+      eggs: toInt(parsed.eggs_hatched),
       team: TEAMS.has(String(parsed.team ?? '').toLowerCase()) ? String(parsed.team).toLowerCase() : null,
       authenticity: {
         // Default to genuine unless the model explicitly says otherwise.

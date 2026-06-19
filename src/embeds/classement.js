@@ -19,7 +19,7 @@ export function buildClassementEmbed() {
         '### Et si on savait enfin qui est le meilleur dresseur de Pau ?',
         '',
         'Chaque mois, la communauté se compare sur plusieurs tableaux :',
-        '> **Niveau** · **XP totale** · **Captures** · **Distance** · **PokéStops**',
+        '> **Niveau** · **XP totale** · **Captures** · **Distance** · **PokéStops** · **Œufs éclos**',
         '',
         'Que tu sois lvl 50 ou en pleine montée, **ta place t’attend**.',
       ].join('\n'),
@@ -31,7 +31,7 @@ export function buildClassementEmbed() {
       },
       {
         name: '📸  Zéro saisie, juste une capture',
-        value: 'Envoie-moi en MP une **photo de ton profil** : je lis ton niveau, ton XP, tes captures, ta distance et tes PokéStops **automatiquement**.',
+        value: 'Envoie-moi en MP une **photo de ton profil** (pense à fermer le bandeau des récompenses) et une de ton **badge Œufs éclos** : je lis tout **automatiquement**.',
       },
       {
         name: '🔔  On s’occupe du reste',
