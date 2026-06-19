@@ -6,7 +6,7 @@ import { applyTeamRole, TEAMS } from './teamRole.js';
 import { setPogoIgn, setPogoFriendCode, setPogoStats } from '../db.js';
 import { formatFriendCode } from '../commands/set-pogo.js';
 
-const STAT_KEYS = ['level', 'levelXp', 'levelXpMax', 'xp', 'pokedex', 'distance', 'pokestops', 'team'];
+const STAT_KEYS = ['level', 'levelXp', 'levelXpMax', 'xp', 'pokedex', 'distance', 'pokestops', 'eggs', 'team'];
 const emptyStats = () => Object.fromEntries(STAT_KEYS.map((k) => [k, null]));
 
 /**
@@ -80,14 +80,17 @@ async function onMessage(message) {
   if (hasVision()) {
     let tamperReason = null; // first edit signal found on this message's images
     for (const url of urls) {
-      if (!rec.name || !rec.code) {
-        const { trainerName, friendCode } = await extractProfile(url);
-        if (!rec.name && trainerName) rec.name = trainerName;
-        if (!rec.code && friendCode) rec.code = friendCode;
-      }
+      // Always re-analyse every posted image — the LATEST reading wins — so a
+      // corrected re-upload actually updates the detection (not just re-reacts).
+      // A value only overrides a previous one when it's actually read (non-null),
+      // so the two-screenshot flow (name, then friend code) still accumulates.
+      const { trainerName, friendCode } = await extractProfile(url);
+      if (trainerName) rec.name = trainerName;
+      if (friendCode) rec.code = friendCode;
+
       // Read stats + team from the profile screenshot (team = level/XP colour).
       const s = await extractStats(url);
-      for (const k of STAT_KEYS) rec.stats[k] = rec.stats[k] ?? s[k];
+      for (const k of STAT_KEYS) if (s[k] != null) rec.stats[k] = s[k];
       if (s.authenticity?.suspected && !tamperReason) {
         tamperReason = s.authenticity.reason || 'signes de retouche détectés';
       }
