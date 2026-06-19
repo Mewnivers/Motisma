@@ -1,16 +1,57 @@
-import { ChannelType, Events, PermissionFlagsBits } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ChannelType,
+  Events,
+  PermissionFlagsBits,
+  StringSelectMenuBuilder,
+} from 'discord.js';
 
 /**
- * Handles the channel-select that follows the "Déplacer" context-menu command.
- * "Moves" a message by re-posting it in the target channel via a webhook
- * (mimicking the original author), then deleting the original.
- *
- * The bot needs: Manage Webhooks in the target channel, Manage Messages in the
- * source channel. Reactions/edit history are not carried over.
+ * Handles the "Déplacer" context-menu command in two steps:
+ *  1. A channel-select picks the destination parent (text / announcement /
+ *     forum / media) — see commands/move.js.
+ *  2. If that channel can hold threads, this module lists its open (and recent
+ *     archived) posts/threads itself — fetched server-side, so every open forum
+ *     post shows up, unlike Discord's native thread picker — and lets the mod
+ *     pick the exact post (or the channel root / a new forum post).
+ * The move re-posts the message via a webhook (mimicking the author) then deletes
+ * the original. The bot needs Manage Webhooks on the target + Manage Messages on
+ * the source. Reactions/edit history are not carried over.
  */
-async function onSelect(interaction) {
-  if (!interaction.isChannelSelectMenu() || !interaction.customId.startsWith('move:')) return;
+const FORUM_TYPES = new Set([ChannelType.GuildForum, ChannelType.GuildMedia]);
+const THREADED_TYPES = new Set([
+  ChannelType.GuildText,
+  ChannelType.GuildAnnouncement,
+  ChannelType.GuildForum,
+  ChannelType.GuildMedia,
+]);
 
+// Active + recent archived (public) threads of a channel, deduped, capped at 24
+// (Discord allows 25 select options; one is reserved for the channel root).
+async function listThreads(channel, cap = 24) {
+  if (!channel?.threads) return [];
+  const found = new Map();
+  try {
+    const active = await channel.threads.fetchActive();
+    for (const t of active.threads.values()) found.set(t.id, t);
+  } catch {
+    /* ignore */
+  }
+  if (found.size < cap) {
+    try {
+      const archived = await channel.threads.fetchArchived({ type: 'public', limit: 25 });
+      for (const t of archived.threads.values()) if (!found.has(t.id)) found.set(t.id, t);
+    } catch {
+      /* ignore */
+    }
+  }
+  return [...found.values()].slice(0, cap);
+}
+
+// Step 1 result: a parent channel was chosen. Offer its posts/threads, or move
+// straight away for a plain channel with no threads.
+async function onChannelSelect(interaction) {
+  if (!interaction.isChannelSelectMenu() || !interaction.customId.startsWith('move:')) return;
   if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages)) {
     await interaction.reply({ content: 'Réservé aux modérateurs.', ephemeral: true });
     return;
@@ -18,14 +59,75 @@ async function onSelect(interaction) {
 
   const [, srcChannelId, messageId] = interaction.customId.split(':');
   const targetId = interaction.values[0];
+  const target = await interaction.guild.channels.fetch(targetId).catch(() => null);
+  if (!target) {
+    await interaction.update({ content: 'Salon introuvable.', components: [] });
+    return;
+  }
+
+  const isForum = FORUM_TYPES.has(target.type);
+  const threads = THREADED_TYPES.has(target.type) ? await listThreads(target) : [];
+
+  // Plain channel without threads → no second step needed.
+  if (!isForum && !threads.length) {
+    await interaction.deferUpdate();
+    await doMove(interaction, srcChannelId, messageId, target);
+    return;
+  }
+
+  const rootOption = isForum
+    ? { label: 'Nouveau post', value: '__root__', emoji: '📝', description: 'Créer un nouveau post dans le forum' }
+    : { label: `# ${target.name}`, value: '__root__', description: 'Poster directement dans le salon' };
+  const options = [
+    rootOption,
+    ...threads.map((t) => ({
+      label: t.name.slice(0, 100),
+      value: t.id,
+      description: t.archived ? 'post archivé' : 'post ouvert',
+    })),
+  ].slice(0, 25);
+
+  const row = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`movethread:${srcChannelId}:${messageId}:${targetId}`)
+      .setPlaceholder(isForum ? 'Choisis un post (ou un nouveau)' : 'Choisis un fil (ou le salon)')
+      .addOptions(options),
+  );
+  await interaction.update({
+    content: `Destination : **${target.name}** — choisis le post/fil :`,
+    components: [row],
+  });
+}
+
+// Step 2 result: a specific thread/post (or the channel root) was chosen.
+async function onThreadSelect(interaction) {
+  if (!interaction.isStringSelectMenu() || !interaction.customId.startsWith('movethread:')) return;
+  if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages)) {
+    await interaction.reply({ content: 'Réservé aux modérateurs.', ephemeral: true });
+    return;
+  }
+
+  const [, srcChannelId, messageId, targetId] = interaction.customId.split(':');
+  const choice = interaction.values[0];
+  const destId = choice === '__root__' ? targetId : choice;
   await interaction.deferUpdate();
 
+  const dest = await interaction.guild.channels.fetch(destId).catch(() => null);
+  if (!dest) {
+    await interaction.editReply({ content: 'Destination introuvable.', components: [] });
+    return;
+  }
+  await doMove(interaction, srcChannelId, messageId, dest);
+}
+
+// Shared move: webhook-copy the message into `target`, then delete the original.
+// Assumes the interaction has already been deferred/updated.
+async function doMove(interaction, srcChannelId, messageId, target) {
   const guild = interaction.guild;
   const source = await guild.channels.fetch(srcChannelId).catch(() => null);
-  const target = await guild.channels.fetch(targetId).catch(() => null);
   const message = source?.isTextBased() ? await source.messages.fetch(messageId).catch(() => null) : null;
 
-  const isForum = target?.type === ChannelType.GuildForum || target?.type === ChannelType.GuildMedia;
+  const isForum = FORUM_TYPES.has(target?.type);
   if (!message || (!target?.isTextBased() && !isForum)) {
     await interaction.editReply({ content: 'Message ou salon introuvable.', components: [] });
     return;
@@ -92,5 +194,6 @@ async function onSelect(interaction) {
  * @param {import('discord.js').Client} client
  */
 export function registerMoveControls(client) {
-  client.on(Events.InteractionCreate, onSelect);
+  client.on(Events.InteractionCreate, onChannelSelect);
+  client.on(Events.InteractionCreate, onThreadSelect);
 }
