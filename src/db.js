@@ -149,6 +149,41 @@ export async function getPogoStats(discordId) {
   return rows[0] ?? null;
 }
 
+/** Wipe a member's classement stats (keeps their IGN, friend code and opt-in). */
+export async function resetPogoStats(discordId) {
+  if (!pool) return;
+  await pool.query(
+    `UPDATE pogo_profiles SET
+       pogo_level = NULL, pogo_level_xp = NULL, pogo_level_xp_max = NULL,
+       pogo_xp = NULL, pogo_pokedex = NULL, pogo_distance = NULL,
+       pogo_pokestops = NULL, pogo_team = NULL, stats_updated_at = NULL,
+       updated_at = now()
+     WHERE discord_id = $1`,
+    [discordId],
+  );
+}
+
+/** Clear a member's saved in-game name and friend code (keeps stats/opt-in). */
+export async function resetPogoProfile(discordId) {
+  if (!pool) return;
+  await pool.query(
+    'UPDATE pogo_profiles SET ign = NULL, friend_code = NULL, updated_at = now() WHERE discord_id = $1',
+    [discordId],
+  );
+}
+
+/** Delete a member's whole Pokémon GO row (profile + stats + classement opt-in). */
+export async function deletePogoProfile(discordId) {
+  if (!pool) return;
+  await pool.query('DELETE FROM pogo_profiles WHERE discord_id = $1', [discordId]);
+}
+
+/** Reset a member's messaging XP / level to zero. */
+export async function resetXp(discordId) {
+  if (!pool) return;
+  await pool.query('DELETE FROM levels WHERE discord_id = $1', [discordId]);
+}
+
 /** Opt a member in/out of the monthly classement (also marks the row). */
 export async function setClassementOptIn(discordId, optIn) {
   if (!pool) return;
