@@ -15,15 +15,18 @@ export const data = new SlashCommandBuilder()
   .addStringOption((o) =>
     o
       .setName('cas')
-      .setDescription('Type d’exemple à afficher (défaut : ok)')
+      .setDescription('Type d’exemple à afficher (défaut : validé)')
       .addChoices(
-        { name: 'Photo OK', value: 'ok' },
-        { name: 'Photo suspecte', value: 'suspect' },
+        { name: 'Validé', value: 'valide' },
+        { name: 'Validé (photo suspecte)', value: 'suspect' },
+        { name: 'Refusé', value: 'refuse' },
       ),
   );
 
 export async function execute(interaction) {
-  const suspected = interaction.options.getString('cas') === 'suspect';
+  const cas = interaction.options.getString('cas') ?? 'valide';
+  const refused = cas === 'refuse';
+  const suspected = cas === 'suspect';
   const member = interaction.member;
 
   const embed = buildVerificationLogEmbed({
@@ -33,6 +36,7 @@ export async function execute(interaction) {
     team: 'mystic',
     suspected,
     tamperReason: suspected ? 'exemple : niveau incohérent avec l’XP' : null,
+    refused,
   });
 
   const logChannel = config.logChannelId

@@ -49,17 +49,18 @@ async function updateDetection(channel, rec) {
   rec.detection = await channel.send(content).catch(() => null);
 }
 
-// Audit embed for a validated verification: who validated whom, when, the team,
-// and whether the submitted photo was flagged as suspicious.
-export function buildVerificationLogEmbed({ target, mod, name, team, suspected, tamperReason }) {
+// Audit embed for a verification decision: who handled whom, when, the team, and
+// whether the submitted photo was flagged as suspicious. Pastel green if
+// validated, pastel red if refused.
+export function buildVerificationLogEmbed({ target, mod, name, team, suspected, tamperReason, refused = false }) {
   const teamInfo = TEAMS[team];
   return new EmbedBuilder()
-    .setColor(suspected ? 0xe67e22 : 0x2ecc71)
+    .setColor(refused ? 0xe57373 : 0x81c784)
     .setAuthor({ name: target.user.tag, iconURL: target.user.displayAvatarURL() })
-    .setTitle('Vérification validée')
+    .setTitle(refused ? 'Vérification refusée' : 'Vérification validée')
     .addFields(
       { name: 'Membre', value: `${target} · ${target.user.tag}` },
-      { name: 'Validé par', value: `${mod} · ${mod.user.tag}` },
+      { name: refused ? 'Refusé par' : 'Validé par', value: `${mod} · ${mod.user.tag}` },
       { name: 'Pseudo', value: name || '—', inline: true },
       { name: 'Équipe', value: teamInfo ? `${teamInfo.emoji} ${teamInfo.label}` : '—', inline: true },
       {
@@ -177,6 +178,15 @@ async function onReaction(reaction, user) {
   const rec = reviews.get(target.id);
 
   if (emoji === REFUSE) {
+    await sendVerificationLog(message.guild, {
+      target,
+      mod,
+      name: rec?.name ?? null,
+      team: rec?.stats?.team ?? null,
+      suspected: rec?.suspected ?? false,
+      tamperReason: rec?.tamperReason ?? null,
+      refused: true,
+    });
     await rec?.detection?.delete().catch(() => {});
     reviews.delete(target.id);
     await message.reactions.removeAll().catch(() => {});
