@@ -49,18 +49,13 @@ async function updateDetection(channel, rec) {
   rec.detection = await channel.send(content).catch(() => null);
 }
 
-// Post an audit embed to the log channel: who validated whom, when, the team,
-// and whether the submitted photo was flagged as suspicious. No-op if no
-// LOG_CHANNEL_ID is configured.
-async function sendVerificationLog(guild, { target, mod, name, team, suspected, tamperReason }) {
-  if (!config.logChannelId) return;
-  const channel = await guild.channels.fetch(config.logChannelId).catch(() => null);
-  if (!channel?.isTextBased?.()) return;
-
+// Audit embed for a validated verification: who validated whom, when, the team,
+// and whether the submitted photo was flagged as suspicious.
+export function buildVerificationLogEmbed({ target, mod, name, team, suspected, tamperReason }) {
   const teamInfo = TEAMS[team];
-  const embed = new EmbedBuilder()
+  return new EmbedBuilder()
     .setColor(suspected ? 0xe67e22 : 0x2ecc71)
-    .setTitle('✅ Vérification validée')
+    .setTitle('Vérification validée')
     .setThumbnail(target.user.displayAvatarURL())
     .addFields(
       { name: 'Membre', value: `${target} · ${target.user.tag}` },
@@ -69,13 +64,19 @@ async function sendVerificationLog(guild, { target, mod, name, team, suspected, 
       { name: 'Équipe', value: teamInfo ? `${teamInfo.emoji} ${teamInfo.label}` : '—', inline: true },
       {
         name: 'Photo',
-        value: suspected ? `⚠️ Suspecte — ${tamperReason || 'signes de retouche'}` : '✅ Rien à signaler',
+        value: suspected ? `Suspecte — ${tamperReason || 'signes de retouche'}` : 'Rien à signaler',
       },
     )
     .setTimestamp()
     .setFooter({ text: 'Journal de vérification' });
+}
 
-  await channel.send({ embeds: [embed] }).catch((e) =>
+// Post the audit embed to the log channel. No-op if no LOG_CHANNEL_ID is set.
+async function sendVerificationLog(guild, data) {
+  if (!config.logChannelId) return;
+  const channel = await guild.channels.fetch(config.logChannelId).catch(() => null);
+  if (!channel?.isTextBased?.()) return;
+  await channel.send({ embeds: [buildVerificationLogEmbed(data)] }).catch((e) =>
     console.error('[verification] Failed to send the log embed:', e?.message ?? e),
   );
 }
