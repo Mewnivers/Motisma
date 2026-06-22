@@ -13,6 +13,9 @@ import { config } from '../config.js';
 const HUB_ID = config.tempVoiceHubId;
 const PREFIX = '・'; // marks our channels so orphans survive a restart
 
+// Category the temp channels live in: the configured one, else the hub's own.
+const targetCategory = (hub) => config.tempVoiceCategoryId || hub?.parentId || null;
+
 // Owner gets full control over their own channel.
 const OWNER_PERMS = [
   PermissionFlagsBits.ViewChannel,
@@ -34,7 +37,7 @@ const tempChannels = new Set();
 function isTempChannel(channel, hub) {
   if (!channel || channel.id === HUB_ID) return false;
   if (tempChannels.has(channel.id)) return true;
-  return Boolean(hub) && channel.parentId === hub.parentId && channel.name.startsWith(PREFIX);
+  return channel.parentId === targetCategory(hub) && channel.name.startsWith(PREFIX);
 }
 
 async function createForMember(state) {
@@ -46,7 +49,7 @@ async function createForMember(state) {
     channel = await guild.channels.create({
       name: `${PREFIX}${member.displayName}`,
       type: ChannelType.GuildVoice,
-      parent: hub.parentId ?? undefined,
+      parent: targetCategory(hub) ?? undefined,
       reason: `Salon vocal temporaire de ${member.user.tag}`,
     });
   } catch (error) {
@@ -114,7 +117,7 @@ function cleanupOrphans(client) {
     if (
       channel.type === ChannelType.GuildVoice &&
       channel.id !== HUB_ID &&
-      channel.parentId === hub.parentId &&
+      channel.parentId === targetCategory(hub) &&
       channel.name.startsWith(PREFIX) &&
       channel.members.size === 0
     ) {

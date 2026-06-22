@@ -36,6 +36,8 @@ export const config = {
   verificationChannelId: process.env.VERIFICATION_CHANNEL_ID || '',
   // "Join to create" hub voice channel: joining it spawns a personal channel.
   tempVoiceHubId: process.env.TEMP_VOICE_HUB_ID || '',
+  // Category where temp voice channels are created. Empty = same category as the hub.
+  tempVoiceCategoryId: process.env.TEMP_VOICE_CATEGORY_ID || '',
   // Category where /rdv creates its temporary meetup channels.
   rdvCategoryId: process.env.RDV_CATEGORY_ID || '',
   // Channel where /rdv announces newly created meetups.
