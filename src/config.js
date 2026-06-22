@@ -32,6 +32,8 @@ export const config = {
   guildId: required('GUILD_ID'),
   // "Pending" role assigned on join until a moderator validates the newcomer.
   verificationRoleId: process.env.VERIFICATION_ROLE_ID || '',
+  // Member role ("Dresseur") granted once a newcomer is validated. Empty = none.
+  memberRoleId: process.env.MEMBER_ROLE_ID || '',
   // Optional: restrict the verification flow to this channel (else any channel).
   verificationChannelId: process.env.VERIFICATION_CHANNEL_ID || '',
   // "Join to create" hub voice channel: joining it spawns a personal channel.

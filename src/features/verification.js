@@ -207,6 +207,13 @@ async function onReaction(reaction, user) {
     return;
   }
 
+  // Grant the validated "Dresseur" member role.
+  if (config.memberRoleId) {
+    await target.roles.add(config.memberRoleId, `Validé par ${user.tag}`).catch((e) =>
+      console.error('[verification] Failed to add the member role:', e?.message ?? e),
+    );
+  }
+
   let name = rec?.name ?? null;
   let code = rec?.code ?? null;
   const stats = rec?.stats ?? emptyStats();
