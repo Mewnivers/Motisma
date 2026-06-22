@@ -42,8 +42,13 @@ export async function buildPresentationEmbed(interaction) {
         ].join('\n'),
       },
       {
-        name: '🤝 Les ambassadeurs',
-        value: `Tes points de contact : ils animent la communauté, organisent et répondent à tes questions.\n\n${ambassadors}`,
+        name: '🤝 Le staff',
+        value: `Une équipe de passionnés **entretient le serveur au quotidien** pour garder une **ambiance agréable, conviviale et sûre** : animation, organisation des sorties, modération et petits coups de main.\n\n${ambassadors}`,
+      },
+      {
+        name: '❓ Une question ?',
+        value:
+          'Pose-la directement dans les **salons de discussion** : toute la communauté (et le staff) se fera un plaisir de t’aider. Pas besoin de MP ! 😊',
       },
     )
     .setFooter({ text: 'Bon jeu, et à bientôt sur le terrain — Motisma’Pau' });
