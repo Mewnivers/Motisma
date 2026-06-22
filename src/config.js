@@ -44,6 +44,8 @@ export const config = {
   rdvAnnounceChannelId: process.env.RDV_ANNOUNCE_CHANNEL_ID || '',
   // Channel where a welcome message is posted once a newcomer is validated.
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID || '',
+  // Staff log channel for audit embeds (e.g. who validated whom). Empty = no log.
+  logChannelId: process.env.LOG_CHANNEL_ID || '',
   // PostgreSQL connection string. Empty disables DB-backed features.
   databaseUrl: process.env.DATABASE_URL || '',
   // Google Gemini API key (free tier) for reading profile screenshots. Empty disables it.

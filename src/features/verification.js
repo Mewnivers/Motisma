@@ -1,4 +1,4 @@
-import { Events, PermissionFlagsBits } from 'discord.js';
+import { Events, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
 import { config } from '../config.js';
 import { sendWelcome } from './welcome.js';
 import { extractStats, hasVision } from './visionExtract.js';
@@ -40,14 +40,44 @@ function imageUrls(message) {
 
 async function updateDetection(channel, rec) {
   const namePart = rec.name ? `**${rec.name}**` : '❔';
-  const codePart = rec.code ? `**${formatFriendCode(rec.code)}**` : '*non fourni (facultatif)*';
   const team = TEAMS[rec.stats.team];
   const teamPart = team ? ` · Équipe : ${team.emoji} **${team.label}**` : '';
-  const content = `🔎 Pseudo : ${namePart} · Code ami : ${codePart}${teamPart}\nUn modo valide avec ${VALIDATE}.`;
+  const content = `🔎 Pseudo : ${namePart}${teamPart}\nUn modo valide avec ${VALIDATE}.`;
   // Delete the previous detection and repost a fresh one, so the latest reading
   // always sits at the bottom of the channel instead of being edited in place.
   if (rec.detection) await rec.detection.delete().catch(() => {});
   rec.detection = await channel.send(content).catch(() => null);
+}
+
+// Post an audit embed to the log channel: who validated whom, when, the team,
+// and whether the submitted photo was flagged as suspicious. No-op if no
+// LOG_CHANNEL_ID is configured.
+async function sendVerificationLog(guild, { target, mod, name, team, suspected, tamperReason }) {
+  if (!config.logChannelId) return;
+  const channel = await guild.channels.fetch(config.logChannelId).catch(() => null);
+  if (!channel?.isTextBased?.()) return;
+
+  const teamInfo = TEAMS[team];
+  const embed = new EmbedBuilder()
+    .setColor(suspected ? 0xe67e22 : 0x2ecc71)
+    .setTitle('✅ Vérification validée')
+    .setThumbnail(target.user.displayAvatarURL())
+    .addFields(
+      { name: 'Membre', value: `${target} · ${target.user.tag}` },
+      { name: 'Validé par', value: `${mod} · ${mod.user.tag}` },
+      { name: 'Pseudo', value: name || '—', inline: true },
+      { name: 'Équipe', value: teamInfo ? `${teamInfo.emoji} ${teamInfo.label}` : '—', inline: true },
+      {
+        name: 'Photo',
+        value: suspected ? `⚠️ Suspecte — ${tamperReason || 'signes de retouche'}` : '✅ Rien à signaler',
+      },
+    )
+    .setTimestamp()
+    .setFooter({ text: 'Journal de vérification' });
+
+  await channel.send({ embeds: [embed] }).catch((e) =>
+    console.error('[verification] Failed to send the log embed:', e?.message ?? e),
+  );
 }
 
 async function onMemberJoin(member) {
@@ -71,7 +101,7 @@ async function onMessage(message) {
 
   let rec = reviews.get(member.id);
   if (!rec) {
-    rec = { name: null, code: null, stats: emptyStats(), photoMsgIds: new Set(), detection: null };
+    rec = { name: null, code: null, stats: emptyStats(), photoMsgIds: new Set(), detection: null, suspected: false, tamperReason: null };
     reviews.set(member.id, rec);
   }
   rec.photoMsgIds.add(message.id);
@@ -94,6 +124,11 @@ async function onMessage(message) {
       if (s.authenticity?.suspected && !tamperReason) {
         tamperReason = s.authenticity.reason || 'signes de retouche détectés';
       }
+    }
+    // Remember (stickily) if any submitted photo looked doctored, for the log.
+    if (tamperReason) {
+      rec.suspected = true;
+      rec.tamperReason = rec.tamperReason || tamperReason;
     }
     await updateDetection(message.channel, rec);
 
@@ -211,6 +246,15 @@ async function onReaction(reaction, user) {
     .send(`${VALIDATE} ${target} a été validé par ${user}.${suffix}`)
     .catch(() => null);
   if (confirm) setTimeout(() => confirm.delete().catch(() => {}), 8000);
+
+  await sendVerificationLog(message.guild, {
+    target,
+    mod,
+    name,
+    team: stats.team,
+    suspected: rec?.suspected ?? false,
+    tamperReason: rec?.tamperReason ?? null,
+  });
 
   await sendWelcome(message.guild, target);
 }
