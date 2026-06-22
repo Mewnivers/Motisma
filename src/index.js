@@ -4,7 +4,6 @@ import { ActivityType, Client, Collection, Events, GatewayIntentBits, Partials }
 import { config } from './config.js';
 import { collectCommandPaths } from './loadCommands.js';
 import { initDb } from './db.js';
-import { registerMemberCount } from './features/memberCount.js';
 import { registerVerification } from './features/verification.js';
 import { registerTempVoice } from './features/tempVoice.js';
 import { registerRdvControls } from './features/rdvControls.js';
@@ -102,7 +101,6 @@ client.once(Events.ClientReady, async (c) => {
 });
 
 // --- Features ---
-registerMemberCount(client);
 registerVerification(client);
 registerTempVoice(client);
 registerRdvControls(client);

@@ -30,8 +30,6 @@ export const config = {
   token: required('DISCORD_TOKEN'),
   clientId: required('CLIENT_ID'),
   guildId: required('GUILD_ID'),
-  // Optional: voice channel whose name mirrors the member count ("Membres : {nb}").
-  memberCountChannelId: process.env.MEMBER_COUNT_CHANNEL_ID || '',
   // "Pending" role assigned on join until a moderator validates the newcomer.
   verificationRoleId: process.env.VERIFICATION_ROLE_ID || '',
   // Optional: restrict the verification flow to this channel (else any channel).
