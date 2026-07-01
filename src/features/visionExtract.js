@@ -73,9 +73,14 @@ async function detectTeamColor(buffer) {
   }
 }
 
-// A 429 means the model is out of quota/credit (free-tier daily cap reached, or
-// prepaid credits depleted). It won't recover quickly → switch to another model.
-const isQuota = (error) => error?.status === 429;
+// When a model call fails, decide whether trying ANOTHER model could help:
+//  - 429: this model is out of quota/credit (free-tier daily cap or depleted
+//    credits) — it won't recover soon.
+//  - 503: the model is overloaded ("high demand") right now.
+//  - 500: an internal error on that model.
+// In all three cases a different model in the chain may still answer, so we move
+// on instead of failing. Other errors (bad request, auth…) are surfaced as-is.
+const shouldFallOver = (error) => [429, 503, 500].includes(error?.status);
 
 // Each Gemini model has its OWN free-tier daily quota (≈20/day), so trying the
 // next model when one is exhausted multiplies the free allowance. The configured
@@ -92,21 +97,23 @@ const MODEL_CHAIN = [
   ),
 ];
 
-// Retry only genuine transient server errors (503 high demand / 500). A 429
-// (quota/credit) is handled one level up by switching model, not by retrying.
-async function generateWithRetry(params, attempts = 5) {
+// A quick single retry smooths over a one-off network blip on a model. Sustained
+// overload (503) or quota (429) is handled one level up by switching model — so
+// we don't waste ~10s retrying an overloaded model that a sibling could serve.
+async function generateWithRetry(params, attempts = 2) {
   for (let i = 0; i < attempts; i++) {
     try {
       return await ai.models.generateContent(params);
     } catch (error) {
       const transient = error?.status === 503 || error?.status === 500;
       if (!transient || i === attempts - 1) throw error;
-      await new Promise((r) => setTimeout(r, 1000 * (i + 1))); // 1s,2s,3s,4s
+      await new Promise((r) => setTimeout(r, 800));
     }
   }
 }
 
-// Try the model chain in order; move to the next model on a quota/credit 429.
+// Try the model chain in order; on quota (429) OR overload/server error (503/500)
+// move on to the next model, which very often is free even when the first is not.
 async function generateAcrossModels(contents, genConfig) {
   let lastError;
   for (const model of MODEL_CHAIN) {
@@ -114,11 +121,11 @@ async function generateAcrossModels(contents, genConfig) {
       return await generateWithRetry({ model, contents, config: genConfig });
     } catch (error) {
       lastError = error;
-      if (isQuota(error)) continue; // this model is out of quota — try the next
-      throw error; // a non-quota error: stop and surface it
+      if (shouldFallOver(error)) continue; // quota/overload — try the next model
+      throw error; // a different error (bad request, auth…): surface it
     }
   }
-  console.error('[vision] Tous les modèles Gemini sont à court de quota/crédit — lecture indisponible (recharge un crédit ou attends le reset quotidien).');
+  console.error('[vision] Tous les modèles Gemini sont indisponibles (quota épuisé ou surcharge) — lecture impossible pour le moment.');
   throw lastError;
 }
 
@@ -283,6 +290,8 @@ export async function extractStats(imageUrl) {
     };
   } catch (error) {
     console.error('[vision] Stats extraction failed:', error);
-    return { ...EMPTY_STATS };
+    // Signal a SERVICE failure (all models down/overloaded, network…) so callers
+    // can say "try again later" instead of "your screenshot was unreadable".
+    return { ...EMPTY_STATS, serviceError: true };
   }
 }

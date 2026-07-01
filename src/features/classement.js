@@ -118,8 +118,10 @@ async function onDirectMessage(message) {
   let tamperReason = null; // first edit signal (AI guess) across the images
   let certainReason = null; // first PROVEN fake (impossible value) across the images
   let isPogo = false; // at least one image recognised as the PoGo app
+  let serviceError = false; // the vision service itself failed (overload/network)
   for (const url of urls) {
     const s = await extractStats(url);
+    if (s.serviceError) serviceError = true;
     for (const k of STAT_FIELDS) stats[k] = stats[k] ?? s[k];
     if (s.authenticity?.isPogo) isPogo = true;
     if (s.authenticity?.suspected && !tamperReason) {
@@ -131,9 +133,12 @@ async function onDirectMessage(message) {
   }
 
   if (STAT_FIELDS.every((k) => stats[k] == null)) {
-    await message
-      .reply('Je n’ai rien réussi à lire sur cette capture 😕 Envoie l’écran de ton **profil** ou de tes **statistiques** bien net (niveau, Total XP, Pokémon capturés, distance, PokéStops).')
-      .catch(() => {});
+    // Nothing read: distinguish a temporary service outage from a poor capture,
+    // so the member knows whether to simply retry or to send a cleaner shot.
+    const reply = serviceError
+      ? 'Mon service de lecture d’images est momentanément surchargé. Rien n’a été enregistré — **renvoie ta capture dans une minute ou deux**. 🙏'
+      : 'Je n’ai rien réussi à lire sur cette capture 😕 Envoie l’écran de ton **profil** ou de tes **statistiques** bien net (niveau, Total XP, Pokémon capturés, distance, PokéStops).';
+    await message.reply(reply).catch(() => {});
     return;
   }
 
