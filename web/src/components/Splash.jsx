@@ -21,17 +21,39 @@ function Zaps() {
   );
 }
 
+const SEEN_KEY = 'pogo_splash_seen';
+
+// Has the splash already played this browser session? (survives reloads, resets
+// when the tab/window is closed.) Wrapped because storage can throw in private mode.
+function alreadySeen() {
+  try {
+    return sessionStorage.getItem(SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export default function Splash() {
-  // show -> hide (fade) -> gone (unmounted)
-  const [phase, setPhase] = useState('show');
+  // show -> hide (fade) -> gone (unmounted). Skip straight to "gone" if the
+  // splash already played once this session.
+  const [phase, setPhase] = useState(() => (alreadySeen() ? 'gone' : 'show'));
 
   useEffect(() => {
+    // Runs once on mount. If the splash already played this session, do nothing.
+    if (phase === 'gone') return undefined;
+    try {
+      sessionStorage.setItem(SEEN_KEY, '1');
+    } catch {
+      /* ignore storage errors */
+    }
     const hide = setTimeout(() => setPhase('hide'), 2700);
     const gone = setTimeout(() => setPhase('gone'), 3250);
     return () => {
       clearTimeout(hide);
       clearTimeout(gone);
     };
+    // Mount-once: `phase` here is the initial value; later transitions must not re-run this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (phase === 'gone') return null;

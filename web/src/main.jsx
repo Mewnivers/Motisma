@@ -3,8 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './auth.jsx';
 import App from './App.jsx';
+import { startVersionCheck } from './version-check.js';
 import './styles.css';
 import './extra.css';
+
+// Reload automatically when a new version is deployed.
+startVersionCheck();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -837,3 +837,1003 @@
     font-size: 20px;
   }
 }
+
+/* ---- admin dashboard placeholder ---- */
+.dash-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.dash-placeholder svg {
+  color: var(--accent);
+}
+
+.dash-placeholder h2 {
+  margin: 4px 0 0;
+  color: var(--text);
+}
+
+.dash-placeholder p {
+  margin: 0;
+  max-width: 38ch;
+}
+
+/* =====================================================================
+   Admin dashboard
+   ===================================================================== */
+.page-head h1 svg {
+  vertical-align: -3px;
+  margin-right: 6px;
+  color: var(--accent);
+}
+
+/* The dashboard breaks out of the narrow article width to use the full screen. */
+.dash-page {
+  max-width: min(1900px, 95vw);
+}
+
+/* MEE6-style layout: left sidebar + focused content panel */
+.dash-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+.dash-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 84px;
+}
+.dash-side-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dash-side-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  padding: 0 10px 4px;
+}
+.dash-side-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 11px;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.dash-side-item svg {
+  flex-shrink: 0;
+}
+.dash-side-item:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.dash-side-item.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+.dash-content {
+  min-width: 0;
+}
+.dash-module {
+  max-width: 920px;
+}
+.dash-module-head {
+  margin-bottom: 18px;
+}
+.dash-module-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.dash-module-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.dash-effect-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* Labelled sub-sections inside a config module. */
+.dash-group {
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.dash-group-head {
+  margin-bottom: 12px;
+}
+.dash-group-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.dash-group-desc {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .dash-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .dash-side {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 6px;
+  }
+  .dash-side-group {
+    flex-direction: row;
+    gap: 4px;
+  }
+  .dash-side-title {
+    display: none;
+  }
+  .dash-side-item {
+    white-space: nowrap;
+  }
+}
+
+.dash-note {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+}
+.dash-note.warn {
+  color: #d9a441;
+  border-color: rgba(217, 164, 65, 0.3);
+  background: rgba(217, 164, 65, 0.08);
+}
+
+/* Server config cards */
+.dash-card {
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.dash-card h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+.dash-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.dash-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dash-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.dash-input {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.14s;
+}
+.dash-input:focus {
+  border-color: var(--accent);
+}
+.dash-input-sm {
+  padding: 5px 8px;
+  max-width: 160px;
+}
+
+.dash-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 8px;
+}
+.dash-saved {
+  color: #4caf7d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Members table */
+.dash-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+}
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.dash-table th,
+.dash-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+.dash-table th {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.dash-table tr.is-busy {
+  opacity: 0.5;
+}
+.dash-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-member img {
+  border-radius: 50%;
+}
+
+.dash-pill {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.dash-pill.on {
+  color: #4caf7d;
+  background: rgba(76, 175, 125, 0.12);
+  border-color: rgba(76, 175, 125, 0.35);
+}
+.dash-pill.off {
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.btn-mini {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+
+/* Validation list */
+.dash-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dash-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.dash-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 180px;
+}
+.dash-row-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+.dash-row-actions {
+  display: flex;
+  gap: 8px;
+}
+.dash-link-sm {
+  font-size: 13px;
+  color: var(--accent);
+}
+.btn-ok,
+.btn-ko {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-ok {
+  color: #fff;
+  background: #3a9d6e;
+}
+.btn-ko {
+  color: #e06a6a;
+  background: rgba(224, 106, 106, 0.12);
+  border-color: rgba(224, 106, 106, 0.35);
+}
+.btn-ok:disabled,
+.btn-ko:disabled {
+  opacity: 0.6;
+}
+
+/* ---- dashboard overview ---- */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+.stat-num {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+}
+.stat-lab {
+  font-size: 14px;
+  color: var(--muted);
+}
+.stat-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.stat-hint.accent {
+  color: var(--accent);
+  font-weight: 600;
+}
+.stat-action {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.14s, background 0.14s;
+}
+.stat-action:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+
+.teams-card h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+.team-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.team-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+}
+.team-name {
+  font-size: 14px;
+  color: var(--muted);
+}
+.team-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.team-fill {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 2px;
+  transition: width 0.4s ease;
+}
+.team-count {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ---- members toolbar ---- */
+.dash-members-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.dash-search {
+  flex: 1;
+  max-width: 360px;
+}
+.dash-count {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.dash-member-name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* =====================================================================
+   Message editor + Discord-like preview
+   ===================================================================== */
+.dash-msg {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+.dash-msg-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+}
+.dash-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.dash-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+.dash-vars {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dash-vars code {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--accent);
+}
+.dash-sep {
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  margin: 4px 0;
+}
+.dash-embed-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 3px solid var(--accent-border);
+  padding-left: 14px;
+}
+.dash-field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dash-field-row .dash-field {
+  flex: 1;
+  min-width: 140px;
+}
+.dash-field-color input[type='color'] {
+  width: 48px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* Preview */
+.dash-msg-preview {
+  position: sticky;
+  top: 84px;
+}
+.dash-preview-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.discord-msg {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #313338;
+  border: 1px solid var(--border-soft);
+}
+.discord-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b86f7, #36b3a8);
+  flex: none;
+}
+.discord-body {
+  min-width: 0;
+  flex: 1;
+}
+.discord-author {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f2f3f5;
+  margin-bottom: 3px;
+}
+.discord-bot {
+  font-size: 10px;
+  font-weight: 700;
+  background: #5865f2;
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.discord-text {
+  font-size: 15px;
+  color: #dbdee1;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.discord-text.muted {
+  color: #87898c;
+  font-style: italic;
+}
+.discord-embed {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  background: #2b2d31;
+  border-left: 4px solid #5b86f7;
+  border-radius: 4px;
+  padding: 12px 16px;
+}
+.discord-embed-main {
+  min-width: 0;
+  flex: 1;
+}
+.discord-embed-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f2f3f5;
+  margin-bottom: 6px;
+}
+.discord-embed-desc {
+  font-size: 14px;
+  color: #dbdee1;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.discord-embed-image {
+  display: block;
+  max-width: 100%;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+.discord-embed-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex: none;
+}
+.discord-embed-footer {
+  font-size: 12px;
+  color: #b5bac1;
+  margin-top: 8px;
+}
+.dash-ephemeral-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .dash-msg {
+    grid-template-columns: 1fr;
+  }
+  .dash-msg-preview {
+    position: static;
+  }
+}
+
+.dash-pool-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+/* ---- pool (list) message editor ---- */
+.dash-pool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.dash-pool-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-pool-idx {
+  flex: none;
+  width: 22px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.dash-pool-row .dash-input {
+  flex: 1;
+}
+.dash-pool-del {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+.dash-pool-del:hover {
+  color: #e06a6a;
+  border-color: rgba(224, 106, 106, 0.4);
+  background: rgba(224, 106, 106, 0.1);
+}
+
+.discord-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+
+/* inline code inside the Discord preview */
+.discord-text code,
+.discord-embed-desc code {
+  background: #1e1f22;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 13px;
+  font-family: ui-monospace, monospace;
+}
+
+/* ---- category landing (cards) ---- */
+.dash-cat-block {
+  margin-bottom: 22px;
+}
+.dash-cat-block-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.dash-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+.dash-cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  font: inherit;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.14s, background 0.14s, transform 0.05s;
+}
+.dash-cat-card:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.dash-cat-card:active {
+  transform: translateY(1px);
+}
+.dash-cat-card svg {
+  color: var(--accent);
+}
+.dash-cat-card-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.dash-cat-card-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ---- back button ---- */
+.dash-back {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: color 0.14s;
+}
+.dash-back:hover {
+  color: var(--accent);
+}
+
+/* ---- messages embedded on a feature config page ---- */
+.dash-feature-messages {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-soft);
+}
+.dash-feature-msg-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.dash-feature-msg + .dash-feature-msg {
+  margin-top: 26px;
+  padding-top: 26px;
+  border-top: 1px dashed var(--border-soft);
+}
+.dash-feature-msg .dash-module-head h2 {
+  font-size: 16px;
+}
+
+/* full-width toggle row inside a config field grid */
+.dash-field-full {
+  grid-column: 1 / -1;
+}
+/* "+ Ajouter…" buttons in the list editors: keep them compact (not stretched
+   to full width by the flex column) and give them a bit of breathing room. */
+.dash-field-full > .btn-mini {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+.dash-color {
+  width: 52px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* ---- level → role list ---- */
+.dash-levelrole-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-levelrole-lbl {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.dash-levelrole-num {
+  flex: none;
+  width: 72px;
+}
+.dash-levelrole-row .dash-input:not(.dash-levelrole-num) {
+  flex: 1;
+}
+
+.dash-reaction-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-reaction-row .dash-input {
+  flex: 1;
+  min-width: 0;
+}
+.dash-reaction-chan {
+  flex: 1.2;
+}
+
+/* ---- multi-role picker (chips) ---- */
+.dash-role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dash-role-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+.dash-role-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.dash-role-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* =====================================================================
+   Community events (Communauté) — Discord scheduled events
+   ===================================================================== */
+.events-section + .events-section {
+  margin-top: 44px;
+}
+.events-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  margin: 0 0 16px;
+}
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+.event-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  color: var(--text);
+  transition: transform 0.14s, border-color 0.14s, background 0.14s;
+}
+.event-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.event-cover {
+  aspect-ratio: 16 / 9;
+  background: var(--surface-2);
+}
+.event-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.event-cover-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface-2));
+}
+.event-body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.event-when {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-hover);
+}
+.event-when::first-letter {
+  text-transform: uppercase;
+}
+.event-name {
+  margin: 2px 0 0;
+  font-size: 17px;
+  line-height: 1.3;
+}
+.event-loc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.event-desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.event-count {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--dim);
+}
+.event-card.is-past {
+  opacity: 0.72;
+}
+.event-card.is-past:hover {
+  opacity: 1;
+}

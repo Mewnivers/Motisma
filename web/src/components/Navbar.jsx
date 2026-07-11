@@ -4,6 +4,7 @@ import { NAV } from '../config.js';
 import { useAuth } from '../auth.jsx';
 import DiscordLogo from './DiscordLogo.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
+import Icon from './Icons.jsx';
 
 function avatarUrl(user) {
   if (!user?.avatar) return 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -32,15 +33,23 @@ export default function Navbar() {
       <div className="nav-right">
         <ThemeToggle />
         {loading ? null : user ? (
-          <div className="user-menu">
-            <Link to="/profil" className="user-link" onClick={() => setOpen(false)}>
-              <img className="avatar" src={avatarUrl(user)} alt="" width="28" height="28" />
-              <span className="user-name">{user.username}</span>
-            </Link>
-            <button type="button" className="logout-btn" onClick={logout}>
-              Déconnexion
-            </button>
-          </div>
+          <>
+            {user.isAdmin && (
+              <Link to="/dashboard" className="dash-btn" onClick={() => setOpen(false)}>
+                <Icon name="sliders" size={16} />
+                <span className="dash-label">Dashboard</span>
+              </Link>
+            )}
+            <div className="user-menu">
+              <Link to="/profil" className="user-link" onClick={() => setOpen(false)}>
+                <img className="avatar" src={avatarUrl(user)} alt="" width="28" height="28" />
+                <span className="user-name">{user.username}</span>
+              </Link>
+              <button type="button" className="logout-btn" onClick={logout}>
+                Déconnexion
+              </button>
+            </div>
+          </>
         ) : (
           <button type="button" className="btn-discord" onClick={login}>
             <DiscordLogo />

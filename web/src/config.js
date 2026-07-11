@@ -7,7 +7,8 @@ export const CAMPFIRE_URL =
 
 export const NAV = [
   { to: '/', label: 'Accueil', end: true },
-  { to: '/carte', label: 'Carte' },
+  // Carte temporairement masquee.
+  // { to: '/carte', label: 'Carte' },
   { to: '/classement', label: 'Classement' },
   { to: '/communaute', label: 'Communauté' },
   { to: '/guides', label: 'Guides' },

@@ -266,6 +266,26 @@ code {
   border: 1px solid var(--border-soft);
 }
 
+.dash-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  padding: 5px 11px;
+  border-radius: 999px;
+  transition: background 0.14s, color 0.14s;
+}
+
+.dash-btn:hover {
+  color: var(--accent-hover);
+  background: var(--accent-soft);
+  filter: brightness(1.08);
+}
+
 .user-link {
   display: inline-flex;
   align-items: center;
@@ -1044,6 +1064,9 @@ code {
   }
   .user-name {
     max-width: 92px;
+  }
+  .dash-label {
+    display: none;
   }
   .hero {
     padding: 56px 18px 24px;

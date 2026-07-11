@@ -3,7 +3,8 @@ import { DISCORD_INVITE, CAMPFIRE_URL } from '../config.js';
 import Icon from '../components/Icons.jsx';
 
 const FEATURES = [
-  { to: '/carte', icon: 'map', title: 'La carte des secteurs', text: 'Visualise où la communauté joue, secteur par secteur, sans jamais exposer une adresse.' },
+  // Carte temporairement masquee.
+  // { to: '/carte', icon: 'map', title: 'La carte des secteurs', text: 'Visualise où la communauté joue, secteur par secteur, sans jamais exposer une adresse.' },
   { to: '/classement', icon: 'trophy', title: 'Le classement', text: 'Le top des dresseurs par niveau et XP en jeu, validé par les modérateurs.' },
   { to: '/communaute', icon: 'users', title: 'La communauté', text: 'Les chiffres vivants de Pau : combien on est, où, et à quel rythme on joue.' },
   { to: '/guides', icon: 'book', title: 'Les guides', text: 'Bien démarrer, trouver les bons spots à raids, participer à une sortie.' },
@@ -28,9 +29,11 @@ export default function Home() {
             <a className="btn-campfire" href={CAMPFIRE_URL} target="_blank" rel="noreferrer">
               Groupe Campfire
             </a>
+            {/* Carte temporairement masquee.
             <Link className="btn-ghost" to="/carte">
               Voir la carte
             </Link>
+            */}
           </div>
           <div className="team-dots">
             <span><i className="m" /> Sagesse</span>
