@@ -14,6 +14,7 @@ import { registerForumHeart } from './features/forumHeart.js';
 import { registerMoveControls } from './features/moveControls.js';
 import { registerClassement } from './features/classement.js';
 import { registerLanguageWatch } from './features/languageWatch.js';
+import { registerYoutube } from './features/youtube.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -121,6 +122,7 @@ registerForumHeart(client);
 registerMoveControls(client);
 registerClassement(client);
 registerLanguageWatch(client);
+registerYoutube(client);
 
 client.on(Events.InteractionCreate, async (interaction) => {
   // Slash commands and message context-menu commands are both dispatched by name.
