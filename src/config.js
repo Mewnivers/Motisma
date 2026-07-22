@@ -133,4 +133,10 @@ export const config = {
   youtubeChannelId: process.env.YOUTUBE_CHANNEL_ID || '',
   // Discord channel the new videos are posted in. Empty = the watcher stays off.
   youtubeAnnounceChannelId: process.env.YOUTUBE_ANNOUNCE_CHANNEL_ID || '',
+  // --- Forum post keep-alive ---
+  // Forum posts (threads) the bot keeps permanently active by unarchiving them
+  // on a schedule, so their "<#id>" mention never turns into "#Inconnu" once
+  // Discord auto-archives them. Comma/space separated thread ids. Empty = off.
+  // These are the PARTAGE posts surfaced in the "salons à connaître" embed.
+  forumKeepAliveIds: parseIdList(process.env.FORUM_KEEPALIVE_IDS),
 };
