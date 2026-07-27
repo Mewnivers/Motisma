@@ -83,14 +83,17 @@ async function detectTeamColor(buffer) {
 const shouldFallOver = (error) => [429, 503, 500].includes(error?.status);
 
 // Each Gemini model has its OWN free-tier daily quota (≈20/day), so trying the
-// next model when one is exhausted multiplies the free allowance. The configured
-// VISION_MODEL is tried first, then a fallback chain.
+// next model when one is exhausted multiplies the free allowance. The chain is
+// ordered from the MOST to the LEAST capable at reading a screenshot: we start
+// with the best model and only step down to a weaker one when quota (429) forces
+// it, so accuracy is preferred and degrades only once the good models are spent.
+// The configured VISION_MODEL leads (empty = the "gemini-2.5-flash" default).
 const MODEL_CHAIN = [
   ...new Set(
     [
       config.visionModel,
-      'gemini-2.5-flash-lite',
       'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
       'gemini-2.0-flash',
       'gemini-2.0-flash-lite',
     ].filter(Boolean),
