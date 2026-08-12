@@ -137,7 +137,7 @@ async function generateAcrossModels(contents, genConfig) {
 const STATS_PROMPT = [
   'Tu lis une capture d’écran Pokémon GO (écran de profil, "Ajouter un ami" ou liste de statistiques).',
   'Extrais chaque valeur UNIQUEMENT si elle est clairement visible sur l’image :',
-  '- "trainer_name" : le PSEUDO du dresseur. Sur le profil, c’est le grand texte EN HAUT, au-dessus du niveau et à côté de l’avatar. Sur l’écran "Ajouter un ami", c’est le nom juste au-dessus du code ami. Transcris-le EXACTEMENT, caractère par caractère (majuscules/minuscules, accents, chiffres et symboles). Ne traduis pas, n’invente pas, n’ajoute aucun espace. Même si l’image est floue ou sombre, fais de ton mieux pour le déchiffrer.',
+  '- "trainer_name" : le PSEUDO du dresseur. Sur le profil, c’est le grand texte EN HAUT, au-dessus du niveau et à côté de l’avatar. Sur l’écran "Ajouter un ami", c’est le nom juste au-dessus du code ami. Transcris-le EXACTEMENT, caractère par caractère (majuscules/minuscules, accents, chiffres et symboles). Ne traduis pas, n’invente pas, n’ajoute aucun espace. Même si l’image est floue ou sombre, fais de ton mieux pour le déchiffrer. ATTENTION : le Pokémon copain est souvent affiché juste après le pseudo, écrit « Pseudo et NomDuPokémon » (ex. « Marine et Ronflex »). Ne renvoie QUE le pseudo du dresseur : ignore le « et » et le nom du Pokémon qui suit. Un pseudo Pokémon GO ne contient JAMAIS d’espace.',
   '- "friend_code" : le code ami à 12 chiffres (souvent écrit "1234 5678 9012").',
   '- "level" : le grand nombre sous le mot "NIVEAU", près de l’avatar (un entier, ex. 38, 50, 51…). Lis-le tel quel, ne le plafonne pas.',
   '- "level_xp_current" : à côté du niveau, le nombre AVANT le "/" dans la barre d’XP (XP dans le niveau actuel, ex. "654 012 / 1 580 000" → 654012).',
@@ -199,6 +199,19 @@ const EMPTY_STATS = {
 
 const TEAMS = new Set(['mystic', 'valor', 'instinct']);
 
+// A Pokémon GO trainer name never contains a space. On the profile the buddy
+// Pokémon is shown right after it as "Pseudo et Ronflex", and the model sometimes
+// captures the whole thing — so cut a trailing " et <buddy>" and keep only the
+// pseudo. (Names like "Roquet" or "PierreEtPaul" have no surrounding spaces and
+// are left untouched.)
+function cleanTrainerName(v) {
+  const name = String(v ?? '')
+    .trim()
+    .replace(/\s+et\s+.*$/i, '')
+    .trim();
+  return name || null;
+}
+
 // Strip thousands separators (spaces/dots) and round to an integer > 0, else null.
 function toInt(v) {
   const cleaned = String(v ?? '').replace(/[^\d]/g, '');
@@ -246,7 +259,7 @@ export async function extractStats(imageUrl) {
     const lvl = toInt(parsed.level);
     const xpCur = toInt(parsed.level_xp_current);
     const xpMax = toInt(parsed.level_xp_needed);
-    const trainerName = String(parsed.trainer_name ?? '').trim() || null;
+    const trainerName = cleanTrainerName(parsed.trainer_name);
     const fcDigits = String(parsed.friend_code ?? '').replace(/\D/g, '');
     const friendCode = fcDigits.length === 12 ? fcDigits : null;
 
