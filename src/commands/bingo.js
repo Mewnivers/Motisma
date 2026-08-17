@@ -51,6 +51,9 @@ export const data = new SlashCommandBuilder()
       )
       .addAttachmentOption((opt) =>
         opt.setName('image').setDescription('La nouvelle image.').setRequired(true),
+      )
+      .addStringOption((opt) =>
+        opt.setName('texte').setDescription('Nouveau texte du message (optionnel, sinon inchangé).'),
       ),
   );
 
@@ -93,6 +96,8 @@ async function createBingo(interaction) {
 async function updateBingo(interaction) {
   const raw = interaction.options.getString('lien', true);
   const image = interaction.options.getAttachment('image', true);
+  // null when the option is omitted → the message content is left untouched.
+  const texte = interaction.options.getString('texte');
 
   await interaction.deferReply({ ephemeral: true });
 
@@ -130,6 +135,9 @@ async function updateBingo(interaction) {
   // Base edit: drop every old attachment, add the new image.
   const edit = { attachments: [], files: [file] };
 
+  // Optionally replace the message text too (omitted → left as-is).
+  if (texte !== null) edit.content = texte;
+
   // If an embed displayed the old image via "attachment://…", repoint it to the
   // new file so the embed keeps showing an image after the swap.
   const usesAttachmentImage = message.embeds.some(
@@ -154,5 +162,6 @@ async function updateBingo(interaction) {
     return;
   }
 
-  await interaction.editReply(`Image du bingo remplacée. ✅ ${message.url}`);
+  const quoi = texte !== null ? 'Image et texte du bingo mis à jour' : 'Image du bingo remplacée';
+  await interaction.editReply(`${quoi}. ✅ ${message.url}`);
 }
