@@ -47,10 +47,7 @@ export const data = new SlashCommandBuilder()
       .setName('update')
       .setDescription('Remplacer l’image d’un bingo déjà posté par le bot.')
       .addStringOption((opt) =>
-        opt
-          .setName('message')
-          .setDescription('Lien du message du bingo (clic droit → Copier le lien), ou son ID s’il est ici.')
-          .setRequired(true),
+        opt.setName('lien').setDescription('Lien du message à modifier.').setRequired(true),
       )
       .addAttachmentOption((opt) =>
         opt.setName('image').setDescription('La nouvelle image.').setRequired(true),
@@ -94,7 +91,7 @@ async function createBingo(interaction) {
 
 // Swap the image of an existing bingo message the bot posted.
 async function updateBingo(interaction) {
-  const raw = interaction.options.getString('message', true);
+  const raw = interaction.options.getString('lien', true);
   const image = interaction.options.getAttachment('image', true);
 
   await interaction.deferReply({ ephemeral: true });
