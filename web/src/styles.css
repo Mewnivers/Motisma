@@ -1077,3 +1077,18 @@ code {
     padding: 44px 18px;
   }
 }
+
+.discord-embed-fields { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.discord-embed-field { flex: 1 1 100%; }
+.discord-embed-field.inline { flex: 1 1 30%; min-width: 150px; }
+.discord-embed-field-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; }
+.discord-embed-field-value { font-size: 0.85rem; }
+.discord-quote { border-left: 3px solid currentColor; opacity: 0.85; padding-left: 8px; margin: 4px 0; }
+.discord-emoji { width: 1.25em; height: 1.25em; vertical-align: -0.2em; }
+.discord-link { color: #00a8fc; text-decoration: none; }
+.dash-fields-editor { display: flex; flex-direction: column; gap: 10px; }
+.dash-field-card { border: 1px solid var(--border, #33384a); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.dash-field-card-head { display: flex; gap: 6px; align-items: center; }
+.dash-field-card-head .dash-input { flex: 1; }
+.dash-embed-note, .dash-error { font-size: 0.85rem; }
+.dash-error { color: #e57373; }
