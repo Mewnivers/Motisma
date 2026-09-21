@@ -111,7 +111,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
         )}
       </header>
 
-      <div className="dash-msg">
+      <div className="dash-msg dash-msg-scroll">
         {/* Éditeur */}
         <div className="dash-msg-editor">
           <label className="dash-field"><span>Titre</span>

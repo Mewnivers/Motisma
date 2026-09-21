@@ -1503,6 +1503,21 @@
   }
 }
 
+/* Embed editor: editor and preview scroll independently (each its own pane)
+   on wide screens; stays stacked with normal page scroll below 900px. */
+@media (min-width: 901px) {
+  .dash-msg-scroll .dash-msg-editor,
+  .dash-msg-scroll .dash-msg-preview {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+  .dash-msg-scroll .dash-msg-preview {
+    position: static;
+    top: auto;
+  }
+}
+
 .dash-pool-note {
   font-size: 12px;
   color: var(--muted);
