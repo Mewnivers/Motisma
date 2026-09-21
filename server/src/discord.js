@@ -136,12 +136,16 @@ export async function fetchGuildRoles(guildId) {
 /** Édite un message du bot. Renvoie { ok } ou { ok:false, status }. */
 export async function editMessage(channelId, messageId, payload) {
   if (!config.botToken || !channelId || !messageId) return { ok: false, status: 0 };
-  const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bot ${config.botToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  return { ok: res.ok, status: res.status };
+  try {
+    const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bot ${config.botToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false, status: 0 };
+  }
 }
 
 /**
