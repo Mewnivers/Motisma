@@ -1,41 +1,10 @@
 import { useState } from 'react';
 import { apiPost } from '../../api.js';
+import { renderMarkdown } from './markdown.jsx';
 
 const SAMPLE = { '{user}': '@Dresseur', '{level}': '7' };
 const fillVars = (s) =>
   (s || '').replace(/\{user\}|\{level\}/g, (m) => SAMPLE[m] ?? m);
-
-// Render the Discord markdown subset (bold, underline, strike, italic, code) as
-// React nodes, so the preview shows formatting instead of raw ** _ ~ ` markers.
-function renderMarkdown(text) {
-  const rules = [
-    [/\*\*([\s\S]+?)\*\*/, 'strong'],
-    [/__([\s\S]+?)__/, 'u'],
-    [/~~([\s\S]+?)~~/, 's'],
-    [/\*([\s\S]+?)\*/, 'em'],
-    [/_([\s\S]+?)_/, 'em'],
-    [/`([\s\S]+?)`/, 'code'],
-  ];
-  let counter = 0;
-  function walk(str) {
-    if (!str) return [];
-    let best = null;
-    for (const [re, tag] of rules) {
-      const m = re.exec(str);
-      if (m && (!best || m.index < best.m.index)) best = { m, tag };
-    }
-    if (!best) return [str];
-    const { m, tag: Tag } = best;
-    const out = [];
-    if (m.index > 0) out.push(str.slice(0, m.index));
-    out.push(
-      <Tag key={counter++}>{walk(m[1])}</Tag>,
-    );
-    out.push(...walk(str.slice(m.index + m[0].length)));
-    return out;
-  }
-  return walk(text || '');
-}
 
 function Toggle({ checked, onChange, label }) {
   return (
