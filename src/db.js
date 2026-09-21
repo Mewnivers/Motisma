@@ -54,6 +54,24 @@ export async function initDb() {
       value TEXT NOT NULL
     );
   `);
+  // Info embeds (owned by the web app; the bot reads content and tracks the posted message).
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS info_embeds (
+      guild_id          TEXT NOT NULL,
+      key               TEXT NOT NULL,
+      title             TEXT,
+      description       TEXT,
+      color             INTEGER,
+      image_url         TEXT,
+      thumbnail_url     TEXT,
+      footer_text       TEXT,
+      fields            JSONB NOT NULL DEFAULT '[]'::jsonb,
+      posted_channel_id TEXT,
+      posted_message_id TEXT,
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (guild_id, key)
+    );
+  `);
   console.log('[db] Connected and schema ready.');
 }
 
@@ -295,4 +313,25 @@ export async function topXp(limit = 10) {
     [limit],
   );
   return rows.map((r) => ({ discordId: r.discord_id, xp: Number(r.xp) }));
+}
+
+/** Contenu d'un embed info, ou null si absent (→ le bot retombe sur le builder codé). */
+export async function getInfoEmbed(guildId, key) {
+  if (!pool) return null;
+  const { rows } = await pool.query('SELECT * FROM info_embeds WHERE guild_id = $1 AND key = $2', [guildId, key]);
+  return rows[0] ?? null;
+}
+
+/** Mémorise le message publié pour un embed (pour l'édition live depuis le site). */
+export async function setInfoEmbedPosted(guildId, key, channelId, messageId) {
+  if (!pool) return;
+  await pool.query(
+    `INSERT INTO info_embeds (guild_id, key, posted_channel_id, posted_message_id, updated_at)
+     VALUES ($1,$2,$3,$4, now())
+     ON CONFLICT (guild_id, key) DO UPDATE SET
+       posted_channel_id = EXCLUDED.posted_channel_id,
+       posted_message_id = EXCLUDED.posted_message_id,
+       updated_at = now()`,
+    [guildId, key, channelId, messageId],
+  );
 }
