@@ -11,6 +11,9 @@ import {
   getMessages,
   upsertMessage,
   MESSAGE_KEYS,
+  getInfoEmbeds,
+  upsertInfoEmbed,
+  INFO_EMBED_KEYS,
 } from '../db.js';
 import {
   hasBotToken,
@@ -20,7 +23,9 @@ import {
   fetchGuildCounts,
   fetchGuildMembers,
   avatarUrlsFor,
+  editMessage,
 } from '../discord.js';
+import { contentToEmbed, validateEmbedContent } from '../infoEmbed.js';
 
 /**
  * Admin dashboard API. Every route is gated by `requireAdmin` (signed session +
@@ -181,5 +186,39 @@ export async function adminRoutes(app) {
     }
     await adminSetChatXp(id, amount, mode);
     return { ok: true };
+  });
+
+  // --- Embeds d'information ---
+  const embedKeys = new Set(INFO_EMBED_KEYS);
+
+  app.get('/api/admin/embeds', { preHandler: requireAdmin }, async () => {
+    const [embeds, bot] = await Promise.all([getInfoEmbeds(config.guildId), getBotUser()]);
+    return { embeds, bot };
+  });
+
+  app.post('/api/admin/embeds/:key', { preHandler: requireAdmin }, async (request, reply) => {
+    const key = String(request.params.key || '');
+    if (!embedKeys.has(key)) return reply.code(400).send({ error: 'unknown_embed' });
+    const body = request.body;
+    if (!body || typeof body !== 'object') return reply.code(400).send({ error: 'invalid_body' });
+
+    const check = validateEmbedContent(body);
+    if (!check.ok) return reply.code(400).send({ error: 'invalid_content', details: check.errors });
+
+    const row = await upsertInfoEmbed(config.guildId, key, body);
+
+    // Édition live : ne PATCH que `embeds` → bouton/pièces jointes conservés.
+    let live = false;
+    let reason;
+    if (row.posted_channel_id && row.posted_message_id) {
+      const res = await editMessage(row.posted_channel_id, row.posted_message_id, {
+        embeds: [contentToEmbed(row)],
+      });
+      live = res.ok;
+      if (!res.ok) reason = res.status === 404 ? 'deleted' : 'edit_failed';
+    } else {
+      reason = 'not_published';
+    }
+    return { ok: true, row, live, reason };
   });
 }
