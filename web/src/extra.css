@@ -1503,19 +1503,40 @@
   }
 }
 
-/* Embed editor: editor and preview scroll independently (each its own pane)
-   on wide screens; stays stacked with normal page scroll below 900px. */
+/* Embed editor: ONLY the preview scrolls (kept sticky, capped to the viewport);
+   the fields column has no scrollbar — it scrolls with the page. Below 900px
+   everything stacks with normal page scroll. */
 @media (min-width: 901px) {
-  .dash-msg-scroll .dash-msg-editor,
   .dash-msg-scroll .dash-msg-preview {
-    max-height: calc(100vh - 180px);
+    max-height: calc(100vh - 108px);
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 8px;
   }
-  .dash-msg-scroll .dash-msg-preview {
-    position: static;
-    top: auto;
-  }
+}
+
+/* Slim, themed scrollbars in the embed editor (preview + textareas). */
+.dash-msg-scroll .dash-msg-preview,
+.dash-msg-scroll textarea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-soft) transparent;
+}
+.dash-msg-scroll .dash-msg-preview::-webkit-scrollbar,
+.dash-msg-scroll textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dash-msg-scroll .dash-msg-preview::-webkit-scrollbar-track,
+.dash-msg-scroll textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dash-msg-scroll .dash-msg-preview::-webkit-scrollbar-thumb,
+.dash-msg-scroll textarea::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 8px;
+}
+.dash-msg-scroll .dash-msg-preview::-webkit-scrollbar-thumb:hover,
+.dash-msg-scroll textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 .dash-pool-note {
