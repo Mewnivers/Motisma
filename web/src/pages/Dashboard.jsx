@@ -6,6 +6,7 @@ import Icon from '../components/Icons.jsx';
 import { CONFIG_SECTIONS } from '../components/dashboard/configSections.js';
 import { MESSAGE_GROUPS, MESSAGE_TYPES, MESSAGE_BY_KEY } from '../components/dashboard/messageTypes.js';
 import DashConfigModule from '../components/dashboard/DashConfigModule.jsx';
+import DashEmbedList from '../components/dashboard/DashEmbedList.jsx';
 import DashMessage from '../components/dashboard/DashMessage.jsx';
 import DashOverview from '../components/dashboard/DashOverview.jsx';
 import DashMembers from '../components/dashboard/DashMembers.jsx';
@@ -208,8 +209,17 @@ export default function Dashboard() {
               </div>
             ))}
 
+          {/* Embeds d'info : liste + éditeur (auto-suffisant) */}
+          {section && section.component === 'embeds' && (
+            <div>
+              <Back to="config" label="Configuration" />
+              <DashEmbedList />
+            </div>
+          )}
+
           {/* Config module editor */}
           {section &&
+            section.component !== 'embeds' &&
             (guild === null ? (
               <p className="empty">Chargement…</p>
             ) : (

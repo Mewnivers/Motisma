@@ -136,6 +136,13 @@ export const CONFIG_SECTIONS = [
     ],
   },
   {
+    key: 'embeds',
+    label: 'Embeds d’info',
+    icon: 'scroll',
+    desc: 'Modifier les embeds publiés par /embed (Règlement, Suggestions…).',
+    component: 'embeds',
+  },
+  {
     key: 'misc',
     label: 'Divers',
     icon: 'gear',
