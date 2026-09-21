@@ -1,5 +1,7 @@
 import pg from 'pg';
 import { config } from './config.js';
+import { colorHexToInt } from './infoEmbed.js';
+import { getBotUser } from './discord.js';
 
 /**
  * PostgreSQL access for the web API. Shares the same database as the Discord
@@ -109,6 +111,22 @@ export const UNIFIED_DDL = `
     embed_thumbnail   TEXT,
     embed_footer      TEXT,
     ephemeral         BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (guild_id, key)
+  );
+
+  CREATE TABLE IF NOT EXISTS info_embeds (
+    guild_id          TEXT NOT NULL,
+    key               TEXT NOT NULL,
+    title             TEXT,
+    description       TEXT,
+    color             INTEGER,
+    image_url         TEXT,
+    thumbnail_url     TEXT,
+    footer_text       TEXT,
+    fields            JSONB NOT NULL DEFAULT '[]'::jsonb,
+    posted_channel_id TEXT,
+    posted_message_id TEXT,
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (guild_id, key)
   );
@@ -773,6 +791,213 @@ export async function upsertMessage(guildId, key, data) {
     vals,
   );
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Customisable info embeds (`info_embeds`). Each row = one standalone embed
+// posted by the bot (règlement, suggestions, vérification, classement,
+// présentation) that the dashboard can edit. The bot owns `posted_channel_id`
+// / `posted_message_id` — the site never writes them.
+// ---------------------------------------------------------------------------
+
+// Contenu par défaut des embeds info, transcrit depuis src/embeds/*.js.
+// Semé en base par ensureInfoEmbeds ; ensuite la base fait foi.
+const WHITE = 0xffffff;
+
+const INFO_EMBED_DEFAULTS = {
+  reglement: {
+    title: 'Règles du serveur',
+    color: WHITE,
+    description: [
+      'Pour une atmosphère **respectueuse, tolérante et accueillante** pour tous.',
+      '',
+      '**1 —** On est sympa.',
+      '**2 —** On évite les sujets qui fâchent.',
+      '**3 —** Pas de pub : contacte un·e admin au préalable.',
+      '**4 —** On reste matures.',
+      '**5 —** On suit les **CGU de Niantic et Pokémon GO** (détail ci-dessous).',
+      '',
+      '> **Sur la maturité —** l’âge minimum sur les réseaux sociaux est de **13 ans** ; les plus jeunes peuvent participer aux rencontres IRL avec un parent ou gardien. On est majoritairement des adultes : comportement responsable attendu, pas de flood, d’insolence ni de remarques NSFW.',
+    ].join('\n'),
+    footer_text: 'Respecte l’esprit du jeu : bonne humeur et sécurité avant tout — Motisma’Pau',
+    fields: [
+      {
+        name: '5.A · Applications tierces',
+        value: [
+          '**Interdit**',
+          '• Piratage GPS (*fly*, *spoof*)',
+          '• Sites ou cartes indiquant où sont les Pokémon (bots, scanners)',
+          '• Applis de « fausse marche » ou qui font payer pour raider à distance',
+          '',
+          '**Autorisé**',
+          '• Calcul d’IV & renommage — [CalcyIV](https://play.google.com/store/apps/details?id=tesmath.calcy)',
+          '• Contres en raid — [PokeBattler](https://www.pokebattler.com)',
+          '• PvP — [PvPoke](https://pvpoke.com), [GO Stadium](https://www.stadiumgaming.gg)',
+          '• Infos & guides — [Pokémon GO Hub](https://pokemongohub.net), [LeekDuck](https://leekduck.com)',
+        ].join('\n'),
+        inline: false,
+      },
+      {
+        name: '5.B & 5.C · Comptes',
+        value: [
+          '• Le **partage de compte est interdit**, y compris si un ami en voyage se connecte pour vous.',
+          '• Un joueur = **un seul et unique compte**.',
+        ].join('\n'),
+        inline: false,
+      },
+      { name: 'Niantic', value: '[Guide du dresseur](https://nianticlabs.com/terms)', inline: true },
+      { name: 'Discord', value: '[Conditions d’utilisation](https://discord.com/terms)\n[Règles de la communauté](https://discord.com/guidelines)', inline: true },
+      { name: 'Inviter des amis', value: '[Lien d’invitation](https://discord.gg/bWYwAdXes3)', inline: true },
+    ],
+  },
+
+  suggestions: {
+    title: '💡 Boîte à suggestions',
+    color: WHITE,
+    description: [
+      'Une idée pour améliorer le serveur ou la communauté ? C’est ici que ça se passe !',
+      'Sorties, salons, événements, raids, entraide… tout est bon à proposer.',
+    ].join('\n'),
+    footer_text: 'Toutes les idées comptent — même les plus folles. À toi de jouer !',
+    fields: [
+      { name: 'Comment proposer', value: 'Poste **une suggestion par message**, claire et concise. Explique en quelques lignes ton idée et ce qu’elle apporterait.', inline: false },
+      { name: 'Le vote', value: 'La communauté réagit avec 👍 ou 👎 pour soutenir (ou non) ton idée. Les plus populaires remontent naturellement.', inline: false },
+      { name: 'Le suivi', value: 'L’équipe passe régulièrement, étudie les suggestions les plus soutenues et te tient au courant. Une idée refusée n’est jamais perdue : elle peut revenir plus tard.', inline: false },
+    ],
+  },
+
+  verification: {
+    title: '👋 Bienvenue ! Une dernière étape',
+    color: WHITE,
+    description: [
+      'Pour accéder au serveur, poste ici une **capture d’écran** de ton **profil de dresseur** Pokémon GO (avec ton pseudo).',
+      '',
+      'Patience le temps qu’un membre du staff te valide. Tu auras alors accès à l’ensemble des salons.',
+      '',
+      '👇 **Exemple** d’une capture de profil bien lisible.',
+      '',
+      'Merci, et à très vite sur le terrain ! 🎮',
+    ].join('\n'),
+    image_url: 'attachment://profil-exemple.png',
+    fields: [],
+  },
+
+  classement: {
+    title: '🏆  Le Classement des Dresseurs de Pau',
+    color: WHITE,
+    thumbnail_url: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
+    description: [
+      'Et si on savait enfin qui est le meilleur dresseur de Pau ?',
+      'Chaque mois on se compare sur **Niveau · XP · Captures · Distance · PokéStops · Œufs éclos**.',
+      '',
+      'Clique sur **Participer**, puis envoie-moi une **capture de ton profil** en MP : je lis tout automatiquement. 📸',
+      '',
+      'Une relance par mois, ignorable si tu n’es pas dispo. 🔔',
+    ].join('\n'),
+    footer_text: 'Voir : /classement-pogo voir  ·  Quitter : /classement-pogo quitter',
+    fields: [],
+  },
+
+  motisma: {
+    title: 'Motisma’Pau — votre assistant sur le serveur',
+    color: WHITE,
+    // thumbnail_url est rempli dynamiquement (avatar du bot) par ensureInfoEmbeds.
+    description: [
+      '<:pogo:1519020981308624896> **Motisma** est le bot du serveur, votre compagnon au quotidien — un peu comme un Rotom-Dex de poche. Voici ce qu’il fait pour vous.',
+      '',
+      '<a:pikahi:1519057356812587018> **VOTRE PROFIL POKÉMON GO**',
+      '`/userinfo` — ton profil, le tien ou celui d’un membre.',
+      '`/classement-pogo` — rejoins le classement de la commu : envoie une **capture de ton profil en MP** au bot, il lit tes stats tout seul.',
+      'Le classement complet est aussi sur le site **[PoGo Pau](https://pogo-pau.mxrine-mz.dev/classement)**.',
+      '',
+      '<a:Pokemon_Evolve:1519057363896631317> **TA PROGRESSION SUR LE SERVEUR**',
+      'Tu gagnes de l’XP simplement en discutant.',
+      '`/niveau` — ta barre de progression et ton XP · `/classement` — le top 10 des plus actifs.',
+      '',
+      '<a:pikachujam:1519058412972015616> **SALONS VOCAUX**',
+      'Rejoins le salon vocal dédié pour **créer ton propre vocal** en un clic.',
+      '',
+      '<a:pokemondance:1519057370754322503> **POUR SE DÉTENDRE**',
+      '`/quiz` · `/pendu` · `/morpion` · `/devinette` · `/sondage`',
+      '',
+      '<:attention:1519020989680189651> Pour tout voir en détail, avec des exemples : **`/help`**',
+      '',
+      '<a:pokeballsuccess:1519058429392588830> Bon jeu, et à bientôt sur le terrain !',
+    ].join('\n'),
+    footer_text: 'Motisma’Pau',
+    fields: [],
+  },
+};
+
+export const INFO_EMBED_KEYS = Object.keys(INFO_EMBED_DEFAULTS);
+
+/** Colonnes de contenu éditables (jamais posted_* ni updated_at). */
+const INFO_EMBED_CONTENT_COLS = ['title', 'description', 'color', 'image_url', 'thumbnail_url', 'footer_text', 'fields'];
+
+/** Sème les défauts manquants. Résout la miniature de `motisma` (avatar du bot). */
+export async function ensureInfoEmbeds(guildId) {
+  if (!pool) return;
+  let motismaThumb = null;
+  try {
+    motismaThumb = (await getBotUser())?.avatarUrl ?? null;
+  } catch {
+    motismaThumb = null;
+  }
+  for (const [key, def] of Object.entries(INFO_EMBED_DEFAULTS)) {
+    const row = { ...def };
+    if (key === 'motisma' && motismaThumb) row.thumbnail_url = motismaThumb;
+    await pool.query(
+      `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)
+       ON CONFLICT (guild_id, key) DO NOTHING`,
+      [
+        guildId, key,
+        row.title ?? null, row.description ?? null, row.color ?? null,
+        row.image_url ?? null, row.thumbnail_url ?? null, row.footer_text ?? null,
+        JSON.stringify(row.fields ?? []),
+      ],
+    );
+  }
+}
+
+/** Toutes les lignes d'embeds info (défauts semés d'abord). */
+export async function getInfoEmbeds(guildId) {
+  if (!pool) return [];
+  await ensureInfoEmbeds(guildId);
+  const { rows } = await pool.query('SELECT * FROM info_embeds WHERE guild_id = $1 ORDER BY key', [guildId]);
+  return rows;
+}
+
+/** Écrit le contenu d'un embed (sans toucher posted_*). Renvoie la ligne à jour. */
+export async function upsertInfoEmbed(guildId, key, data) {
+  if (!pool) throw new Error('Database unavailable');
+  const values = {
+    title: typeof data.title === 'string' ? data.title : null,
+    description: typeof data.description === 'string' ? data.description : null,
+    color: colorHexToInt(data.color),
+    image_url: typeof data.image_url === 'string' && data.image_url ? data.image_url : null,
+    thumbnail_url: typeof data.thumbnail_url === 'string' && data.thumbnail_url ? data.thumbnail_url : null,
+    footer_text: typeof data.footer_text === 'string' ? data.footer_text : null,
+    fields: Array.isArray(data.fields)
+      ? data.fields
+          .filter((f) => f && typeof f.name === 'string' && typeof f.value === 'string')
+          .map((f) => ({ name: f.name, value: f.value, inline: Boolean(f.inline) }))
+      : [],
+  };
+  const { rows } = await pool.query(
+    `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb, now())
+     ON CONFLICT (guild_id, key) DO UPDATE SET
+       title=EXCLUDED.title, description=EXCLUDED.description, color=EXCLUDED.color,
+       image_url=EXCLUDED.image_url, thumbnail_url=EXCLUDED.thumbnail_url,
+       footer_text=EXCLUDED.footer_text, fields=EXCLUDED.fields, updated_at=now()
+     RETURNING *`,
+    [
+      guildId, key, values.title, values.description, values.color,
+      values.image_url, values.thumbnail_url, values.footer_text, JSON.stringify(values.fields),
+    ],
+  );
+  return rows[0];
 }
 
 /** Aggregate counts for the dashboard overview. */
