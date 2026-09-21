@@ -1,4 +1,4 @@
-import { Events, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
+import { Events, PermissionFlagsBits, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import { config } from '../config.js';
 import { sendWelcome } from './welcome.js';
 import { extractStats, hasVision } from './visionExtract.js';
@@ -38,6 +38,19 @@ function imageUrls(message) {
     .map((a) => a.url);
 }
 
+// Stable, safe attachment name for a re-uploaded proof screenshot. Keeps the
+// original extension when the URL exposes one (Discord CDN links do), so the
+// image renders correctly in the log embed.
+function proofName(url, i) {
+  let ext = 'png';
+  try {
+    ext = new URL(url).pathname.match(/\.(png|jpe?g|gif|webp)$/i)?.[1]?.toLowerCase() || 'png';
+  } catch {
+    // keep the default
+  }
+  return `preuve-${i + 1}.${ext}`;
+}
+
 async function updateDetection(channel, rec) {
   const namePart = rec.name ? `**${rec.name}**` : '❔';
   const team = TEAMS[rec.stats.team];
@@ -52,9 +65,11 @@ async function updateDetection(channel, rec) {
 // Audit embed for a verification decision: who handled whom, when, the team, and
 // whether the submitted photo was flagged as suspicious. Pastel green if
 // validated, pastel red if refused.
-export function buildVerificationLogEmbed({ target, mod, name, team, suspected, tamperReason, refused = false }) {
+// `imageName` (optional) is the filename of a proof screenshot attached to the
+// same message; when set, that screenshot is shown as the embed's main image.
+export function buildVerificationLogEmbed({ target, mod, name, team, suspected, tamperReason, refused = false, imageName = null }) {
   const teamInfo = TEAMS[team];
-  return new EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setColor(refused ? 0xe57373 : 0x81c784)
     .setAuthor({ name: target.user.tag, iconURL: target.user.displayAvatarURL() })
     .setTitle(refused ? 'Vérification refusée' : 'Vérification validée')
@@ -70,6 +85,8 @@ export function buildVerificationLogEmbed({ target, mod, name, team, suspected, 
     )
     .setTimestamp()
     .setFooter({ text: 'Journal de vérification' });
+  if (imageName) embed.setImage(`attachment://${imageName}`);
+  return embed;
 }
 
 // Post the audit embed to the log channel. No-op if no LOG_CHANNEL_ID is set.
@@ -77,7 +94,17 @@ async function sendVerificationLog(guild, data) {
   if (!config.logChannelId) return;
   const channel = await guild.channels.fetch(config.logChannelId).catch(() => null);
   if (!channel?.isTextBased?.()) return;
-  await channel.send({ embeds: [buildVerificationLogEmbed(data)] }).catch((e) =>
+
+  // Re-upload the submitted screenshot(s) so the proof lives on in the log even
+  // after the originals are deleted from the verification channel. The first one
+  // becomes the embed's main image; any extras are attached below (Discord caps
+  // a message at 10 attachments). URLs must still be live at send time — the
+  // validate flow sends the log BEFORE deleting the screenshots for this reason.
+  const urls = (data.photoUrls ?? []).slice(0, 10);
+  const files = urls.map((url, i) => new AttachmentBuilder(url, { name: proofName(url, i) }));
+  const embed = buildVerificationLogEmbed({ ...data, imageName: files[0]?.name ?? null });
+
+  await channel.send({ embeds: [embed], files }).catch((e) =>
     console.error('[verification] Failed to send the log embed:', e?.message ?? e),
   );
 }
@@ -103,10 +130,12 @@ async function onMessage(message) {
 
   let rec = reviews.get(member.id);
   if (!rec) {
-    rec = { name: null, code: null, stats: emptyStats(), photoMsgIds: new Set(), detection: null, suspected: false, tamperReason: null };
+    rec = { name: null, code: null, stats: emptyStats(), photoMsgIds: new Set(), photoUrls: [], detection: null, suspected: false, tamperReason: null };
     reviews.set(member.id, rec);
   }
   rec.photoMsgIds.add(message.id);
+  // Keep the raw image URLs (across both screenshots) to re-attach in the log.
+  for (const url of urls) rec.photoUrls.push(url);
 
   await message.react(VALIDATE).catch(() => {});
   await message.react(REFUSE).catch(() => {});
@@ -192,6 +221,7 @@ async function onReaction(reaction, user) {
       team: rec?.stats?.team ?? null,
       suspected: rec?.suspected ?? false,
       tamperReason: rec?.tamperReason ?? null,
+      photoUrls: rec?.photoUrls ?? imageUrls(message),
       refused: true,
     });
     await rec?.detection?.delete().catch(() => {});
@@ -256,6 +286,18 @@ async function onReaction(reaction, user) {
   }
   const teamAssigned = stats.team ? await applyTeamRole(target, stats.team, `Validé par ${user.tag}`) : false;
 
+  // Send the audit log FIRST — it re-uploads the submitted screenshots, so their
+  // URLs must still be live at this point (the originals are deleted just below).
+  await sendVerificationLog(message.guild, {
+    target,
+    mod,
+    name,
+    team: stats.team,
+    suspected: rec?.suspected ?? false,
+    tamperReason: rec?.tamperReason ?? null,
+    photoUrls: rec?.photoUrls ?? imageUrls(message),
+  });
+
   // Clean up: delete the screenshots and the detection message.
   const photoIds = rec ? [...rec.photoMsgIds] : [message.id];
   for (const id of photoIds) await channel.messages.delete(id).catch(() => {});
@@ -271,15 +313,6 @@ async function onReaction(reaction, user) {
     .send(`${VALIDATE} ${target} a été validé par ${user}.${suffix}`)
     .catch(() => null);
   if (confirm) setTimeout(() => confirm.delete().catch(() => {}), 8000);
-
-  await sendVerificationLog(message.guild, {
-    target,
-    mod,
-    name,
-    team: stats.team,
-    suspected: rec?.suspected ?? false,
-    tamperReason: rec?.tamperReason ?? null,
-  });
 
   await sendWelcome(message.guild, target);
 }
