@@ -171,7 +171,7 @@ export default function DashEmbed({ meta, row, bot, onSaved }) {
                   {m.title && <div className="discord-embed-title">{renderMarkdown(m.title)}</div>}
                   {m.description && <div className="discord-embed-desc"><RichText text={m.description} /></div>}
                   {m.fields.length > 0 && <FieldsPreview fields={m.fields} />}
-                  {m.image_url && <img className="discord-embed-image" src={m.image_url.startsWith('attachment://') ? '' : m.image_url} alt="" />}
+                  {m.image_url && !m.image_url.startsWith('attachment://') && <img className="discord-embed-image" src={m.image_url} alt="" />}
                   {m.footer_text && <div className="discord-embed-footer">{m.footer_text}</div>}
                 </div>
                 {m.thumbnail_url && !m.thumbnail_url.startsWith('attachment://') && <img className="discord-embed-thumb" src={m.thumbnail_url} alt="" />}
