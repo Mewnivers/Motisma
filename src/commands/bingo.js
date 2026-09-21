@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import { parseMessageRef } from '../utils/messageRef.js';
 
 // /bingo lets a moderator publish a bingo image and later swap it out.
 //  - create: the BOT posts the image, so the message is editable afterwards.
@@ -13,17 +14,6 @@ function isImage(attachment) {
   return (
     attachment.contentType?.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/i.test(attachment.name ?? '')
   );
-}
-
-// Parse the "message" option: a full Discord message link, or a bare message id
-// (which then targets the channel where the command is run).
-// Link shape: https://discord.com/channels/<guildId>/<channelId>/<messageId>
-function parseMessageRef(input, fallbackChannelId) {
-  const trimmed = input.trim();
-  const link = trimmed.match(/channels\/\d+\/(\d+)\/(\d+)/);
-  if (link) return { channelId: link[1], messageId: link[2] };
-  if (/^\d{17,20}$/.test(trimmed)) return { channelId: fallbackChannelId, messageId: trimmed };
-  return null;
 }
 
 export const data = new SlashCommandBuilder()
