@@ -931,9 +931,6 @@ const INFO_EMBED_DEFAULTS = {
 
 export const INFO_EMBED_KEYS = Object.keys(INFO_EMBED_DEFAULTS);
 
-/** Colonnes de contenu éditables (jamais posted_* ni updated_at). */
-const INFO_EMBED_CONTENT_COLS = ['title', 'description', 'color', 'image_url', 'thumbnail_url', 'footer_text', 'fields'];
-
 /** Sème les défauts manquants. Résout la miniature de `motisma` (avatar du bot). */
 export async function ensureInfoEmbeds(guildId) {
   if (!pool) return;
@@ -949,7 +946,16 @@ export async function ensureInfoEmbeds(guildId) {
     await pool.query(
       `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)
-       ON CONFLICT (guild_id, key) DO NOTHING`,
+       ON CONFLICT (guild_id, key) DO UPDATE SET
+         title = EXCLUDED.title,
+         description = EXCLUDED.description,
+         color = EXCLUDED.color,
+         image_url = EXCLUDED.image_url,
+         thumbnail_url = EXCLUDED.thumbnail_url,
+         footer_text = EXCLUDED.footer_text,
+         fields = EXCLUDED.fields,
+         updated_at = now()
+       WHERE info_embeds.title IS NULL AND info_embeds.description IS NULL`,
       [
         guildId, key,
         row.title ?? null, row.description ?? null, row.color ?? null,
@@ -998,6 +1004,16 @@ export async function upsertInfoEmbed(guildId, key, data) {
     ],
   );
   return rows[0];
+}
+
+/** Efface la référence du message publié (ex. message supprimé sur Discord). */
+export async function clearInfoEmbedPosted(guildId, key) {
+  if (!pool) return;
+  await pool.query(
+    `UPDATE info_embeds SET posted_channel_id = NULL, posted_message_id = NULL, updated_at = now()
+     WHERE guild_id = $1 AND key = $2`,
+    [guildId, key],
+  );
 }
 
 /** Aggregate counts for the dashboard overview. */

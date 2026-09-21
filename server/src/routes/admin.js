@@ -13,6 +13,7 @@ import {
   MESSAGE_KEYS,
   getInfoEmbeds,
   upsertInfoEmbed,
+  clearInfoEmbedPosted,
   INFO_EMBED_KEYS,
 } from '../db.js';
 import {
@@ -193,14 +194,14 @@ export async function adminRoutes(app) {
 
   app.get('/api/admin/embeds', { preHandler: requireAdmin }, async () => {
     const [embeds, bot] = await Promise.all([getInfoEmbeds(config.guildId), getBotUser()]);
-    return { embeds, bot };
+    return { embeds, bot, guildId: config.guildId };
   });
 
   app.post('/api/admin/embeds/:key', { preHandler: requireAdmin }, async (request, reply) => {
     const key = String(request.params.key || '');
     if (!embedKeys.has(key)) return reply.code(400).send({ error: 'unknown_embed' });
     const body = request.body;
-    if (!body || typeof body !== 'object') return reply.code(400).send({ error: 'invalid_body' });
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return reply.code(400).send({ error: 'invalid_body' });
 
     const check = validateEmbedContent(body);
     if (!check.ok) return reply.code(400).send({ error: 'invalid_content', details: check.errors });
@@ -215,7 +216,14 @@ export async function adminRoutes(app) {
         embeds: [contentToEmbed(row)],
       });
       live = res.ok;
-      if (!res.ok) reason = res.status === 404 ? 'deleted' : 'edit_failed';
+      if (!res.ok) {
+        reason = res.status === 404 ? 'deleted' : 'edit_failed';
+        if (res.status === 404) {
+          await clearInfoEmbedPosted(config.guildId, key);
+          row.posted_channel_id = null;
+          row.posted_message_id = null;
+        }
+      }
     } else {
       reason = 'not_published';
     }
