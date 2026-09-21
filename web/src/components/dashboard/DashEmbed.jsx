@@ -39,7 +39,7 @@ function FieldsPreview({ fields }) {
   );
 }
 
-export default function DashEmbed({ meta, row, bot, onSaved }) {
+export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   const [m, setM] = useState(() => ({
     title: row?.title ?? '',
     description: row?.description ?? '',
@@ -97,6 +97,18 @@ export default function DashEmbed({ meta, row, bot, onSaved }) {
         <h2>{meta.label}</h2>
         {meta.desc && <p>{meta.desc}</p>}
         {meta.note && <p className="dash-embed-note">ℹ️ {meta.note}</p>}
+        {guildId && row?.posted_channel_id && row?.posted_message_id && (
+          <p className="dash-embed-note">
+            <a
+              className="discord-link"
+              href={`https://discord.com/channels/${guildId}/${row.posted_channel_id}/${row.posted_message_id}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Message suivi ↗
+            </a>
+          </p>
+        )}
       </header>
 
       <div className="dash-msg">

@@ -8,7 +8,7 @@ import DashEmbed from './DashEmbed.jsx';
 import Icon from '../Icons.jsx';
 
 export default function DashEmbedList() {
-  const [data, setData] = useState(null); // { rowsByKey, bot } | 'error'
+  const [data, setData] = useState(null); // { rowsByKey, bot, guildId } | 'error'
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function DashEmbedList() {
       .then((d) => {
         const rowsByKey = {};
         for (const row of d.embeds || []) rowsByKey[row.key] = row;
-        setData({ rowsByKey, bot: d.bot });
+        setData({ rowsByKey, bot: d.bot, guildId: d.guildId });
       })
       .catch(() => setData('error'));
   }, []);
@@ -35,6 +35,7 @@ export default function DashEmbedList() {
           meta={meta}
           row={data.rowsByKey[selected]}
           bot={data.bot}
+          guildId={data.guildId}
           onSaved={(key, row) =>
             setData((prev) => ({ ...prev, rowsByKey: { ...prev.rowsByKey, [key]: row } }))
           }
