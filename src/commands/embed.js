@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
+import { fetchOwnMessage } from '../utils/messageRef.js';
 import { buildReglementEmbed } from '../embeds/reglement.js';
 import { buildVerificationEmbed } from '../embeds/verification.js';
 import { buildSuggestionsEmbed } from '../embeds/suggestions.js';
@@ -25,7 +26,7 @@ const EMBEDS = {
 
 export const data = new SlashCommandBuilder()
   .setName('embed')
-  .setDescription('Publier un embed d’information du serveur (admin).')
+  .setDescription('Publier ou mettre à jour un embed d’information du serveur (admin).')
   .addStringOption((opt) =>
     opt
       .setName('type')
@@ -35,11 +36,17 @@ export const data = new SlashCommandBuilder()
         ...Object.entries(EMBEDS).map(([value, { label }]) => ({ name: label, value })),
       ),
   )
+  .addStringOption((opt) =>
+    opt
+      .setName('lien')
+      .setDescription('Lien du message à mettre à jour (vide = publier un nouveau message).'),
+  )
   // Only members with "Manage Server" see and can use this command.
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
 
 export async function execute(interaction) {
   const type = interaction.options.getString('type', true);
+  const lien = interaction.options.getString('lien');
   const entry = EMBEDS[type];
 
   if (!entry) {
@@ -50,6 +57,29 @@ export async function execute(interaction) {
   const embed = await entry.build(interaction);
   const components = entry.components ? [await entry.components(interaction)] : [];
   const files = entry.files ? entry.files(interaction) : [];
-  await interaction.channel.send({ embeds: [embed], components, files });
-  await interaction.reply({ content: `Embed « ${entry.label} » publié ici. ✅`, ephemeral: true });
+
+  // With a link: rebuild the embed and edit that message in place (no repost).
+  if (lien) {
+    await interaction.deferReply({ ephemeral: true });
+    const { message, error } = await fetchOwnMessage(interaction, lien);
+    if (error) {
+      await interaction.editReply(error);
+      return;
+    }
+    try {
+      // `attachments: []` drops the old files; the entry's files are re-attached
+      // so an embed image (attachment://…) keeps showing after the edit.
+      await message.edit({ embeds: [embed], components, files, attachments: [] });
+    } catch (e) {
+      console.error('[embed] Update failed:', e);
+      await interaction.editReply('Échec de la modification (permissions manquantes ?).');
+      return;
+    }
+    await interaction.editReply(`Embed « ${entry.label} » mis à jour. ✅ ${message.url}`);
+    return;
+  }
+
+  // Otherwise, post a fresh message (default behaviour).
+  const sent = await interaction.channel.send({ embeds: [embed], components, files });
+  await interaction.reply({ content: `Embed « ${entry.label} » publié ici. ✅ ${sent.url}`, ephemeral: true });
 }
