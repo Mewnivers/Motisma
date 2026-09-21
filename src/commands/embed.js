@@ -1,4 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
+import { config } from '../config.js';
+import { getInfoEmbed, setInfoEmbedPosted } from '../db.js';
+import { contentToEmbed, MANAGED_EMBED_KEYS } from '../embeds/renderInfoEmbed.js';
 import { fetchOwnMessage } from '../utils/messageRef.js';
 import { buildReglementEmbed } from '../embeds/reglement.js';
 import { buildVerificationEmbed } from '../embeds/verification.js';
@@ -23,6 +26,20 @@ const EMBEDS = {
   ressources: { label: 'Salons à connaître', build: buildRessourcesEmbed },
   classement: { label: 'Classement PoGo', build: buildClassementEmbed, components: buildClassementComponents },
 };
+
+const managed = new Set(MANAGED_EMBED_KEYS);
+
+// Vrai si la ligne DB porte réellement du contenu (pas seulement posted_*).
+function hasContent(row) {
+  return Boolean(row && (row.title || row.description || (row.fields && row.fields.length)));
+}
+
+/** Embed d'une clé gérée : base si présente, sinon builder codé (fallback). */
+async function buildManagedEmbed(type, entry, interaction) {
+  const row = await getInfoEmbed(config.guildId, type).catch(() => null);
+  if (hasContent(row)) return contentToEmbed(row);
+  return entry.build(interaction); // fallback : builder codé actuel
+}
 
 export const data = new SlashCommandBuilder()
   .setName('embed')
@@ -54,7 +71,7 @@ export async function execute(interaction) {
     return;
   }
 
-  const embed = await entry.build(interaction);
+  const embed = managed.has(type) ? await buildManagedEmbed(type, entry, interaction) : await entry.build(interaction);
   const components = entry.components ? [await entry.components(interaction)] : [];
   const files = entry.files ? entry.files(interaction) : [];
 
@@ -75,11 +92,17 @@ export async function execute(interaction) {
       await interaction.editReply('Échec de la modification (permissions manquantes ?).');
       return;
     }
+    if (managed.has(type)) {
+      await setInfoEmbedPosted(config.guildId, type, message.channelId, message.id).catch(() => {});
+    }
     await interaction.editReply(`Embed « ${entry.label} » mis à jour. ✅ ${message.url}`);
     return;
   }
 
   // Otherwise, post a fresh message (default behaviour).
   const sent = await interaction.channel.send({ embeds: [embed], components, files });
+  if (managed.has(type)) {
+    await setInfoEmbedPosted(config.guildId, type, sent.channelId, sent.id).catch(() => {});
+  }
   await interaction.reply({ content: `Embed « ${entry.label} » publié ici. ✅ ${sent.url}`, ephemeral: true });
 }
