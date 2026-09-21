@@ -36,4 +36,12 @@ test('validation refuse >25 champs et champ invalide', () => {
 
 test('validation refuse couleur invalide', () => {
   assert.equal(validateEmbedContent({ color: 'blurple' }).ok, false);
+  assert.equal(validateEmbedContent({ color: 42 }).ok, false);
+  assert.equal(validateEmbedContent({ color: true }).ok, false);
+});
+
+test('validation accepte absence de couleur ou chaîne vide', () => {
+  assert.equal(validateEmbedContent({}).ok, true);
+  assert.equal(validateEmbedContent({ color: '' }).ok, true);
+  assert.equal(validateEmbedContent({ color: null }).ok, true);
 });

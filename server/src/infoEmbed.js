@@ -36,7 +36,7 @@ export function validateEmbedContent(body = {}) {
   if (str(body.title).length > 256) errors.push('Titre trop long (max 256).');
   if (str(body.description).length > 4096) errors.push('Description trop longue (max 4096).');
   if (str(body.footer_text).length > 2048) errors.push('Pied de page trop long (max 2048).');
-  if (body.color != null && str(body.color) !== '' && colorHexToInt(body.color) === null) {
+  if (body.color != null && body.color !== '' && colorHexToInt(body.color) === null) {
     errors.push('Couleur invalide (format #rrggbb attendu).');
   }
   const fields = Array.isArray(body.fields) ? body.fields : [];
