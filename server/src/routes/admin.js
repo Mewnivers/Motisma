@@ -25,6 +25,8 @@ import {
   fetchGuildMembers,
   avatarUrlsFor,
   editMessage,
+  fetchGuildEmojis,
+  fetchApplicationEmojis,
 } from '../discord.js';
 import { contentToEmbed, validateEmbedContent } from '../infoEmbed.js';
 
@@ -228,5 +230,14 @@ export async function adminRoutes(app) {
       reason = 'not_published';
     }
     return { ok: true, row, live, reason };
+  });
+
+  // --- Custom emojis (guild + bot application) for the editor picker ---
+  app.get('/api/admin/emojis', { preHandler: requireAdmin }, async () => {
+    const [guild, application] = await Promise.all([
+      fetchGuildEmojis(config.guildId),
+      fetchApplicationEmojis(),
+    ]);
+    return { guild: guild ?? [], application: application ?? [] };
   });
 }
