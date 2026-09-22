@@ -26,20 +26,32 @@ export default function DashEmbedList({ onExit }) {
 
   if (selected) {
     const meta = EMBED_BY_KEY[selected];
+    const onSaved = (key, row) =>
+      setData((prev) => ({ ...prev, rowsByKey: { ...prev.rowsByKey, [key]: row } }));
+    const editor = (m) => (
+      <DashEmbed meta={m} row={data.rowsByKey[m.key]} bot={data.bot} guildId={data.guildId} onSaved={onSaved} />
+    );
     return (
       <div>
         <button type="button" className="dash-back" onClick={() => setSelected(null)}>
           ← Embeds d’info
         </button>
-        <DashEmbed
-          meta={meta}
-          row={data.rowsByKey[selected]}
-          bot={data.bot}
-          guildId={data.guildId}
-          onSaved={(key, row) =>
-            setData((prev) => ({ ...prev, rowsByKey: { ...prev.rowsByKey, [key]: row } }))
-          }
-        />
+        {meta.group ? (
+          <>
+            <header className="dash-module-head">
+              <h2>{meta.label}</h2>
+              {meta.desc && <p>{meta.desc}</p>}
+            </header>
+            {meta.group.map((sub, i) => (
+              <div key={sub.key}>
+                {i > 0 && <hr className="dash-embed-sep" />}
+                {editor(sub)}
+              </div>
+            ))}
+          </>
+        ) : (
+          editor(meta)
+        )}
       </div>
     );
   }
