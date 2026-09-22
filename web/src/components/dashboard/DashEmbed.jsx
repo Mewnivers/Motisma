@@ -58,7 +58,7 @@ function FieldsPreview({ fields }) {
         // eslint-disable-next-line react/no-array-index-key
         <div key={i} className={`discord-embed-field${f.inline ? ' inline' : ''}`}>
           <div className="discord-embed-field-name">{renderMarkdown(dc(f.name))}</div>
-          <div className="discord-embed-field-value"><RichText text={dc(f.value)} /></div>
+          <div className="discord-embed-field-value"><RichText text={f.value} /></div>
         </div>
       ))}
     </div>
@@ -253,7 +253,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
               <div className="discord-embed" style={{ borderColor: m.color }}>
                 <div className="discord-embed-main">
                   {dc(m.title) && <div className="discord-embed-title">{renderMarkdown(dc(m.title))}</div>}
-                  {dc(m.description) && <div className="discord-embed-desc"><RichText text={dc(m.description)} /></div>}
+                  {dc(m.description) && <div className="discord-embed-desc"><RichText text={m.description} /></div>}
                   {m.fields.length > 0 && <FieldsPreview fields={m.fields} />}
                   {m.image_url && !m.image_url.startsWith('attachment://') && <img className="discord-embed-image" src={m.image_url} alt="" />}
                   {dc(m.footer_text) && <div className="discord-embed-footer">{dc(m.footer_text)}</div>}
