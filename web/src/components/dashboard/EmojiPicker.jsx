@@ -3,6 +3,7 @@
 // onSelect(code) où code est le format Discord `<:nom:id>` / `<a:nom:id>`.
 import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '../../api.js';
+import Icon from '../Icons.jsx';
 
 // Chargement unique et partagé entre tous les sélecteurs de la page.
 let cache = null;
@@ -65,7 +66,7 @@ export default function EmojiPicker({ onSelect }) {
         aria-label="Insérer un emoji"
         onClick={() => setOpen((o) => !o)}
       >
-        😀
+        <Icon name="smile" size={18} />
       </button>
       {open && (
         <div className="emoji-pop">
