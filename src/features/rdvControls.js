@@ -1,8 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Events } from 'discord.js';
+import { EmbedBuilder, Events } from 'discord.js';
 import { config } from '../config.js';
 
 const MAX_DELAY = 2 ** 31 - 1; // setTimeout cap (~24.8 days)
-const INSCRITS_PREFIX = 'Inscrits';
+const PARTICIPANTS_PREFIX = 'Participants';
 
 /**
  * Schedule a meetup channel to be deleted at `deleteAt` (epoch ms).
@@ -16,16 +16,16 @@ export function scheduleChannelDeletion(channel, deleteAt) {
   }, delay);
 }
 
-function getInscritIds(embed) {
-  const field = embed?.fields?.find((f) => f.name.startsWith(INSCRITS_PREFIX));
+function getParticipantIds(embed) {
+  const field = embed?.fields?.find((f) => f.name.startsWith(PARTICIPANTS_PREFIX));
   return field ? [...field.value.matchAll(/<@!?(\d+)>/g)].map((m) => m[1]) : [];
 }
 
-function withInscrits(embed, ids) {
+function withParticipants(embed, ids) {
   const fields = embed.fields.map((f) =>
-    f.name.startsWith(INSCRITS_PREFIX)
+    f.name.startsWith(PARTICIPANTS_PREFIX)
       ? {
-          name: `${INSCRITS_PREFIX} (${ids.length})`,
+          name: `${PARTICIPANTS_PREFIX} (${ids.length})`,
           value: ids.length ? ids.map((id) => `<@${id}>`).join('\n') : 'Personne pour l’instant.',
           inline: false,
         }
@@ -34,60 +34,69 @@ function withInscrits(embed, ids) {
   return EmbedBuilder.from(embed).setFields(fields);
 }
 
-// Private panel: a single button that reflects the clicking user's state.
-function panelRow(inscrit, msgId) {
-  const button = inscrit
-    ? new ButtonBuilder()
-        .setCustomId(`rdv:leave:${msgId}`)
-        .setLabel('Se désinscrire')
-        .setEmoji('➖')
-        .setStyle(ButtonStyle.Danger)
-    : new ButtonBuilder()
-        .setCustomId(`rdv:join:${msgId}`)
-        .setLabel('S’inscrire')
-        .setEmoji('➕')
-        .setStyle(ButtonStyle.Success);
-  return new ActionRowBuilder().addComponents(button);
-}
-
-const statusText = (inscrit) =>
-  inscrit ? 'Tu es inscrit à cette sortie. ✅' : 'Tu n’es pas inscrit à cette sortie.';
-
-// "Participer" on the public message -> open the private panel.
-async function openPanel(interaction) {
-  const inscrit = getInscritIds(interaction.message.embeds[0]).includes(interaction.user.id);
-  await interaction.reply({
-    ephemeral: true,
-    content: statusText(inscrit),
-    components: [panelRow(inscrit, interaction.message.id)],
-  });
-}
-
-// Join / leave from the private panel -> update the public embed + the panel.
-async function toggle(interaction) {
-  const [, action, msgId] = interaction.customId.split(':');
-  const message = await interaction.channel.messages.fetch(msgId).catch(() => null);
-
-  if (!message || !message.embeds[0]) {
-    await interaction.update({ content: 'Cette sortie n’existe plus.', components: [] });
+// "Je participe" (annonce) -> donne l'accès au salon + ajoute à la liste.
+async function join(interaction) {
+  const [, , channelId, panelId] = interaction.customId.split(':');
+  const channel = await interaction.guild.channels.fetch(channelId).catch(() => null);
+  if (!channel) {
+    await interaction.reply({ ephemeral: true, content: 'Cette sortie n’existe plus.' });
     return;
   }
 
   const uid = interaction.user.id;
-  let ids = getInscritIds(message.embeds[0]);
-  ids = action === 'join' ? [...new Set([...ids, uid])] : ids.filter((id) => id !== uid);
+  try {
+    await channel.permissionOverwrites.edit(uid, { ViewChannel: true, SendMessages: true });
+  } catch {
+    await interaction.reply({
+      ephemeral: true,
+      content: 'Impossible de te donner accès au salon (permissions du bot ?).',
+    });
+    return;
+  }
 
-  await message.edit({ embeds: [withInscrits(message.embeds[0], ids)] });
+  const panel = panelId ? await channel.messages.fetch(panelId).catch(() => null) : null;
+  const ids = panel?.embeds[0] ? getParticipantIds(panel.embeds[0]) : [];
+  const already = ids.includes(uid);
+  if (panel?.embeds[0] && !already) {
+    await panel.edit({ embeds: [withParticipants(panel.embeds[0], [...ids, uid])] }).catch(() => {});
+  }
 
-  const inscrit = action === 'join';
-  await interaction.update({ content: statusText(inscrit), components: [panelRow(inscrit, msgId)] });
+  await interaction.reply({
+    ephemeral: true,
+    content: already
+      ? `Tu participes déjà — c’est par ici : ${channel}.`
+      : `Tu participes ! 🎉 Rendez-vous dans ${channel}.`,
+  });
+}
+
+// "Se désinscrire et quitter" (panneau du salon) -> retire l'accès + la liste.
+async function leave(interaction) {
+  const channel = interaction.channel;
+  const panel = interaction.message;
+  const uid = interaction.user.id;
+
+  // L'organisateur ne peut pas quitter son propre salon.
+  const orgField = panel?.embeds[0]?.fields?.find((f) => f.name.includes('Organisateur'));
+  const organizerId = orgField?.value.match(/<@!?(\d+)>/)?.[1];
+  if (organizerId === uid) {
+    await interaction.reply({ ephemeral: true, content: 'Tu es l’organisateur — tu ne peux pas quitter la sortie.' });
+    return;
+  }
+
+  if (panel?.embeds[0]) {
+    const ids = getParticipantIds(panel.embeds[0]).filter((id) => id !== uid);
+    await panel.edit({ embeds: [withParticipants(panel.embeds[0], ids)] }).catch(() => {});
+  }
+  await channel.permissionOverwrites.delete(uid).catch(() => {});
+
+  await interaction.reply({ ephemeral: true, content: 'Tu t’es désinscrit·e et tu as quitté le salon. 👋' });
 }
 
 async function onButton(interaction) {
   if (!interaction.isButton()) return;
   const id = interaction.customId;
-  if (id === 'rdv:panel') return openPanel(interaction);
-  if (id.startsWith('rdv:join:') || id.startsWith('rdv:leave:')) return toggle(interaction);
+  if (id.startsWith('rdv:join:')) return join(interaction);
+  if (id === 'rdv:leave') return leave(interaction);
 }
 
 // On startup, reschedule deletions for meetup channels left by a previous run.
