@@ -10,6 +10,7 @@ import DashEmbedList from '../components/dashboard/DashEmbedList.jsx';
 import DashMessage from '../components/dashboard/DashMessage.jsx';
 import DashOverview from '../components/dashboard/DashOverview.jsx';
 import DashMembers from '../components/dashboard/DashMembers.jsx';
+import DashTodos from '../components/dashboard/DashTodos.jsx';
 import DashStats from '../components/dashboard/DashStats.jsx';
 
 // Message section keys are prefixed to avoid clashing with config keys.
@@ -23,6 +24,7 @@ const CATEGORIES = [
   { key: 'stats', label: 'Validation stats', icon: 'check' },
   { key: 'config', label: 'Configuration', icon: 'gear' },
   { key: 'messages', label: 'Messages', icon: 'megaphone' },
+  { key: 'todos', label: 'À faire', icon: 'scroll' },
 ];
 
 // Persist the open view across reloads (the auto-reloader otherwise drops you
@@ -144,6 +146,7 @@ export default function Dashboard() {
           {view === 'overview' && <DashOverview onGoto={setView} />}
           {view === 'members' && <DashMembers />}
           {view === 'stats' && <DashStats />}
+          {view === 'todos' && <DashTodos />}
 
           {/* Messages category → grid of cards grouped by sub-category */}
           {view === 'messages' && (

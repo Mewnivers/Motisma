@@ -15,6 +15,10 @@ import {
   upsertInfoEmbed,
   clearInfoEmbedPosted,
   INFO_EMBED_KEYS,
+  getTodos,
+  addTodo,
+  updateTodo,
+  deleteTodo,
 } from '../db.js';
 import {
   hasBotToken,
@@ -239,5 +243,35 @@ export async function adminRoutes(app) {
       fetchApplicationEmojis(),
     ]);
     return { guild: guild ?? [], application: application ?? [] };
+  });
+
+  // --- Dashboard to-do list (shared task notepad) ---
+  app.get('/api/admin/todos', { preHandler: requireAdmin }, async () => {
+    return { todos: await getTodos(config.guildId) };
+  });
+
+  app.post('/api/admin/todos', { preHandler: requireAdmin }, async (request, reply) => {
+    const text = String(request.body?.text ?? '').trim();
+    if (!text) return reply.code(400).send({ error: 'empty_text' });
+    return { todo: await addTodo(config.guildId, text.slice(0, 2000)) };
+  });
+
+  app.post('/api/admin/todos/:id', { preHandler: requireAdmin }, async (request, reply) => {
+    const id = Number(request.params.id);
+    if (!Number.isFinite(id)) return reply.code(400).send({ error: 'invalid_id' });
+    const b = request.body ?? {};
+    const patch = {};
+    if (typeof b.text === 'string') patch.text = b.text.trim().slice(0, 2000);
+    if (typeof b.done === 'boolean') patch.done = b.done;
+    const ok = await updateTodo(config.guildId, id, patch);
+    if (!ok) return reply.code(404).send({ error: 'not_found' });
+    return { ok: true };
+  });
+
+  app.post('/api/admin/todos/:id/delete', { preHandler: requireAdmin }, async (request, reply) => {
+    const id = Number(request.params.id);
+    if (!Number.isFinite(id)) return reply.code(400).send({ error: 'invalid_id' });
+    await deleteTodo(config.guildId, id);
+    return { ok: true };
   });
 }
