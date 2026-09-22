@@ -952,6 +952,19 @@ const INFO_EMBED_DEFAULTS = {
     footer_text: 'Motisma’Pau',
     fields: [],
   },
+
+  // Modèle de l'annonce /rdv. Variables remplies par le bot à chaque sortie :
+  // {lieu} {heure} {organisateur} {description} {fermeture}.
+  rdv_annonce: {
+    title: '📣 {lieu}',
+    color: 0x5865f2,
+    description: '{organisateur} organise une sortie ! Clique sur **Je participe** pour rejoindre le salon privé. 🎉',
+    footer_text: '🕒 Salon fermé automatiquement le {fermeture}',
+    fields: [
+      { name: '📍 Lieu', value: '{lieu}', inline: true },
+      { name: '🕒 Heure', value: '{heure}', inline: true },
+    ],
+  },
 };
 
 export const INFO_EMBED_KEYS = Object.keys(INFO_EMBED_DEFAULTS);

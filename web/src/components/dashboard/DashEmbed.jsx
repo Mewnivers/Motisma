@@ -125,10 +125,12 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   }
 
   const savedMsg = result && !result.error
-    ? (result.live ? 'Enregistré ✓ — message Discord mis à jour'
-      : result.reason === 'not_published' ? 'Enregistré ✓ — publie-le une fois avec /embed pour l’afficher'
-      : result.reason === 'deleted' ? 'Enregistré ✓ — le message publié a été supprimé, republie avec /embed'
-      : 'Enregistré ✓ — mise à jour Discord impossible (droits ?)')
+    ? (meta.template
+        ? 'Enregistré ✓ — modèle appliqué à la prochaine sortie.'
+        : result.live ? 'Enregistré ✓ — message Discord mis à jour'
+        : result.reason === 'not_published' ? 'Enregistré ✓ — publie-le une fois avec /embed pour l’afficher'
+        : result.reason === 'deleted' ? 'Enregistré ✓ — le message publié a été supprimé, republie avec /embed'
+        : 'Enregistré ✓ — mise à jour Discord impossible (droits ?)')
     : null;
 
   return (
@@ -137,6 +139,14 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
         <h2>{meta.label}</h2>
         {meta.desc && <p>{meta.desc}</p>}
         {meta.note && <p className="dash-embed-note">ℹ️ {meta.note}</p>}
+        {meta.vars && (
+          <p className="dash-vars">
+            Variables :
+            {meta.vars.map((v) => (
+              <code key={v}>{v}</code>
+            ))}
+          </p>
+        )}
       </header>
 
       <div className="dash-msg dash-msg-scroll">
