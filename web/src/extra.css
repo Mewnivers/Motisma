@@ -1062,6 +1062,12 @@
 .dash-input:focus {
   border-color: var(--accent);
 }
+/* Textareas resize in height only, never in width, so they stay inside their box. */
+textarea.dash-input {
+  resize: vertical;
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .dash-input-sm {
   padding: 5px 8px;
   max-width: 160px;
