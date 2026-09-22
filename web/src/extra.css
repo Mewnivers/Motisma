@@ -1545,12 +1545,17 @@ textarea.dash-input {
   background: var(--muted);
 }
 
-/* Emoji picker (embed editor) */
-.dash-field-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+/* Emoji picker (embed editor) — button sits in the textarea's top-right corner */
+.dash-textarea-wrap {
+  position: relative;
+}
+.dash-textarea-wrap .emoji-picker {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+}
+.dash-input-emoji {
+  padding-right: 34px;
 }
 .emoji-picker {
   position: relative;
@@ -1567,6 +1572,18 @@ textarea.dash-input {
 }
 .emoji-picker-btn:hover {
   border-color: var(--accent);
+}
+/* Lighter, borderless button when overlaid inside a textarea corner. */
+.dash-textarea-wrap .emoji-picker-btn {
+  border: none;
+  background: transparent;
+  padding: 2px;
+  font-size: 16px;
+  opacity: 0.65;
+}
+.dash-textarea-wrap .emoji-picker-btn:hover {
+  opacity: 1;
+  border: none;
 }
 .emoji-pop {
   position: absolute;

@@ -135,11 +135,11 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
             <input className="dash-input" value={m.title} onChange={(e) => set('title', e.target.value)} />
           </label>
           <div className="dash-field">
-            <div className="dash-field-head">
-              <span>Description</span>
+            <span>Description</span>
+            <div className="dash-textarea-wrap">
+              <textarea ref={descRef} className="dash-input dash-input-emoji" rows={6} value={m.description} onChange={(e) => set('description', e.target.value)} />
               <EmojiPicker onSelect={(code) => insertAtCursor(descRef.current, code, m.description, (v) => set('description', v))} />
             </div>
-            <textarea ref={descRef} className="dash-input" rows={6} value={m.description} onChange={(e) => set('description', e.target.value)} />
           </div>
           <div className="dash-field-row">
             <label className="dash-field dash-field-color"><span>Couleur</span>
@@ -171,16 +171,18 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                     <button type="button" className="btn-mini" onClick={() => move(i, -1)} aria-label="Monter">↑</button>
                     <button type="button" className="btn-mini" onClick={() => move(i, 1)} aria-label="Descendre">↓</button>
                     <button type="button" className="dash-pool-del" onClick={() => delField(i)} aria-label="Supprimer">✕</button>
+                  </div>
+                  <div className="dash-textarea-wrap">
+                    <textarea
+                      ref={(el) => { fieldRefs.current[i] = el; }}
+                      className="dash-input dash-input-emoji"
+                      rows={2}
+                      placeholder="Valeur"
+                      value={f.value}
+                      onChange={(e) => setField(i, 'value', e.target.value)}
+                    />
                     <EmojiPicker onSelect={(code) => insertAtCursor(fieldRefs.current[i], code, f.value, (v) => setField(i, 'value', v))} />
                   </div>
-                  <textarea
-                    ref={(el) => { fieldRefs.current[i] = el; }}
-                    className="dash-input"
-                    rows={2}
-                    placeholder="Valeur"
-                    value={f.value}
-                    onChange={(e) => setField(i, 'value', e.target.value)}
-                  />
                   <label className="dash-toggle">
                     <input type="checkbox" checked={f.inline} onChange={(e) => setField(i, 'inline', e.target.checked)} />
                     <span>Sur la même ligne (inline)</span>
