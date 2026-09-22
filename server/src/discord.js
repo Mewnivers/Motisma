@@ -133,6 +133,31 @@ export async function fetchGuildRoles(guildId) {
     .sort((a, b) => b.position - a.position);
 }
 
+/** Custom emojis of the guild (id, name, animated). Null if unavailable. */
+export async function fetchGuildEmojis(guildId) {
+  const data = await botGet(`/guilds/${guildId}/emojis`);
+  if (!Array.isArray(data)) return null;
+  return data
+    .filter((e) => e.id)
+    .map((e) => ({ id: e.id, name: e.name, animated: Boolean(e.animated) }));
+}
+
+/**
+ * Application (bot) emojis. A bot's user id equals its application id, so we
+ * resolve it from the bot account. Null if unavailable.
+ */
+export async function fetchApplicationEmojis() {
+  const me = await getBotUser();
+  if (!me?.id) return null;
+  const data = await botGet(`/applications/${me.id}/emojis`);
+  // Endpoint returns { items: [...] }; tolerate a bare array too.
+  const items = Array.isArray(data) ? data : data?.items;
+  if (!Array.isArray(items)) return null;
+  return items
+    .filter((e) => e.id)
+    .map((e) => ({ id: e.id, name: e.name, animated: Boolean(e.animated) }));
+}
+
 /** Édite un message du bot. Renvoie { ok } ou { ok:false, status }. */
 export async function editMessage(channelId, messageId, payload) {
   if (!config.botToken || !channelId || !messageId) return { ok: false, status: 0 };
