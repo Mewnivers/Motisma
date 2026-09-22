@@ -144,11 +144,16 @@ export async function execute(interaction) {
 
   const organizerId = interaction.user.id;
 
+  // Serveur de test dédié à /rdv : on y utilise la catégorie/annonce de test.
+  const isTestGuild = config.rdvTestGuildId && interaction.guild.id === config.rdvTestGuildId;
+  const rdvCategoryId = isTestGuild ? config.rdvTestCategoryId : config.rdvCategoryId;
+  const rdvAnnounceChannelId = isTestGuild ? config.rdvTestAnnounceChannelId : config.rdvAnnounceChannelId;
+
   // Salon privé : caché à @everyone, visible par l'organisateur et le bot.
   const channel = await interaction.guild.channels.create({
     name,
     type: ChannelType.GuildText,
-    parent: config.rdvCategoryId || undefined,
+    parent: rdvCategoryId || undefined,
     topic: `rdv-expire:${deleteAt}`,
     reason: `Sortie créée par ${interaction.user.tag}`,
     permissionOverwrites: [
@@ -185,9 +190,9 @@ export async function execute(interaction) {
   scheduleChannelDeletion(channel, deleteAt);
 
   // Annonce publique avec un bouton « Je participe » qui donne l'accès au salon.
-  if (config.rdvAnnounceChannelId) {
+  if (rdvAnnounceChannelId) {
     const announceChannel = await interaction.guild.channels
-      .fetch(config.rdvAnnounceChannelId)
+      .fetch(rdvAnnounceChannelId)
       .catch(() => null);
 
     if (announceChannel?.isTextBased()) {
