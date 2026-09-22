@@ -63,6 +63,11 @@ export const config = {
   rdvCategoryId: process.env.RDV_CATEGORY_ID || '',
   // Channel where /rdv announces newly created meetups.
   rdvAnnounceChannelId: process.env.RDV_ANNOUNCE_CHANNEL_ID || '',
+  // Optional secondary guild for testing /rdv only (leaves the main guild
+  // untouched). When /rdv runs there, it uses the test category/announce below.
+  rdvTestGuildId: process.env.RDV_TEST_GUILD_ID || '',
+  rdvTestCategoryId: process.env.RDV_TEST_CATEGORY_ID || '',
+  rdvTestAnnounceChannelId: process.env.RDV_TEST_ANNOUNCE_CHANNEL_ID || '',
   // Channel where a welcome message is posted once a newcomer is validated.
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID || '',
   // Staff log channel for audit embeds (e.g. who validated whom). Empty = no log.
