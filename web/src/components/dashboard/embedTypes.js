@@ -6,6 +6,15 @@ export const EMBED_TYPES = [
   { key: 'verification', label: 'Vérification', icon: 'shield', desc: 'Écran d’accueil des nouveaux.', lockImage: true, note: 'L’image d’exemple est gérée par le bot.' },
   { key: 'motisma', label: 'Motisma (le bot)', icon: 'star', desc: 'Présentation du bot.', lockThumbnail: true, note: 'La miniature (avatar du bot) est gérée par le bot.' },
   { key: 'classement', label: 'Classement', icon: 'medal', desc: 'Invitation au classement.', note: 'Le bouton « Participer » est conservé automatiquement.' },
+  {
+    key: 'rdv_annonce',
+    label: 'Rendez-vous',
+    icon: 'calendar',
+    desc: 'L’annonce d’une sortie /rdv (modèle).',
+    template: true,
+    vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
+    note: 'Modèle : les variables ci-dessous sont remplies à chaque sortie. Le bouton « Je participe » est ajouté automatiquement.',
+  },
 ];
 
 export const EMBED_BY_KEY = Object.fromEntries(EMBED_TYPES.map((m) => [m.key, m]));

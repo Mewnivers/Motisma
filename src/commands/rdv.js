@@ -8,11 +8,36 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import { config } from '../config.js';
+import { getInfoEmbed } from '../db.js';
+import { contentToEmbed } from '../embeds/renderInfoEmbed.js';
 import { scheduleChannelDeletion } from '../features/rdvControls.js';
 
 const PREFIX = '・';
 const PARIS = 'Europe/Paris';
 const BRAND = 0x5865f2;
+
+/** Remplace {var} par sa valeur dans une chaîne. */
+function applyVars(s, vars) {
+  return typeof s === 'string' ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : s;
+}
+
+/** Applique les variables à toutes les chaînes d'une ligne info_embeds. */
+function substituteRow(row, vars) {
+  return {
+    ...row,
+    title: applyVars(row.title, vars),
+    description: applyVars(row.description, vars),
+    footer_text: applyVars(row.footer_text, vars),
+    fields: (row.fields || []).map((f) => ({
+      name: applyVars(f.name, vars),
+      value: applyVars(f.value, vars),
+      inline: Boolean(f.inline),
+    })),
+  };
+}
+
+const rowHasContent = (row) =>
+  Boolean(row && (row.title || row.description || (row.fields && row.fields.length)));
 
 /** Embed posté dans le salon privé : infos + liste des participants. */
 export function buildPanelEmbed({ place, time, description, organizerId, ids, closeLabel }) {
@@ -196,7 +221,19 @@ export async function execute(interaction) {
       .catch(() => null);
 
     if (announceChannel?.isTextBased()) {
-      const announce = buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
+      // Modèle éditable via le dashboard (info_embeds « rdv_annonce ») ; repli
+      // sur l'embed codé si le modèle n'a pas encore été configuré.
+      const vars = {
+        lieu: place,
+        heure: time,
+        organisateur: `<@${organizerId}>`,
+        description: description || '',
+        fermeture: closeLabel,
+      };
+      const tpl = await getInfoEmbed(config.guildId, 'rdv_annonce').catch(() => null);
+      const announce = rowHasContent(tpl)
+        ? contentToEmbed(substituteRow(tpl, vars))
+        : buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
       const joinRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`rdv:join:${channel.id}:${panel.id}`)
