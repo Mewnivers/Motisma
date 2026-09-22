@@ -45,15 +45,20 @@ function RichText({ text }) {
   return <>{out}</>;
 }
 
+// Discord rogne les espaces/sauts de ligne en début et fin de chaque texte
+// (titre, description, nom/valeur de champ, footer). L'aperçu fait pareil pour
+// rester fidèle au rendu final.
+const dc = (s) => (s || '').trim();
+
 /** Grille de champs type Discord (les inline se regroupent). */
 function FieldsPreview({ fields }) {
   return (
     <div className="discord-embed-fields">
-      {fields.filter((f) => f.name && f.value).map((f, i) => (
+      {fields.filter((f) => dc(f.name) && dc(f.value)).map((f, i) => (
         // eslint-disable-next-line react/no-array-index-key
         <div key={i} className={`discord-embed-field${f.inline ? ' inline' : ''}`}>
-          <div className="discord-embed-field-name">{renderMarkdown(f.name)}</div>
-          <div className="discord-embed-field-value"><RichText text={f.value} /></div>
+          <div className="discord-embed-field-name">{renderMarkdown(dc(f.name))}</div>
+          <div className="discord-embed-field-value"><RichText text={dc(f.value)} /></div>
         </div>
       ))}
     </div>
@@ -247,11 +252,11 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
               <div className="discord-author">{bot?.username || 'Motisma'} <span className="discord-bot">BOT</span></div>
               <div className="discord-embed" style={{ borderColor: m.color }}>
                 <div className="discord-embed-main">
-                  {m.title && <div className="discord-embed-title">{renderMarkdown(m.title)}</div>}
-                  {m.description && <div className="discord-embed-desc"><RichText text={m.description} /></div>}
+                  {dc(m.title) && <div className="discord-embed-title">{renderMarkdown(dc(m.title))}</div>}
+                  {dc(m.description) && <div className="discord-embed-desc"><RichText text={dc(m.description)} /></div>}
                   {m.fields.length > 0 && <FieldsPreview fields={m.fields} />}
                   {m.image_url && !m.image_url.startsWith('attachment://') && <img className="discord-embed-image" src={m.image_url} alt="" />}
-                  {m.footer_text && <div className="discord-embed-footer">{m.footer_text}</div>}
+                  {dc(m.footer_text) && <div className="discord-embed-footer">{dc(m.footer_text)}</div>}
                 </div>
                 {m.thumbnail_url && !m.thumbnail_url.startsWith('attachment://') && <img className="discord-embed-thumb" src={m.thumbnail_url} alt="" />}
               </div>
