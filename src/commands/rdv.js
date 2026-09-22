@@ -200,8 +200,28 @@ export async function execute(interaction) {
     await channel.permissionOverwrites.edit(rid, { ViewChannel: true }).catch(() => {});
   }
 
-  // Panneau dans le salon : liste des participants + bouton pour quitter.
-  const panelEmbed = buildPanelEmbed({ place, time, description, organizerId, ids: [organizerId], closeLabel });
+  // Variables des modèles, remplies pour cette sortie.
+  const vars = {
+    lieu: place,
+    heure: time,
+    organisateur: `<@${organizerId}>`,
+    description: description || '',
+    fermeture: closeLabel,
+  };
+
+  // Panneau du salon : modèle éditable « rdv_salon » + liste des participants
+  // (ajoutée automatiquement) + bouton pour quitter.
+  const panelTpl = await getInfoEmbed(config.guildId, 'rdv_salon').catch(() => null);
+  let panelEmbed;
+  if (rowHasContent(panelTpl)) {
+    panelEmbed = contentToEmbed(substituteRow(panelTpl, vars));
+    panelEmbed.fields = [
+      ...(panelEmbed.fields || []),
+      { name: 'Participants (1)', value: `<@${organizerId}>`, inline: false },
+    ];
+  } else {
+    panelEmbed = buildPanelEmbed({ place, time, description, organizerId, ids: [organizerId], closeLabel });
+  }
   const leaveRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('rdv:leave')
@@ -223,13 +243,6 @@ export async function execute(interaction) {
     if (announceChannel?.isTextBased()) {
       // Modèle éditable via le dashboard (info_embeds « rdv_annonce ») ; repli
       // sur l'embed codé si le modèle n'a pas encore été configuré.
-      const vars = {
-        lieu: place,
-        heure: time,
-        organisateur: `<@${organizerId}>`,
-        description: description || '',
-        fermeture: closeLabel,
-      };
       const tpl = await getInfoEmbed(config.guildId, 'rdv_annonce').catch(() => null);
       const announce = rowHasContent(tpl)
         ? contentToEmbed(substituteRow(tpl, vars))

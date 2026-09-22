@@ -965,6 +965,21 @@ const INFO_EMBED_DEFAULTS = {
       { name: '🕒 Heure', value: '{heure}', inline: true },
     ],
   },
+
+  // Modèle du panneau posté DANS le salon /rdv. La liste « Participants » est
+  // ajoutée automatiquement par le bot. Variables : {lieu} {heure}
+  // {organisateur} {description} {fermeture}.
+  rdv_salon: {
+    title: '🗓️ Sortie',
+    color: 0x5865f2,
+    description: '-# Clique sur le bouton ci-dessous pour te désinscrire et quitter le salon.',
+    footer_text: '🕒 Fermeture automatique du salon le {fermeture}',
+    fields: [
+      { name: '📍 Lieu', value: '{lieu}', inline: true },
+      { name: '🕒 Heure', value: '{heure}', inline: true },
+      { name: '👤 Organisateur', value: '{organisateur}', inline: true },
+    ],
+  },
 };
 
 export const INFO_EMBED_KEYS = Object.keys(INFO_EMBED_DEFAULTS);
