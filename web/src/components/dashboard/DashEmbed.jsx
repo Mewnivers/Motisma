@@ -67,6 +67,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   }));
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null); // { live, reason } | { error }
+  const titleRef = useRef(null);
   const descRef = useRef(null);
   const fieldRefs = useRef({}); // index -> value textarea element
 
@@ -131,9 +132,12 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
       <div className="dash-msg dash-msg-scroll">
         {/* Éditeur */}
         <div className="dash-msg-editor">
-          <label className="dash-field"><span>Titre</span>
-            <input className="dash-input" value={m.title} onChange={(e) => set('title', e.target.value)} />
-          </label>
+          <div className="dash-field"><span>Titre</span>
+            <div className="dash-textarea-wrap">
+              <input ref={titleRef} className="dash-input dash-input-emoji" value={m.title} onChange={(e) => set('title', e.target.value)} />
+              <EmojiPicker onSelect={(code) => insertAtCursor(titleRef.current, code, m.title, (v) => set('title', v))} />
+            </div>
+          </div>
           <div className="dash-field">
             <span>Description</span>
             <div className="dash-textarea-wrap">
@@ -171,18 +175,16 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                     <button type="button" className="btn-mini" onClick={() => move(i, -1)} aria-label="Monter">↑</button>
                     <button type="button" className="btn-mini" onClick={() => move(i, 1)} aria-label="Descendre">↓</button>
                     <button type="button" className="dash-pool-del" onClick={() => delField(i)} aria-label="Supprimer">✕</button>
-                  </div>
-                  <div className="dash-textarea-wrap">
-                    <textarea
-                      ref={(el) => { fieldRefs.current[i] = el; }}
-                      className="dash-input dash-input-emoji"
-                      rows={2}
-                      placeholder="Valeur"
-                      value={f.value}
-                      onChange={(e) => setField(i, 'value', e.target.value)}
-                    />
                     <EmojiPicker onSelect={(code) => insertAtCursor(fieldRefs.current[i], code, f.value, (v) => setField(i, 'value', v))} />
                   </div>
+                  <textarea
+                    ref={(el) => { fieldRefs.current[i] = el; }}
+                    className="dash-input"
+                    rows={2}
+                    placeholder="Valeur"
+                    value={f.value}
+                    onChange={(e) => setField(i, 'value', e.target.value)}
+                  />
                   <label className="dash-toggle">
                     <input type="checkbox" checked={f.inline} onChange={(e) => setField(i, 'inline', e.target.checked)} />
                     <span>Sur la même ligne (inline)</span>
