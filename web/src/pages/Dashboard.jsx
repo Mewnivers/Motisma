@@ -209,12 +209,9 @@ export default function Dashboard() {
               </div>
             ))}
 
-          {/* Embeds d'info : liste + éditeur (auto-suffisant) */}
+          {/* Embeds d'info : liste + éditeur (nav interne : un seul retour) */}
           {section && section.component === 'embeds' && (
-            <div>
-              <Back to="config" label="Configuration" />
-              <DashEmbedList />
-            </div>
+            <DashEmbedList onExit={() => setView('config')} />
           )}
 
           {/* Config module editor */}
