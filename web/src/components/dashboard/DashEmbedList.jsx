@@ -7,7 +7,7 @@ import { EMBED_TYPES, EMBED_BY_KEY } from './embedTypes.js';
 import DashEmbed from './DashEmbed.jsx';
 import Icon from '../Icons.jsx';
 
-export default function DashEmbedList() {
+export default function DashEmbedList({ onExit }) {
   const [data, setData] = useState(null); // { rowsByKey, bot, guildId } | 'error'
   const [selected, setSelected] = useState(null);
 
@@ -46,6 +46,9 @@ export default function DashEmbedList() {
 
   return (
     <div>
+      <button type="button" className="dash-back" onClick={onExit}>
+        ← Configuration
+      </button>
       <header className="dash-module-head">
         <h2>Embeds d’information</h2>
         <p>Modifie les embeds publiés par /embed. L’enregistrement met à jour le message Discord.</p>

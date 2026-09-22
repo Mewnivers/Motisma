@@ -942,7 +942,7 @@
   max-width: 920px;
 }
 .dash-module-head {
-  margin-bottom: 18px;
+  margin-bottom: 10px;
 }
 .dash-module-head h2 {
   margin: 0;
@@ -1784,8 +1784,8 @@ textarea.dash-input {
   color: var(--muted);
   background: none;
   border: 0;
-  padding: 4px 0;
-  margin-bottom: 14px;
+  padding: 2px 0;
+  margin-bottom: 8px;
   cursor: pointer;
   transition: color 0.14s;
 }
