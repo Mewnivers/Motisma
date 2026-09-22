@@ -51,7 +51,10 @@ export default function EmojiPicker({ onSelect }) {
     };
   }, [open]);
 
-  const list = (emojis || []).filter((e) => e.name.toLowerCase().includes(q.toLowerCase()));
+  const filtered = (emojis || []).filter((e) => e.name.toLowerCase().includes(q.toLowerCase()));
+  const groups = ['Serveur', 'Bot']
+    .map((src) => ({ src, items: filtered.filter((e) => e.source === src) }))
+    .filter((g) => g.items.length);
 
   return (
     <span className="emoji-picker" ref={ref}>
@@ -76,25 +79,30 @@ export default function EmojiPicker({ onSelect }) {
           />
           {emojis === null ? (
             <p className="emoji-empty">Chargement…</p>
-          ) : list.length === 0 ? (
+          ) : groups.length === 0 ? (
             <p className="emoji-empty">Aucun emoji.</p>
           ) : (
-            <div className="emoji-grid">
-              {list.map((e) => (
-                <button
-                  type="button"
-                  key={`${e.source}-${e.id}`}
-                  className="emoji-item"
-                  title={`:${e.name}: · ${e.source}`}
-                  onClick={() => {
-                    onSelect(codeFor(e));
-                    setOpen(false);
-                  }}
-                >
-                  <img src={urlFor(e)} alt={e.name} loading="lazy" />
-                </button>
-              ))}
-            </div>
+            groups.map((g) => (
+              <div className="emoji-group" key={g.src}>
+                <div className="emoji-group-label">{g.src}</div>
+                <div className="emoji-grid">
+                  {g.items.map((e) => (
+                    <button
+                      type="button"
+                      key={`${e.source}-${e.id}`}
+                      className="emoji-item"
+                      title={`:${e.name}: · ${e.source}`}
+                      onClick={() => {
+                        onSelect(codeFor(e));
+                        setOpen(false);
+                      }}
+                    >
+                      <img src={urlFor(e)} alt={e.name} loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}

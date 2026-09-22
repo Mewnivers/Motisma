@@ -1622,6 +1622,18 @@ textarea.dash-input {
   color: var(--muted);
   margin: 4px 2px;
 }
+.emoji-group + .emoji-group {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+.emoji-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
 
 .dash-pool-note {
   font-size: 12px;
