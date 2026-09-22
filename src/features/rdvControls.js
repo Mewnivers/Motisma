@@ -1,4 +1,4 @@
-import { EmbedBuilder, Events } from 'discord.js';
+import { EmbedBuilder, Events, PermissionFlagsBits } from 'discord.js';
 import { config } from '../config.js';
 
 const MAX_DELAY = 2 ** 31 - 1; // setTimeout cap (~24.8 days)
@@ -92,11 +92,26 @@ async function leave(interaction) {
   await interaction.reply({ ephemeral: true, content: 'Tu t’es désinscrit·e et tu as quitté le salon. 👋' });
 }
 
+// "Fermer la sortie" (panneau) -> l'organisateur (ou un admin) supprime le salon.
+async function close(interaction) {
+  const [, , organizerId] = interaction.customId.split(':');
+  const canClose =
+    interaction.user.id === organizerId ||
+    interaction.memberPermissions?.has(PermissionFlagsBits.ManageChannels);
+  if (!canClose) {
+    await interaction.reply({ ephemeral: true, content: 'Seul l’organisateur peut fermer la sortie.' });
+    return;
+  }
+  await interaction.reply({ ephemeral: true, content: 'Sortie fermée, le salon va être supprimé. 👋' });
+  await interaction.channel.delete('Sortie fermée par l’organisateur').catch(() => {});
+}
+
 async function onButton(interaction) {
   if (!interaction.isButton()) return;
   const id = interaction.customId;
   if (id.startsWith('rdv:join:')) return join(interaction);
   if (id === 'rdv:leave') return leave(interaction);
+  if (id.startsWith('rdv:close:')) return close(interaction);
 }
 
 // On startup, reschedule deletions for meetup channels left by a previous run.
