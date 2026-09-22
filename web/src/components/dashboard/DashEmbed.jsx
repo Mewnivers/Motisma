@@ -137,18 +137,6 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
         <h2>{meta.label}</h2>
         {meta.desc && <p>{meta.desc}</p>}
         {meta.note && <p className="dash-embed-note">ℹ️ {meta.note}</p>}
-        {guildId && row?.posted_channel_id && row?.posted_message_id && (
-          <p className="dash-embed-note">
-            <a
-              className="discord-link"
-              href={`https://discord.com/channels/${guildId}/${row.posted_channel_id}/${row.posted_message_id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Message suivi ↗
-            </a>
-          </p>
-        )}
       </header>
 
       <div className="dash-msg dash-msg-scroll">
@@ -245,7 +233,19 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
 
         {/* Aperçu */}
         <div className="dash-msg-preview">
-          <span className="dash-preview-label">Aperçu</span>
+          <div className="dash-preview-head">
+            <span className="dash-preview-label">Aperçu</span>
+            {guildId && row?.posted_channel_id && row?.posted_message_id && (
+              <a
+                className="discord-link dash-preview-link"
+                href={`https://discord.com/channels/${guildId}/${row.posted_channel_id}/${row.posted_message_id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Message suivi ↗
+              </a>
+            )}
+          </div>
           <div className="discord-msg">
             {bot?.avatarUrl ? <img className="discord-avatar-img" src={bot.avatarUrl} alt="" /> : <div className="discord-avatar" />}
             <div className="discord-body">

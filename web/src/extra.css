@@ -1395,6 +1395,20 @@ textarea.dash-input {
   position: sticky;
   top: 84px;
 }
+.dash-preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.dash-preview-head .dash-preview-label {
+  margin-bottom: 0;
+}
+.dash-preview-link {
+  font-size: 12px;
+  white-space: nowrap;
+}
 .dash-preview-label {
   display: block;
   font-size: 11px;
@@ -1658,76 +1672,36 @@ textarea.dash-input {
   margin-bottom: 5px;
 }
 
-/* Dashboard to-do list */
-.todo-add {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.todo-add .dash-input {
-  flex: 1;
-}
-.todo-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border: 1px solid var(--border-soft);
-  border-radius: 9px;
-  background: var(--surface);
-}
-.todo-check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-  cursor: pointer;
-}
-.todo-check input {
-  width: 17px;
-  height: 17px;
-  flex: none;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-.todo-text {
+/* Dashboard notepad */
+.notes-area {
+  width: 100%;
+  min-height: 58vh;
+  box-sizing: border-box;
+  resize: vertical;
   font-size: 14px;
-  word-break: break-word;
+  line-height: 1.6;
+  padding: 12px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-soft) transparent;
 }
-.todo-item.done .todo-text {
-  text-decoration: line-through;
-  color: var(--muted);
+.notes-area::-webkit-scrollbar {
+  width: 8px;
 }
-.todo-del {
-  flex: none;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font-size: 15px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  cursor: pointer;
+.notes-area::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 8px;
 }
-.todo-del:hover {
-  color: #e57373;
-  background: var(--surface-2);
+.notes-area::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
-.todo-count {
-  margin-top: 14px;
+.notes-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.notes-status {
+  margin-top: 8px;
+  min-height: 16px;
   font-size: 12px;
   color: var(--muted);
-}
-.todo-empty {
-  margin: 8px 0;
 }
 
 .dash-pool-note {
