@@ -131,13 +131,10 @@ export const UNIFIED_DDL = `
     PRIMARY KEY (guild_id, key)
   );
 
-  CREATE TABLE IF NOT EXISTS dashboard_todos (
-    id          BIGSERIAL PRIMARY KEY,
-    guild_id    TEXT NOT NULL,
-    text        TEXT NOT NULL,
-    done        BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+  CREATE TABLE IF NOT EXISTS dashboard_notes (
+    guild_id   TEXT PRIMARY KEY,
+    content    TEXT NOT NULL DEFAULT '',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 `;
 
@@ -1026,61 +1023,24 @@ export async function clearInfoEmbedPosted(guildId, key) {
 }
 
 // ---------------------------------------------------------------------------
-// Dashboard to-do list (`dashboard_todos`). Shared task notepad for admins.
+// Dashboard notepad (`dashboard_notes`). One free-form note per guild, shared.
 // ---------------------------------------------------------------------------
 
-/** All to-do items for a guild, undone first, then most recent. */
-export async function getTodos(guildId) {
-  if (!pool) return [];
-  const { rows } = await pool.query(
-    `SELECT id, text, done, created_at FROM dashboard_todos
-     WHERE guild_id = $1 ORDER BY done ASC, id DESC`,
-    [guildId],
-  );
-  return rows;
+/** The guild's notepad content ('' if none yet). */
+export async function getNote(guildId) {
+  if (!pool) return '';
+  const { rows } = await pool.query('SELECT content FROM dashboard_notes WHERE guild_id = $1', [guildId]);
+  return rows[0]?.content ?? '';
 }
 
-/** Add a to-do item; returns the created row. */
-export async function addTodo(guildId, text) {
-  if (!pool) throw new Error('Database unavailable');
-  const { rows } = await pool.query(
-    `INSERT INTO dashboard_todos (guild_id, text) VALUES ($1, $2)
-     RETURNING id, text, done, created_at`,
-    [guildId, text],
+/** Replace the guild's notepad content. */
+export async function setNote(guildId, content) {
+  if (!pool) return;
+  await pool.query(
+    `INSERT INTO dashboard_notes (guild_id, content, updated_at) VALUES ($1, $2, now())
+     ON CONFLICT (guild_id) DO UPDATE SET content = EXCLUDED.content, updated_at = now()`,
+    [guildId, content],
   );
-  return rows[0];
-}
-
-/** Update a to-do's text and/or done state (scoped to the guild). */
-export async function updateTodo(guildId, id, patch) {
-  if (!pool) return false;
-  const sets = [];
-  const vals = [guildId, id];
-  if (typeof patch.text === 'string') {
-    vals.push(patch.text);
-    sets.push(`text = $${vals.length}`);
-  }
-  if (typeof patch.done === 'boolean') {
-    vals.push(patch.done);
-    sets.push(`done = $${vals.length}`);
-  }
-  if (!sets.length) return false;
-  const { rowCount } = await pool.query(
-    `UPDATE dashboard_todos SET ${sets.join(', ')}, updated_at = now()
-     WHERE guild_id = $1 AND id = $2`,
-    vals,
-  );
-  return rowCount > 0;
-}
-
-/** Delete a to-do item (scoped to the guild). */
-export async function deleteTodo(guildId, id) {
-  if (!pool) return false;
-  const { rowCount } = await pool.query(
-    `DELETE FROM dashboard_todos WHERE guild_id = $1 AND id = $2`,
-    [guildId, id],
-  );
-  return rowCount > 0;
 }
 
 /** Aggregate counts for the dashboard overview. */

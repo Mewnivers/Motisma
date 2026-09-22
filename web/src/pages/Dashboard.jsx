@@ -10,7 +10,7 @@ import DashEmbedList from '../components/dashboard/DashEmbedList.jsx';
 import DashMessage from '../components/dashboard/DashMessage.jsx';
 import DashOverview from '../components/dashboard/DashOverview.jsx';
 import DashMembers from '../components/dashboard/DashMembers.jsx';
-import DashTodos from '../components/dashboard/DashTodos.jsx';
+import DashNotes from '../components/dashboard/DashNotes.jsx';
 import DashStats from '../components/dashboard/DashStats.jsx';
 
 // Message section keys are prefixed to avoid clashing with config keys.
@@ -146,7 +146,7 @@ export default function Dashboard() {
           {view === 'overview' && <DashOverview onGoto={setView} />}
           {view === 'members' && <DashMembers />}
           {view === 'stats' && <DashStats />}
-          {view === 'todos' && <DashTodos />}
+          {view === 'todos' && <DashNotes />}
 
           {/* Messages category → grid of cards grouped by sub-category */}
           {view === 'messages' && (
