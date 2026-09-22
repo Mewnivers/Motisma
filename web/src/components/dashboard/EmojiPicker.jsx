@@ -64,6 +64,8 @@ export default function EmojiPicker({ onSelect }) {
         className="emoji-picker-btn"
         title="Insérer un emoji"
         aria-label="Insérer un emoji"
+        // Ne pas voler le focus du champ en cours → l'insertion vise le bon curseur.
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => setOpen((o) => !o)}
       >
         <Icon name="smile" size={18} />
@@ -75,8 +77,6 @@ export default function EmojiPicker({ onSelect }) {
             placeholder="Rechercher…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
           />
           {emojis === null ? (
             <p className="emoji-empty">Chargement…</p>
@@ -93,6 +93,7 @@ export default function EmojiPicker({ onSelect }) {
                       key={`${e.source}-${e.id}`}
                       className="emoji-item"
                       title={`:${e.name}: · ${e.source}`}
+                      onMouseDown={(ev) => ev.preventDefault()}
                       onClick={() => {
                         onSelect(codeFor(e));
                         setOpen(false);
