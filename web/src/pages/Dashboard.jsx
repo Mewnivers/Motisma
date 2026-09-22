@@ -122,7 +122,7 @@ export default function Dashboard() {
         <h1>
           <Icon name="sliders" size={22} /> Dashboard
         </h1>
-        <p>Administration de POGO PAU — réservé aux admins du serveur.</p>
+        {view === 'overview' && <p>Administration de POGO PAU — réservé aux admins du serveur.</p>}
       </div>
 
       <div className="dash-layout">
