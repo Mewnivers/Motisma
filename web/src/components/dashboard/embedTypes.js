@@ -8,12 +8,21 @@ export const EMBED_TYPES = [
   { key: 'classement', label: 'Classement', icon: 'medal', desc: 'Invitation au classement.', note: 'Le bouton « Participer » est conservé automatiquement.' },
   {
     key: 'rdv_annonce',
-    label: 'Rendez-vous',
+    label: 'Rendez-vous — Annonce',
     icon: 'calendar',
-    desc: 'L’annonce d’une sortie /rdv (modèle).',
+    desc: 'L’annonce d’une sortie /rdv (salon Annonce).',
     template: true,
     vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
     note: 'Modèle : les variables ci-dessous sont remplies à chaque sortie. Le bouton « Je participe » est ajouté automatiquement.',
+  },
+  {
+    key: 'rdv_salon',
+    label: 'Rendez-vous — Salon',
+    icon: 'calendar',
+    desc: 'Le panneau posté dans le salon de la sortie.',
+    template: true,
+    vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
+    note: 'Modèle : les variables sont remplies à chaque sortie. La liste des participants et le bouton « Se désinscrire et quitter » sont ajoutés automatiquement.',
   },
 ];
 
