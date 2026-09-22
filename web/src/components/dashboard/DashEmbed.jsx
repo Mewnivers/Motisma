@@ -67,9 +67,9 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   }));
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null); // { live, reason } | { error }
-  const titleRef = useRef(null);
-  const descRef = useRef(null);
-  const fieldRefs = useRef({}); // index -> value textarea element
+  // Dernier champ texte focalisé : { el, apply }. Le bouton emoji ne vole pas le
+  // focus (preventDefault), donc `el` reste focalisé et son curseur est à jour.
+  const active = useRef(null);
 
   const set = (k, v) => { setM((p) => ({ ...p, [k]: v })); setResult(null); };
   const setField = (i, k, v) => set('fields', m.fields.map((f, idx) => (idx === i ? { ...f, [k]: v } : f)));
@@ -81,6 +81,17 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
     const next = [...m.fields];
     [next[i], next[j]] = [next[j], next[i]];
     set('fields', next);
+  };
+
+  // MAJ fonctionnelle d'un champ (sûre pour une insertion différée).
+  const setFieldFn = (i, k, v) => {
+    setM((p) => ({ ...p, fields: p.fields.map((f, idx) => (idx === i ? { ...f, [k]: v } : f)) }));
+    setResult(null);
+  };
+  // Insère un emoji au curseur du dernier champ texte focalisé.
+  const insertEmoji = (code) => {
+    const a = active.current;
+    if (a?.el && a.apply) insertAtCursor(a.el, code, a.apply);
   };
 
   async function save() {
@@ -135,25 +146,25 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
           <div className="dash-field"><span>Titre</span>
             <div className="dash-textarea-wrap">
               <input
-                ref={titleRef}
                 className="dash-input dash-input-emoji"
                 value={m.title}
                 onChange={(e) => set('title', e.target.value)}
+                onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => set('title', v) }; }}
               />
-              <EmojiPicker onSelect={(code) => insertAtCursor(titleRef.current, code, (v) => set('title', v))} />
+              <EmojiPicker onSelect={insertEmoji} />
             </div>
           </div>
           <div className="dash-field">
             <span>Description</span>
             <div className="dash-textarea-wrap">
               <textarea
-                ref={descRef}
                 className="dash-input dash-input-emoji"
                 rows={6}
                 value={m.description}
                 onChange={(e) => set('description', e.target.value)}
+                onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => set('description', v) }; }}
               />
-              <EmojiPicker onSelect={(code) => insertAtCursor(descRef.current, code, (v) => set('description', v))} />
+              <EmojiPicker onSelect={insertEmoji} />
             </div>
           </div>
           <div className="dash-field-row">
@@ -182,19 +193,25 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                 // eslint-disable-next-line react/no-array-index-key
                 <div className="dash-field-card" key={i}>
                   <div className="dash-field-card-head">
-                    <input className="dash-input" placeholder="Nom du champ" value={f.name} onChange={(e) => setField(i, 'name', e.target.value)} />
+                    <input
+                      className="dash-input"
+                      placeholder="Nom du champ"
+                      value={f.name}
+                      onChange={(e) => setField(i, 'name', e.target.value)}
+                      onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => setFieldFn(i, 'name', v) }; }}
+                    />
                     <button type="button" className="btn-mini" onClick={() => move(i, -1)} aria-label="Monter">↑</button>
                     <button type="button" className="btn-mini" onClick={() => move(i, 1)} aria-label="Descendre">↓</button>
                     <button type="button" className="dash-pool-del" onClick={() => delField(i)} aria-label="Supprimer">✕</button>
-                    <EmojiPicker onSelect={(code) => insertAtCursor(fieldRefs.current[i], code, (v) => setField(i, 'value', v))} />
+                    <EmojiPicker onSelect={insertEmoji} />
                   </div>
                   <textarea
-                    ref={(el) => { fieldRefs.current[i] = el; }}
                     className="dash-input"
                     rows={2}
                     placeholder="Valeur"
                     value={f.value}
                     onChange={(e) => setField(i, 'value', e.target.value)}
+                    onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => setFieldFn(i, 'value', v) }; }}
                   />
                   <label className="dash-toggle">
                     <input type="checkbox" checked={f.inline} onChange={(e) => setField(i, 'inline', e.target.checked)} />
