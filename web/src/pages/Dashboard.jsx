@@ -24,7 +24,7 @@ const CATEGORIES = [
   { key: 'stats', label: 'Validation stats', icon: 'check' },
   { key: 'config', label: 'Configuration', icon: 'gear' },
   { key: 'messages', label: 'Messages', icon: 'megaphone' },
-  { key: 'todos', label: 'À faire', icon: 'scroll' },
+  { key: 'todos', label: 'Notes', icon: 'scroll' },
 ];
 
 // Persist the open view across reloads (the auto-reloader otherwise drops you

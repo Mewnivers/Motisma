@@ -53,7 +53,7 @@ export default function DashTodos() {
   return (
     <div>
       <header className="dash-module-head">
-        <h2>À faire</h2>
+        <h2>Notes</h2>
         <p>Bloc-notes des tâches à faire sur Motisma. Partagé entre admins.</p>
       </header>
 
