@@ -157,7 +157,9 @@ export async function execute(interaction) {
 
   await interaction.deferReply({ ephemeral: true });
 
-  const deleteAt = eventStartEpoch(time) + 60 * 60 * 1000; // 1h after the meetup
+  // Fermeture automatique à 00h00 (Paris) du jour suivant la sortie.
+  const s = partsInTz(eventStartEpoch(time), PARIS);
+  const deleteAt = wallClockToEpoch(s.year, s.month, s.day + 1, 0, 0, PARIS);
   const c = partsInTz(deleteAt, PARIS);
   const pad = (n) => String(n).padStart(2, '0');
   const closeLabel = `${pad(c.day)}/${pad(c.month)} à ${pad(c.hour)}h${pad(c.minute)}`;
@@ -222,14 +224,19 @@ export async function execute(interaction) {
   } else {
     panelEmbed = buildPanelEmbed({ place, time, description, organizerId, ids: [organizerId], closeLabel });
   }
-  const leaveRow = new ActionRowBuilder().addComponents(
+  const panelRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('rdv:leave')
       .setLabel('Se désinscrire et quitter')
       .setEmoji('🚪')
       .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId(`rdv:close:${organizerId}`)
+      .setLabel('Fermer la sortie')
+      .setEmoji('🔒')
+      .setStyle(ButtonStyle.Secondary),
   );
-  const panel = await channel.send({ embeds: [panelEmbed], components: [leaveRow] });
+  const panel = await channel.send({ embeds: [panelEmbed], components: [panelRow] });
   await panel.pin().catch(() => {});
 
   scheduleChannelDeletion(channel, deleteAt);
