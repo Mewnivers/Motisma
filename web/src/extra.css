@@ -1549,13 +1549,18 @@ textarea.dash-input {
 .dash-textarea-wrap {
   position: relative;
 }
+.dash-textarea-wrap .dash-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
 .dash-textarea-wrap .emoji-picker {
   position: absolute;
-  top: 6px;
-  right: 8px;
+  top: 7px;
+  right: 10px;
 }
 .dash-input-emoji {
-  padding-right: 34px;
+  padding-right: 38px;
 }
 .emoji-picker {
   position: relative;
