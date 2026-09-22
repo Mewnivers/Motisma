@@ -7,6 +7,20 @@ import EmojiPicker from './EmojiPicker.jsx';
 const intToHex = (n) => (n == null ? '#ffffff' : `#${Number(n).toString(16).padStart(6, '0')}`);
 const PRE = { whiteSpace: 'pre-wrap' };
 
+// Insère `code` à la position du curseur de l'élément `el` (lu en direct sur le
+// DOM), applique la nouvelle valeur, puis replace le curseur après l'insertion.
+function insertAtCursor(el, code, setValue) {
+  if (!el) return;
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  setValue(el.value.slice(0, start) + code + el.value.slice(end));
+  requestAnimationFrame(() => {
+    el.focus();
+    const pos = start + code.length;
+    el.setSelectionRange(pos, pos);
+  });
+}
+
 /** Rend une ligne de description/valeur avec blockquotes `> ` + markdown. */
 function RichText({ text }) {
   const lines = (text || '').split('\n');
@@ -53,9 +67,9 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   }));
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null); // { live, reason } | { error }
-  // Dernier champ éditable focalisé (titre / description / valeur de champ) :
-  // { el, target } où target = 'title' | 'description' | { field: index }.
-  const active = useRef(null);
+  const titleRef = useRef(null);
+  const descRef = useRef(null);
+  const fieldRefs = useRef({}); // index -> value textarea element
 
   const set = (k, v) => { setM((p) => ({ ...p, [k]: v })); setResult(null); };
   const setField = (i, k, v) => set('fields', m.fields.map((f, idx) => (idx === i ? { ...f, [k]: v } : f)));
@@ -67,24 +81,6 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
     const next = [...m.fields];
     [next[i], next[j]] = [next[j], next[i]];
     set('fields', next);
-  };
-
-  // Insère un emoji au curseur du dernier champ éditable focalisé.
-  const insertEmoji = (code) => {
-    const a = active.current;
-    if (!a || !a.el) return;
-    const el = a.el;
-    const start = el.selectionStart ?? el.value.length;
-    const end = el.selectionEnd ?? el.value.length;
-    const val = el.value.slice(0, start) + code + el.value.slice(end);
-    if (a.target === 'title' || a.target === 'description') set(a.target, val);
-    else setM((p) => ({ ...p, fields: p.fields.map((f, idx) => (idx === a.target.field ? { ...f, value: val } : f)) }));
-    setResult(null);
-    requestAnimationFrame(() => {
-      el.focus();
-      const pos = start + code.length;
-      el.setSelectionRange(pos, pos);
-    });
   };
 
   async function save() {
@@ -139,25 +135,25 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
           <div className="dash-field"><span>Titre</span>
             <div className="dash-textarea-wrap">
               <input
+                ref={titleRef}
                 className="dash-input dash-input-emoji"
                 value={m.title}
                 onChange={(e) => set('title', e.target.value)}
-                onFocus={(e) => { active.current = { el: e.currentTarget, target: 'title' }; }}
               />
-              <EmojiPicker onSelect={insertEmoji} />
+              <EmojiPicker onSelect={(code) => insertAtCursor(titleRef.current, code, (v) => set('title', v))} />
             </div>
           </div>
           <div className="dash-field">
             <span>Description</span>
             <div className="dash-textarea-wrap">
               <textarea
+                ref={descRef}
                 className="dash-input dash-input-emoji"
                 rows={6}
                 value={m.description}
                 onChange={(e) => set('description', e.target.value)}
-                onFocus={(e) => { active.current = { el: e.currentTarget, target: 'description' }; }}
               />
-              <EmojiPicker onSelect={insertEmoji} />
+              <EmojiPicker onSelect={(code) => insertAtCursor(descRef.current, code, (v) => set('description', v))} />
             </div>
           </div>
           <div className="dash-field-row">
@@ -190,15 +186,15 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                     <button type="button" className="btn-mini" onClick={() => move(i, -1)} aria-label="Monter">↑</button>
                     <button type="button" className="btn-mini" onClick={() => move(i, 1)} aria-label="Descendre">↓</button>
                     <button type="button" className="dash-pool-del" onClick={() => delField(i)} aria-label="Supprimer">✕</button>
-                    <EmojiPicker onSelect={insertEmoji} />
+                    <EmojiPicker onSelect={(code) => insertAtCursor(fieldRefs.current[i], code, (v) => setField(i, 'value', v))} />
                   </div>
                   <textarea
+                    ref={(el) => { fieldRefs.current[i] = el; }}
                     className="dash-input"
                     rows={2}
                     placeholder="Valeur"
                     value={f.value}
                     onChange={(e) => setField(i, 'value', e.target.value)}
-                    onFocus={(e) => { active.current = { el: e.currentTarget, target: { field: i } }; }}
                   />
                   <label className="dash-toggle">
                     <input type="checkbox" checked={f.inline} onChange={(e) => setField(i, 'inline', e.target.checked)} />
