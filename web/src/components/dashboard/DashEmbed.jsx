@@ -8,15 +8,21 @@ const intToHex = (n) => (n == null ? '#ffffff' : `#${Number(n).toString(16).padS
 const PRE = { whiteSpace: 'pre-wrap' };
 
 // Insère `code` à la position du curseur de l'élément `el` (lu en direct sur le
-// DOM), applique la nouvelle valeur, puis replace le curseur après l'insertion.
+// DOM), en ajoutant une espace avant/après si besoin pour ne pas coller au
+// texte, applique la nouvelle valeur, puis replace le curseur après l'insertion.
 function insertAtCursor(el, code, setValue) {
   if (!el) return;
   const start = el.selectionStart ?? el.value.length;
   const end = el.selectionEnd ?? el.value.length;
-  setValue(el.value.slice(0, start) + code + el.value.slice(end));
+  const before = el.value.slice(0, start);
+  const after = el.value.slice(end);
+  const spaceBefore = before.length > 0 && !/\s$/.test(before) ? ' ' : '';
+  const spaceAfter = after.length === 0 || !/^\s/.test(after) ? ' ' : '';
+  const insert = spaceBefore + code + spaceAfter;
+  setValue(before + insert + after);
   requestAnimationFrame(() => {
     el.focus();
-    const pos = start + code.length;
+    const pos = start + insert.length;
     el.setSelectionRange(pos, pos);
   });
 }
