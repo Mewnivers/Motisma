@@ -249,7 +249,7 @@ export async function adminRoutes(app) {
   });
 
   app.post('/api/admin/notes', { preHandler: requireAdmin }, async (request) => {
-    const content = String(request.body?.content ?? '').slice(0, 50000);
+    const content = String(request.body?.content ?? '').slice(0, 100000);
     await setNote(config.guildId, content);
     return { ok: true };
   });
