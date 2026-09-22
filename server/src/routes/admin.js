@@ -15,8 +15,14 @@ import {
   upsertInfoEmbed,
   clearInfoEmbedPosted,
   INFO_EMBED_KEYS,
-  getNote,
-  setNote,
+  getNotesTree,
+  getPage,
+  createSection,
+  renameSection,
+  deleteSection,
+  createPage,
+  updatePage,
+  deletePage,
 } from '../db.js';
 import {
   hasBotToken,
@@ -243,14 +249,61 @@ export async function adminRoutes(app) {
     return { guild: guild ?? [], application: application ?? [] };
   });
 
-  // --- Dashboard notepad (shared free-form note) ---
+  // --- Dashboard notebook (sections + rich pages) ---
+  const g = config.guildId;
+  const numId = (v) => /^\d+$/.test(String(v));
+
   app.get('/api/admin/notes', { preHandler: requireAdmin }, async () => {
-    return { content: await getNote(config.guildId) };
+    return { sections: await getNotesTree(g) };
   });
 
-  app.post('/api/admin/notes', { preHandler: requireAdmin }, async (request) => {
-    const content = String(request.body?.content ?? '').slice(0, 100000);
-    await setNote(config.guildId, content);
+  app.get('/api/admin/notes/pages/:id', { preHandler: requireAdmin }, async (request, reply) => {
+    if (!numId(request.params.id)) return reply.code(400).send({ error: 'invalid_id' });
+    const page = await getPage(g, request.params.id);
+    if (!page) return reply.code(404).send({ error: 'not_found' });
+    return { page };
+  });
+
+  app.post('/api/admin/notes/sections', { preHandler: requireAdmin }, async (request) => {
+    const title = String(request.body?.title ?? '').trim().slice(0, 200) || 'Section';
+    return { section: await createSection(g, title) };
+  });
+
+  app.post('/api/admin/notes/sections/:id', { preHandler: requireAdmin }, async (request, reply) => {
+    if (!numId(request.params.id)) return reply.code(400).send({ error: 'invalid_id' });
+    const ok = await renameSection(g, request.params.id, String(request.body?.title ?? '').trim().slice(0, 200));
+    if (!ok) return reply.code(404).send({ error: 'not_found' });
+    return { ok: true };
+  });
+
+  app.post('/api/admin/notes/sections/:id/delete', { preHandler: requireAdmin }, async (request, reply) => {
+    if (!numId(request.params.id)) return reply.code(400).send({ error: 'invalid_id' });
+    await deleteSection(g, request.params.id);
+    return { ok: true };
+  });
+
+  app.post('/api/admin/notes/pages', { preHandler: requireAdmin }, async (request, reply) => {
+    if (!numId(request.body?.section_id)) return reply.code(400).send({ error: 'invalid_section' });
+    const title = String(request.body?.title ?? '').trim().slice(0, 200) || 'Sans titre';
+    const page = await createPage(g, request.body.section_id, title);
+    if (!page) return reply.code(400).send({ error: 'invalid_section' });
+    return { page };
+  });
+
+  app.post('/api/admin/notes/pages/:id', { preHandler: requireAdmin }, async (request, reply) => {
+    if (!numId(request.params.id)) return reply.code(400).send({ error: 'invalid_id' });
+    const b = request.body ?? {};
+    const patch = {};
+    if (typeof b.title === 'string') patch.title = b.title.trim().slice(0, 200);
+    if (typeof b.content === 'string') patch.content = b.content.slice(0, 100000);
+    const ok = await updatePage(g, request.params.id, patch);
+    if (!ok) return reply.code(404).send({ error: 'not_found' });
+    return { ok: true };
+  });
+
+  app.post('/api/admin/notes/pages/:id/delete', { preHandler: requireAdmin }, async (request, reply) => {
+    if (!numId(request.params.id)) return reply.code(400).send({ error: 'invalid_id' });
+    await deletePage(g, request.params.id);
     return { ok: true };
   });
 }

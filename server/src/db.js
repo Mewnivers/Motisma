@@ -136,6 +136,25 @@ export const UNIFIED_DDL = `
     content    TEXT NOT NULL DEFAULT '',
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  CREATE TABLE IF NOT EXISTS note_sections (
+    id         BIGSERIAL PRIMARY KEY,
+    guild_id   TEXT NOT NULL,
+    title      TEXT NOT NULL DEFAULT 'Section',
+    position   INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+
+  CREATE TABLE IF NOT EXISTS note_pages (
+    id         BIGSERIAL PRIMARY KEY,
+    guild_id   TEXT NOT NULL,
+    section_id BIGINT NOT NULL REFERENCES note_sections(id) ON DELETE CASCADE,
+    title      TEXT NOT NULL DEFAULT 'Sans titre',
+    content    TEXT NOT NULL DEFAULT '',
+    position   INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
 `;
 
 /**
@@ -1023,24 +1042,121 @@ export async function clearInfoEmbedPosted(guildId, key) {
 }
 
 // ---------------------------------------------------------------------------
-// Dashboard notepad (`dashboard_notes`). One free-form note per guild, shared.
+// Dashboard notebook: sections (`note_sections`) + rich pages (`note_pages`).
+// Shared between admins. The legacy single note (`dashboard_notes`) is migrated
+// into a first page on first access.
 // ---------------------------------------------------------------------------
 
-/** The guild's notepad content ('' if none yet). */
-export async function getNote(guildId) {
-  if (!pool) return '';
+/** Legacy single-note content (kept only to migrate into the notebook). */
+async function getLegacyNote(guildId) {
   const { rows } = await pool.query('SELECT content FROM dashboard_notes WHERE guild_id = $1', [guildId]);
   return rows[0]?.content ?? '';
 }
 
-/** Replace the guild's notepad content. */
-export async function setNote(guildId, content) {
-  if (!pool) return;
-  await pool.query(
-    `INSERT INTO dashboard_notes (guild_id, content, updated_at) VALUES ($1, $2, now())
-     ON CONFLICT (guild_id) DO UPDATE SET content = EXCLUDED.content, updated_at = now()`,
-    [guildId, content],
+/** Ensure at least one section+page exists; migrate the legacy note once. */
+async function ensureNotesDefault(guildId) {
+  const { rows } = await pool.query('SELECT 1 FROM note_sections WHERE guild_id = $1 LIMIT 1', [guildId]);
+  if (rows.length) return;
+  const sec = await pool.query(
+    'INSERT INTO note_sections (guild_id, title) VALUES ($1, $2) RETURNING id',
+    [guildId, 'Général'],
   );
+  const legacy = await getLegacyNote(guildId);
+  await pool.query(
+    'INSERT INTO note_pages (guild_id, section_id, title, content) VALUES ($1, $2, $3, $4)',
+    [guildId, sec.rows[0].id, legacy ? 'Note' : 'Sans titre', legacy || ''],
+  );
+}
+
+/** Sections with their pages (id + title only), for the notebook sidebar. */
+export async function getNotesTree(guildId) {
+  if (!pool) return [];
+  await ensureNotesDefault(guildId);
+  const { rows: sections } = await pool.query(
+    'SELECT id, title FROM note_sections WHERE guild_id = $1 ORDER BY position, id',
+    [guildId],
+  );
+  const { rows: pages } = await pool.query(
+    'SELECT id, section_id, title FROM note_pages WHERE guild_id = $1 ORDER BY position, id',
+    [guildId],
+  );
+  return sections.map((s) => ({
+    id: s.id,
+    title: s.title,
+    pages: pages.filter((p) => String(p.section_id) === String(s.id)).map((p) => ({ id: p.id, title: p.title })),
+  }));
+}
+
+/** One page with its rich content. */
+export async function getPage(guildId, id) {
+  if (!pool) return null;
+  const { rows } = await pool.query(
+    'SELECT id, section_id, title, content FROM note_pages WHERE guild_id = $1 AND id = $2',
+    [guildId, id],
+  );
+  return rows[0] ?? null;
+}
+
+export async function createSection(guildId, title) {
+  if (!pool) throw new Error('Database unavailable');
+  const { rows } = await pool.query(
+    'INSERT INTO note_sections (guild_id, title) VALUES ($1, $2) RETURNING id, title',
+    [guildId, title || 'Section'],
+  );
+  return rows[0];
+}
+
+export async function renameSection(guildId, id, title) {
+  if (!pool) return false;
+  const { rowCount } = await pool.query(
+    'UPDATE note_sections SET title = $3 WHERE guild_id = $1 AND id = $2',
+    [guildId, id, title || 'Section'],
+  );
+  return rowCount > 0;
+}
+
+/** Delete a section and all its pages (ON DELETE CASCADE). */
+export async function deleteSection(guildId, id) {
+  if (!pool) return false;
+  const { rowCount } = await pool.query('DELETE FROM note_sections WHERE guild_id = $1 AND id = $2', [guildId, id]);
+  return rowCount > 0;
+}
+
+export async function createPage(guildId, sectionId, title) {
+  if (!pool) throw new Error('Database unavailable');
+  const s = await pool.query('SELECT 1 FROM note_sections WHERE guild_id = $1 AND id = $2', [guildId, sectionId]);
+  if (!s.rows.length) return null;
+  const { rows } = await pool.query(
+    'INSERT INTO note_pages (guild_id, section_id, title) VALUES ($1, $2, $3) RETURNING id, section_id, title',
+    [guildId, sectionId, title || 'Sans titre'],
+  );
+  return rows[0];
+}
+
+export async function updatePage(guildId, id, patch) {
+  if (!pool) return false;
+  const sets = [];
+  const vals = [guildId, id];
+  if (typeof patch.title === 'string') {
+    vals.push(patch.title || 'Sans titre');
+    sets.push(`title = $${vals.length}`);
+  }
+  if (typeof patch.content === 'string') {
+    vals.push(patch.content);
+    sets.push(`content = $${vals.length}`);
+  }
+  if (!sets.length) return false;
+  const { rowCount } = await pool.query(
+    `UPDATE note_pages SET ${sets.join(', ')}, updated_at = now() WHERE guild_id = $1 AND id = $2`,
+    vals,
+  );
+  return rowCount > 0;
+}
+
+export async function deletePage(guildId, id) {
+  if (!pool) return false;
+  const { rowCount } = await pool.query('DELETE FROM note_pages WHERE guild_id = $1 AND id = $2', [guildId, id]);
+  return rowCount > 0;
 }
 
 /** Aggregate counts for the dashboard overview. */
