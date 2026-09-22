@@ -5,12 +5,58 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  PermissionFlagsBits,
 } from 'discord.js';
 import { config } from '../config.js';
 import { scheduleChannelDeletion } from '../features/rdvControls.js';
 
 const PREFIX = '・';
 const PARIS = 'Europe/Paris';
+const BRAND = 0x5865f2;
+
+/** Embed posté dans le salon privé : infos + liste des participants. */
+export function buildPanelEmbed({ place, time, description, organizerId, ids, closeLabel }) {
+  return new EmbedBuilder()
+    .setColor(BRAND)
+    .setTitle('🗓️ Sortie')
+    .setDescription(
+      [description ? `${description}\n` : null, '-# Bouton ci-dessous pour te désinscrire et quitter le salon.']
+        .filter(Boolean)
+        .join('\n'),
+    )
+    .addFields(
+      { name: '📍 Lieu', value: place, inline: true },
+      { name: '🕒 Heure', value: time, inline: true },
+      { name: '👤 Organisateur', value: `<@${organizerId}>`, inline: true },
+      {
+        name: `Participants (${ids.length})`,
+        value: ids.length ? ids.map((id) => `<@${id}>`).join('\n') : 'Personne pour l’instant.',
+        inline: false,
+      },
+    )
+    .setFooter({ text: `🕒 Fermeture automatique du salon le ${closeLabel}` });
+}
+
+/** Embed d'annonce (public) : plus soigné, avec un bouton « Je participe ». */
+function buildAnnounceEmbed({ place, time, description, organizerId, closeLabel }) {
+  return new EmbedBuilder()
+    .setColor(BRAND)
+    .setAuthor({ name: 'Nouvelle sortie' })
+    .setTitle(`📣 ${place}`)
+    .setDescription(
+      [
+        `<@${organizerId}> organise une sortie ! Clique sur **Je participe** pour rejoindre le salon privé. 🎉`,
+        description ? `\n> ${description}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    )
+    .addFields(
+      { name: '📍 Lieu', value: place, inline: true },
+      { name: '🕒 Heure', value: time, inline: true },
+    )
+    .setFooter({ text: `🕒 Salon fermé automatiquement le ${closeLabel}` });
+}
 
 /** Turn free text into a channel-name-safe slug (lowercase, no accents). */
 function slug(text) {
@@ -96,85 +142,66 @@ export async function execute(interaction) {
     100,
   );
 
+  const organizerId = interaction.user.id;
+
+  // Salon privé : caché à @everyone, visible par l'organisateur et le bot.
   const channel = await interaction.guild.channels.create({
     name,
     type: ChannelType.GuildText,
     parent: config.rdvCategoryId || undefined,
     topic: `rdv-expire:${deleteAt}`,
     reason: `Sortie créée par ${interaction.user.tag}`,
+    permissionOverwrites: [
+      { id: interaction.guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
+      { id: organizerId, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+      {
+        id: interaction.client.user.id,
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ManageMessages,
+        ],
+      },
+    ],
   });
 
-  const embed = new EmbedBuilder()
-    .setColor(0xffffff)
-    .setTitle('Nouvelle sortie')
-    .setDescription(
-      [
-        description ? `${description}\n` : null,
-        '-# Clique sur **Participer** pour t’inscrire ou te désinscrire.',
-      ]
-        .filter(Boolean)
-        .join('\n'),
-    )
-    .addFields(
-      { name: 'Lieu', value: place, inline: true },
-      { name: 'Heure', value: time, inline: true },
-      { name: 'Organisateur', value: `<@${interaction.user.id}>`, inline: true },
-      { name: 'Inscrits (0)', value: 'Personne pour l’instant.', inline: false },
-    )
-    .setFooter({ text: `🕒 Fermeture automatique du salon le ${closeLabel}` });
+  // Le staff (rôles validateurs) voit aussi le salon (best-effort).
+  for (const rid of config.validatorRoleIds || []) {
+    await channel.permissionOverwrites.edit(rid, { ViewChannel: true }).catch(() => {});
+  }
 
-  const row = new ActionRowBuilder().addComponents(
+  // Panneau dans le salon : liste des participants + bouton pour quitter.
+  const panelEmbed = buildPanelEmbed({ place, time, description, organizerId, ids: [organizerId], closeLabel });
+  const leaveRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('rdv:panel')
-      .setLabel('Participer')
-      .setEmoji('🙋')
-      .setStyle(ButtonStyle.Primary),
+      .setCustomId('rdv:leave')
+      .setLabel('Se désinscrire et quitter')
+      .setEmoji('🚪')
+      .setStyle(ButtonStyle.Danger),
   );
-
-  const message = await channel.send({
-    content: `${interaction.user} organise une sortie !`,
-    embeds: [embed],
-    components: [row],
-  });
-  await message.pin().catch(() => {});
+  const panel = await channel.send({ embeds: [panelEmbed], components: [leaveRow] });
+  await panel.pin().catch(() => {});
 
   scheduleChannelDeletion(channel, deleteAt);
 
-  // Announce the meetup in the dedicated channel with a link back to it.
+  // Annonce publique avec un bouton « Je participe » qui donne l'accès au salon.
   if (config.rdvAnnounceChannelId) {
     const announceChannel = await interaction.guild.channels
       .fetch(config.rdvAnnounceChannelId)
       .catch(() => null);
 
     if (announceChannel?.isTextBased()) {
-      const announce = new EmbedBuilder()
-        .setColor(0xffffff)
-        .setTitle('📣 Une sortie est organisée !')
-        .setDescription(
-          [
-            `${interaction.user} organise une sortie. Clique pour en savoir plus et t’inscrire 👇`,
-            description ? `\n> ${description}` : null,
-          ]
-            .filter(Boolean)
-            .join('\n'),
-        )
-        .addFields(
-          { name: 'Lieu', value: place, inline: true },
-          { name: 'Heure', value: time, inline: true },
-        )
-        .setFooter({ text: `🕒 Salon fermé automatiquement le ${closeLabel}` });
-
-      const link = new ActionRowBuilder().addComponents(
+      const announce = buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
+      const joinRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setURL(message.url)
-          .setLabel('Voir la sortie')
-          .setEmoji('➡️'),
+          .setCustomId(`rdv:join:${channel.id}:${panel.id}`)
+          .setLabel('Je participe')
+          .setEmoji('🙋')
+          .setStyle(ButtonStyle.Success),
       );
-
-      await announceChannel.send({ embeds: [announce], components: [link] }).catch(() => {});
+      await announceChannel.send({ embeds: [announce], components: [joinRow] }).catch(() => {});
     }
   }
 
-  await interaction.editReply(`Salon créé : ${channel}`);
+  await interaction.editReply(`Salon privé créé : ${channel} — l'annonce « Je participe » est publiée.`);
 }
