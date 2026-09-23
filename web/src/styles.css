@@ -1093,3 +1093,13 @@ code {
 .dash-embed-note, .dash-error { font-size: 0.85rem; }
 .dash-error { color: #e57373; }
 .dash-embed-sep { border: 0; border-top: 1px solid var(--border-soft, #33384a); margin: 30px 0; }
+.dash-btn-name { font-size: 12px; color: var(--muted); }
+.dash-btn-row { display: flex; gap: 8px; }
+.dash-btn-row .dash-input { flex: 1; }
+.dash-btn-color { flex: 0 0 auto; width: auto; cursor: pointer; }
+.discord-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.discord-btn { padding: 8px 15px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; color: #fff; }
+.discord-btn.btn-primary { background: #5865f2; }
+.discord-btn.btn-secondary { background: #4e5058; }
+.discord-btn.btn-success { background: #248046; }
+.discord-btn.btn-danger { background: #da373c; }

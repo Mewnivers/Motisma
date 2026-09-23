@@ -7,14 +7,19 @@ const RDV_ANNONCE = {
   label: 'Annonce (salon Annonce)',
   template: true,
   vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
-  note: 'Posté dans le salon Annonce. Le bouton « Je participe » est ajouté automatiquement.',
+  note: 'Posté dans le salon Annonce. Personnalise le bouton ci-dessous.',
+  buttons: [{ role: 'join', name: 'Bouton d’inscription', label: 'Je participe', style: 'Success' }],
 };
 const RDV_SALON = {
   key: 'rdv_salon',
   label: 'Panneau du salon',
   template: true,
   vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
-  note: 'Posté dans le salon de la sortie. La liste des participants et le bouton « Se désinscrire et quitter » sont ajoutés automatiquement.',
+  note: 'Posté dans le salon. La liste des participants est ajoutée automatiquement.',
+  buttons: [
+    { role: 'leave', name: 'Bouton pour se désinscrire / quitter', label: 'Se désinscrire et quitter', style: 'Danger' },
+    { role: 'close', name: 'Bouton pour fermer la sortie (organisateur)', label: 'Fermer la sortie', style: 'Secondary' },
+  ],
 };
 
 export const EMBED_TYPES = [

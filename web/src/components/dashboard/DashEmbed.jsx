@@ -75,6 +75,14 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
     footer_text: row?.footer_text ?? '',
     fields: Array.isArray(row?.fields) ? row.fields.map((f) => ({ name: f.name ?? '', value: f.value ?? '', inline: !!f.inline })) : [],
     posted_message_id: row?.posted_message_id ?? null,
+    buttons: meta.buttons
+      ? Object.fromEntries(
+          meta.buttons.map((b) => {
+            const saved = row?.buttons?.[b.role];
+            return [b.role, { label: saved?.label ?? b.label, style: saved?.style ?? b.style }];
+          }),
+        )
+      : {},
   }));
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null); // { live, reason } | { error }
@@ -86,6 +94,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   const setField = (i, k, v) => set('fields', m.fields.map((f, idx) => (idx === i ? { ...f, [k]: v } : f)));
   const addField = () => set('fields', [...m.fields, { name: '', value: '', inline: false }]);
   const delField = (i) => set('fields', m.fields.filter((_, idx) => idx !== i));
+  const setButton = (role, k, v) => set('buttons', { ...m.buttons, [role]: { ...m.buttons[role], [k]: v } });
   const move = (i, d) => {
     const j = i + d;
     if (j < 0 || j >= m.fields.length) return;
@@ -113,6 +122,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
         title: m.title, description: m.description, color: m.color,
         image_url: m.image_url, thumbnail_url: m.thumbnail_url, footer_text: m.footer_text,
         fields: m.fields.filter((f) => f.name && f.value),
+        buttons: m.buttons,
       };
       const res = await apiPost(`/api/admin/embeds/${meta.key}`, payload);
       setResult(res);
@@ -232,6 +242,38 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
             </div>
           </div>
 
+          {meta.buttons && (
+            <div className="dash-field">
+              <span>Boutons</span>
+              <div className="dash-fields-editor">
+                {meta.buttons.map((b) => (
+                  <div className="dash-field-card" key={b.role}>
+                    <span className="dash-btn-name">{b.name}</span>
+                    <div className="dash-btn-row">
+                      <input
+                        className="dash-input"
+                        value={m.buttons[b.role]?.label ?? ''}
+                        onChange={(e) => setButton(b.role, 'label', e.target.value)}
+                        placeholder="Texte du bouton"
+                        maxLength={80}
+                      />
+                      <select
+                        className="dash-input dash-btn-color"
+                        value={m.buttons[b.role]?.style ?? 'Secondary'}
+                        onChange={(e) => setButton(b.role, 'style', e.target.value)}
+                      >
+                        <option value="Primary">Bleu</option>
+                        <option value="Success">Vert</option>
+                        <option value="Danger">Rouge</option>
+                        <option value="Secondary">Gris</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="dash-save-bar">
             {savedMsg && <span className="dash-saved">{savedMsg}</span>}
             {result?.error && <span className="dash-error">{result.error}</span>}
@@ -270,6 +312,18 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                 </div>
                 {m.thumbnail_url && !m.thumbnail_url.startsWith('attachment://') && <img className="discord-embed-thumb" src={m.thumbnail_url} alt="" />}
               </div>
+              {meta.buttons && (
+                <div className="discord-buttons">
+                  {meta.buttons.map((b) => (
+                    <span
+                      key={b.role}
+                      className={`discord-btn btn-${(m.buttons[b.role]?.style || 'Secondary').toLowerCase()}`}
+                    >
+                      {m.buttons[b.role]?.label || b.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
