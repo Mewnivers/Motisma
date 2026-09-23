@@ -1073,6 +1073,25 @@ textarea.dash-input {
   max-width: 160px;
 }
 
+/* Vue « au repos » d'un champ d'embed : mêmes bordures/paddings que .dash-input
+   (classe partagée), mais rendu texte avec emojis en image. Un clic bascule sur
+   le vrai input/textarea. */
+.emoji-view {
+  cursor: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.4em;
+  overflow: hidden;
+}
+.emoji-view-ph {
+  color: var(--muted);
+}
+.emoji-view .discord-emoji {
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -0.2em;
+}
+
 .dash-save-bar {
   display: flex;
   align-items: center;

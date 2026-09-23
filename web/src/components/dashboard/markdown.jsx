@@ -13,6 +13,26 @@ function Emoji({ id, name, animated }) {
   );
 }
 
+// Rend le texte tel quel, en remplaçant seulement les emojis custom
+// `<:nom:id>` / `<a:nom:id>` par leur image. Le reste (markdown, sauts de
+// ligne, espaces) est laissé littéral — c'est la vue « au repos » de l'éditeur.
+const EMOJI_RE = /<(a)?:(\w+):(\d+)>/g;
+export function renderEmojiText(text) {
+  const s = text || '';
+  const out = [];
+  let last = 0;
+  let key = 0;
+  let m;
+  EMOJI_RE.lastIndex = 0;
+  while ((m = EMOJI_RE.exec(s))) {
+    if (m.index > last) out.push(s.slice(last, m.index));
+    out.push(<Emoji key={key++} animated={m[1] === 'a'} name={m[2]} id={m[3]} />);
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) out.push(s.slice(last));
+  return out;
+}
+
 export function renderMarkdown(text) {
   const rules = [
     [/<(a)?:(\w+):(\d+)>/, 'emoji'],
