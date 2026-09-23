@@ -1,8 +1,69 @@
 import { EmbedBuilder, Events, PermissionFlagsBits } from 'discord.js';
 import { config } from '../config.js';
+import { getOuting, deleteOuting, getInfoEmbed } from '../db.js';
+import { buildTemplateMessage } from '../embeds/renderInfoEmbed.js';
 
 const MAX_DELAY = 2 ** 31 - 1; // setTimeout cap (~24.8 days)
 const PARTICIPANTS_PREFIX = 'Participants';
+
+/** Embed « terminée » de repli si le modèle rdv_termine n'est pas configuré. */
+function buildTermineEmbed(vars) {
+  return {
+    color: 0x99aab5,
+    title: '🏁 Sortie terminée',
+    description: 'Merci à celles et ceux qui étaient présent·es ! 🎉',
+    fields: [
+      { name: '📍 Lieu', value: vars.lieu || '—', inline: true },
+      { name: '👥 Participants', value: String(vars.participants ?? 0), inline: true },
+    ],
+  };
+}
+
+/**
+ * Fin d'une sortie /rdv : remplace le message d'annonce par l'embed
+ * « terminée » (modèle rdv_termine, avec le nombre de participants) et retire
+ * le bouton « Je participe ». À appeler AVANT de supprimer le salon.
+ * @param {import('discord.js').Guild} guild
+ * @param {string} channelId  salon de la sortie
+ * @param {object} [opts]
+ * @param {import('discord.js').Message} [opts.panel]  panneau déjà en main (compte des participants)
+ */
+async function finishOuting(guild, channelId, { panel } = {}) {
+  const outing = await getOuting(channelId).catch(() => null);
+  if (!outing) return;
+
+  // Toujours nettoyer la ligne, même si l'édition de l'annonce échoue.
+  try {
+    if (outing.announce_channel_id && outing.announce_message_id) {
+      // Nombre de participants (organisateur inclus) lu sur le panneau du salon.
+      let count = 0;
+      let panelMsg = panel ?? null;
+      if (!panelMsg && outing.panel_message_id) {
+        const ch = await guild.channels.fetch(channelId).catch(() => null);
+        panelMsg = ch?.isTextBased?.()
+          ? await ch.messages.fetch(outing.panel_message_id).catch(() => null)
+          : null;
+      }
+      if (panelMsg?.embeds?.[0]) count = getParticipantIds(panelMsg.embeds[0]).length;
+
+      const vars = { ...(outing.vars || {}), participants: String(count) };
+      const annCh = await guild.channels.fetch(outing.announce_channel_id).catch(() => null);
+      const annMsg = annCh?.isTextBased?.()
+        ? await annCh.messages.fetch(outing.announce_message_id).catch(() => null)
+        : null;
+      if (annMsg) {
+        const tpl = await getInfoEmbed(guild.id, 'rdv_termine').catch(() => null);
+        const payload = buildTemplateMessage(tpl, vars, {
+          components: [], // retire le bouton « Je participe »
+          fallbackEmbed: buildTermineEmbed(vars),
+        });
+        await annMsg.edit(payload).catch(() => {});
+      }
+    }
+  } finally {
+    await deleteOuting(channelId).catch(() => {});
+  }
+}
 
 /**
  * Schedule a meetup channel to be deleted at `deleteAt` (epoch ms).
@@ -11,8 +72,9 @@ const PARTICIPANTS_PREFIX = 'Participants';
  */
 export function scheduleChannelDeletion(channel, deleteAt) {
   const delay = Math.max(0, Math.min(MAX_DELAY, deleteAt - Date.now()));
-  setTimeout(() => {
-    channel.delete('Sortie terminée (1h après l’heure prévue)').catch(() => {});
+  setTimeout(async () => {
+    await finishOuting(channel.guild, channel.id).catch(() => {});
+    channel.delete('Sortie terminée (fermeture automatique)').catch(() => {});
   }, delay);
 }
 
@@ -103,6 +165,7 @@ async function close(interaction) {
     return;
   }
   await interaction.reply({ ephemeral: true, content: 'Sortie fermée, le salon va être supprimé. 👋' });
+  await finishOuting(interaction.guild, interaction.channel.id, { panel: interaction.message }).catch(() => {});
   await interaction.channel.delete('Sortie fermée par l’organisateur').catch(() => {});
 }
 

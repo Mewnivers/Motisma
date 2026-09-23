@@ -999,6 +999,23 @@ const INFO_EMBED_DEFAULTS = {
       close: { label: 'Fermer la sortie', style: 'Secondary', emoji: '🔒' },
     },
   },
+
+  // Modèle affiché À LA PLACE de l'annonce quand la sortie se termine (fermée
+  // par l'organisateur ou fermeture auto). Variable {participants} = nombre
+  // d'inscrits (organisateur inclus). Le bouton « Je participe » est retiré.
+  rdv_termine: {
+    mode: 'embed',
+    content: '',
+    color: 0x99aab5,
+    title: '🏁 Sortie terminée',
+    description: 'Merci à celles et ceux qui étaient présent·es ! 🎉',
+    footer_text: '{heure_debut} → {heure_fin}',
+    fields: [
+      { name: '📍 Lieu', value: '{lieu}', inline: true },
+      { name: '👥 Participants', value: '{participants}', inline: true },
+    ],
+    buttons: {},
+  },
 };
 
 /** Styles de bouton Discord autorisés (couleur). */

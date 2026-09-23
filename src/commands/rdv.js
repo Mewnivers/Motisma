@@ -8,37 +8,18 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import { config } from '../config.js';
-import { getInfoEmbed } from '../db.js';
-import { contentToEmbed } from '../embeds/renderInfoEmbed.js';
+import { getInfoEmbed, saveOuting } from '../db.js';
+import {
+  contentToEmbed,
+  substituteRow,
+  rowHasContent,
+  buildTemplateMessage,
+} from '../embeds/renderInfoEmbed.js';
 import { scheduleChannelDeletion } from '../features/rdvControls.js';
 
 const PREFIX = '・';
 const PARIS = 'Europe/Paris';
 const BRAND = 0x5865f2;
-
-/** Remplace {var} par sa valeur dans une chaîne. */
-function applyVars(s, vars) {
-  return typeof s === 'string' ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : s;
-}
-
-/** Applique les variables à toutes les chaînes d'une ligne info_embeds. */
-function substituteRow(row, vars) {
-  return {
-    ...row,
-    content: applyVars(row.content, vars),
-    title: applyVars(row.title, vars),
-    description: applyVars(row.description, vars),
-    footer_text: applyVars(row.footer_text, vars),
-    fields: (row.fields || []).map((f) => ({
-      name: applyVars(f.name, vars),
-      value: applyVars(f.value, vars),
-      inline: Boolean(f.inline),
-    })),
-  };
-}
-
-const rowHasContent = (row) =>
-  Boolean(row && (row.title || row.description || (row.fields && row.fields.length)));
 
 const BTN_STYLE = {
   Primary: ButtonStyle.Primary,
@@ -278,41 +259,36 @@ export async function execute(interaction) {
   scheduleChannelDeletion(channel, deleteAt);
 
   // Annonce publique avec un bouton « Je participe » qui donne l'accès au salon.
+  let announceRef = null;
   if (rdvAnnounceChannelId) {
     const announceChannel = await interaction.guild.channels
       .fetch(rdvAnnounceChannelId)
       .catch(() => null);
 
     if (announceChannel?.isTextBased()) {
-      // Modèle éditable via le dashboard (info_embeds « rdv_annonce »).
+      // Modèle éditable via le dashboard (info_embeds « rdv_annonce ») ; repli
+      // sur l'embed codé si le modèle n'est pas configuré. Le mode (texte /
+      // embed / les deux) est appliqué par buildTemplateMessage.
       const tpl = await getInfoEmbed(config.guildId, 'rdv_annonce').catch(() => null);
-      const sub = tpl ? substituteRow(tpl, vars) : null;
       const joinRow = new ActionRowBuilder().addComponents(
         rdvButton(`rdv:join:${channel.id}:${panel.id}`, tpl?.buttons?.join, 'Je participe', ButtonStyle.Success, '🙋'),
       );
-
-      // L'embed : modèle configuré, sinon l'embed codé par défaut.
-      const announceEmbed = () =>
-        rowHasContent(sub)
-          ? contentToEmbed(sub)
-          : buildAnnounceEmbed({ place, horaire, description, organizerId, closeLabel });
-
-      // Assemble le message selon le mode choisi côté site.
-      const mode = sub?.mode || 'embed';
-      const msgText = (sub?.content || '').trim();
-      const payload = { components: [joinRow] };
-      if (mode === 'simple' && msgText) {
-        payload.content = msgText; // texte seul
-      } else if (mode === 'both') {
-        if (msgText) payload.content = msgText;
-        payload.embeds = [announceEmbed()];
-      } else {
-        // 'embed', ou 'simple' sans texte → repli sur l'embed (jamais de message vide).
-        payload.embeds = [announceEmbed()];
-      }
-      await announceChannel.send(payload).catch(() => {});
+      const fallbackEmbed = buildAnnounceEmbed({ place, horaire, description, organizerId, closeLabel });
+      const payload = buildTemplateMessage(tpl, vars, { components: [joinRow], fallbackEmbed });
+      const announceMsg = await announceChannel.send(payload).catch(() => null);
+      if (announceMsg) announceRef = { channelId: announceChannel.id, messageId: announceMsg.id };
     }
   }
+
+  // Mémorise la sortie : permet de re-générer l'embed « terminée » (avec le bon
+  // nombre de participants) à la fermeture, même après un redémarrage du bot.
+  await saveOuting(channel.id, {
+    guildId: interaction.guild.id,
+    announceChannelId: announceRef?.channelId,
+    announceMessageId: announceRef?.messageId,
+    panelMessageId: panel.id,
+    vars,
+  }).catch(() => {});
 
   await interaction.editReply(`Salon privé créé : ${channel} — l'annonce « Je participe » est publiée.`);
 }

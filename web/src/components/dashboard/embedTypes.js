@@ -22,6 +22,14 @@ const RDV_SALON = {
     { role: 'close', name: 'Bouton pour fermer la sortie (organisateur)', label: 'Fermer la sortie', style: 'Secondary', emoji: '🔒' },
   ],
 };
+const RDV_TERMINE = {
+  key: 'rdv_termine',
+  label: 'Sortie terminée',
+  template: true,
+  message: true, // choix message simple / embed / message + embed
+  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}', '{participants}'],
+  note: 'Remplace l’annonce quand la sortie se termine. {participants} = nombre d’inscrits (organisateur inclus).',
+};
 
 export const EMBED_TYPES = [
   { key: 'reglement', label: 'Règlement', icon: 'scroll', desc: 'Les règles du serveur.' },
@@ -33,8 +41,8 @@ export const EMBED_TYPES = [
     key: 'rendez-vous',
     label: 'Rendez-vous',
     icon: 'calendar',
-    desc: 'Les deux embeds d’une sortie /rdv (annonce + salon).',
-    group: [RDV_ANNONCE, RDV_SALON],
+    desc: 'Les embeds d’une sortie /rdv (annonce, salon, sortie terminée).',
+    group: [RDV_ANNONCE, RDV_SALON, RDV_TERMINE],
   },
 ];
 
@@ -42,4 +50,5 @@ export const EMBED_BY_KEY = Object.fromEntries([
   ...EMBED_TYPES.map((m) => [m.key, m]),
   [RDV_ANNONCE.key, RDV_ANNONCE],
   [RDV_SALON.key, RDV_SALON],
+  [RDV_TERMINE.key, RDV_TERMINE],
 ]);

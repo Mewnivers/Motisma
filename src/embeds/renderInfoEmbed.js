@@ -35,3 +35,57 @@ export function contentToEmbed(row = {}) {
   if (row.footer_text) e.footer = { text: row.footer_text };
   return e;
 }
+
+// --- Modèles /rdv : substitution de variables + construction du message ---
+
+/** Remplace {var} par sa valeur dans une chaîne (laisse littéral si inconnue). */
+export function applyVars(s, vars) {
+  return typeof s === 'string' ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : s;
+}
+
+/** Applique les variables à toutes les chaînes d'une ligne info_embeds. */
+export function substituteRow(row, vars) {
+  return {
+    ...row,
+    content: applyVars(row.content, vars),
+    title: applyVars(row.title, vars),
+    description: applyVars(row.description, vars),
+    footer_text: applyVars(row.footer_text, vars),
+    fields: (row.fields || []).map((f) => ({
+      name: applyVars(f.name, vars),
+      value: applyVars(f.value, vars),
+      inline: Boolean(f.inline),
+    })),
+  };
+}
+
+/** Vrai si la ligne a un contenu d'embed exploitable (titre / description / champs). */
+export function rowHasContent(row) {
+  return Boolean(row && (row.title || row.description || (row.fields && row.fields.length)));
+}
+
+/**
+ * Construit le payload d'un message-modèle selon `row.mode`
+ * ('simple' = texte seul, 'embed' = embed seul, 'both' = les deux).
+ * Renvoie toujours { content, embeds, components } explicites pour qu'une
+ * édition remplace bien l'ancien message. `fallbackEmbed` sert d'embed de repli
+ * si le modèle est vide.
+ */
+export function buildTemplateMessage(row, vars, { components = [], fallbackEmbed } = {}) {
+  const sub = substituteRow(row || {}, vars);
+  const mode = sub.mode || 'embed';
+  const msgText = (sub.content || '').trim();
+  const chosenEmbed = rowHasContent(sub) ? contentToEmbed(sub) : fallbackEmbed;
+  let content = '';
+  let embeds = [];
+  if (mode === 'simple') {
+    if (msgText) content = msgText;
+    else if (chosenEmbed) embeds = [chosenEmbed]; // texte vide → repli sur l'embed
+  } else if (mode === 'both') {
+    if (msgText) content = msgText;
+    if (chosenEmbed) embeds = [chosenEmbed];
+  } else if (chosenEmbed) {
+    embeds = [chosenEmbed];
+  }
+  return { content, embeds, components };
+}

@@ -72,6 +72,20 @@ export async function initDb() {
       PRIMARY KEY (guild_id, key)
     );
   `);
+  // Sorties /rdv en cours : de quoi re-générer l'embed « terminée » (variables +
+  // référence du message d'annonce) quand la sortie se termine, même après un
+  // redémarrage. Supprimé quand la sortie se ferme.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS rdv_outings (
+      channel_id          TEXT PRIMARY KEY,
+      guild_id            TEXT NOT NULL,
+      announce_channel_id TEXT,
+      announce_message_id TEXT,
+      panel_message_id    TEXT,
+      vars                JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
   console.log('[db] Connected and schema ready.');
 }
 
@@ -320,6 +334,42 @@ export async function getInfoEmbed(guildId, key) {
   if (!pool) return null;
   const { rows } = await pool.query('SELECT * FROM info_embeds WHERE guild_id = $1 AND key = $2', [guildId, key]);
   return rows[0] ?? null;
+}
+
+/** Enregistre une sortie /rdv en cours (pour l'embed « terminée »). */
+export async function saveOuting(channelId, data) {
+  if (!pool) return;
+  await pool.query(
+    `INSERT INTO rdv_outings (channel_id, guild_id, announce_channel_id, announce_message_id, panel_message_id, vars)
+     VALUES ($1,$2,$3,$4,$5,$6::jsonb)
+     ON CONFLICT (channel_id) DO UPDATE SET
+       guild_id = EXCLUDED.guild_id,
+       announce_channel_id = EXCLUDED.announce_channel_id,
+       announce_message_id = EXCLUDED.announce_message_id,
+       panel_message_id = EXCLUDED.panel_message_id,
+       vars = EXCLUDED.vars`,
+    [
+      channelId,
+      data.guildId,
+      data.announceChannelId ?? null,
+      data.announceMessageId ?? null,
+      data.panelMessageId ?? null,
+      JSON.stringify(data.vars ?? {}),
+    ],
+  );
+}
+
+/** Lit une sortie /rdv en cours, ou null. */
+export async function getOuting(channelId) {
+  if (!pool) return null;
+  const { rows } = await pool.query('SELECT * FROM rdv_outings WHERE channel_id = $1', [channelId]);
+  return rows[0] ?? null;
+}
+
+/** Supprime une sortie /rdv (à sa fermeture). */
+export async function deleteOuting(channelId) {
+  if (!pool) return;
+  await pool.query('DELETE FROM rdv_outings WHERE channel_id = $1', [channelId]);
 }
 
 /** Mémorise le message publié pour un embed (pour l'édition live depuis le site). */
