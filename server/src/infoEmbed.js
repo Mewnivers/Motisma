@@ -44,6 +44,7 @@ export function colorIntToHex(int) {
 export function validateEmbedContent(body = {}) {
   const errors = [];
   const str = (v) => (typeof v === 'string' ? v : '');
+  if (str(body.content).length > 2000) errors.push('Message trop long (max 2000).');
   if (str(body.title).length > 256) errors.push('Titre trop long (max 256).');
   if (str(body.description).length > 4096) errors.push('Description trop longue (max 4096).');
   if (str(body.footer_text).length > 2048) errors.push('Pied de page trop long (max 2048).');

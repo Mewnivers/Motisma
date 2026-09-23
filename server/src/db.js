@@ -126,6 +126,8 @@ export const UNIFIED_DDL = `
     footer_text       TEXT,
     fields            JSONB NOT NULL DEFAULT '[]'::jsonb,
     buttons           JSONB NOT NULL DEFAULT '{}'::jsonb,
+    content           TEXT,
+    mode              TEXT NOT NULL DEFAULT 'embed',
     posted_channel_id TEXT,
     posted_message_id TEXT,
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -190,6 +192,12 @@ export async function initSchema() {
   await pool.query(UNIFIED_DDL);
   // Colonne ajoutée après coup : boutons personnalisables (embeds /rdv).
   await pool.query(`ALTER TABLE info_embeds ADD COLUMN IF NOT EXISTS buttons JSONB NOT NULL DEFAULT '{}'::jsonb;`);
+  // Colonnes ajoutées après coup : message texte + mode d'envoi (annonce /rdv).
+  await pool.query(`
+    ALTER TABLE info_embeds
+      ADD COLUMN IF NOT EXISTS content TEXT,
+      ADD COLUMN IF NOT EXISTS mode    TEXT NOT NULL DEFAULT 'embed';
+  `);
   // Incremental columns added after first deploy (safe on existing tables).
   await pool.query(`
     ALTER TABLE guilds
@@ -959,6 +967,9 @@ const INFO_EMBED_DEFAULTS = {
   // Modèle de l'annonce /rdv. Variables remplies par le bot à chaque sortie :
   // {lieu} {heure} {organisateur} {description} {fermeture}.
   rdv_annonce: {
+    // mode : 'simple' (texte seul) | 'embed' (embed seul) | 'both' (texte + embed).
+    mode: 'embed',
+    content: '📣 Nouvelle sortie à {lieu} ({heure}) ! Clique sur **Je participe** pour rejoindre. 🎉',
     title: '📣 {lieu}',
     color: 0x5865f2,
     description: '{organisateur} organise une sortie ! Clique sur **Je participe** pour rejoindre le salon privé. 🎉',
@@ -993,6 +1004,10 @@ const INFO_EMBED_DEFAULTS = {
 /** Styles de bouton Discord autorisés (couleur). */
 const BUTTON_STYLES = ['Primary', 'Secondary', 'Success', 'Danger'];
 
+/** Modes d'envoi d'un embed info : texte seul, embed seul, ou les deux. */
+const EMBED_MODES = ['simple', 'embed', 'both'];
+const coerceMode = (v) => (EMBED_MODES.includes(v) ? v : 'embed');
+
 /** Nettoie une config de boutons { role: { label, style } }. */
 function coerceButtons(v) {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
@@ -1024,8 +1039,8 @@ export async function ensureInfoEmbeds(guildId) {
     const row = { ...def };
     if (key === 'motisma' && motismaThumb) row.thumbnail_url = motismaThumb;
     await pool.query(
-      `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields, buttons)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb)
+      `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields, buttons, content, mode)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11,$12)
        ON CONFLICT (guild_id, key) DO UPDATE SET
          title = EXCLUDED.title,
          description = EXCLUDED.description,
@@ -1035,6 +1050,8 @@ export async function ensureInfoEmbeds(guildId) {
          footer_text = EXCLUDED.footer_text,
          fields = EXCLUDED.fields,
          buttons = EXCLUDED.buttons,
+         content = EXCLUDED.content,
+         mode = EXCLUDED.mode,
          updated_at = now()
        WHERE info_embeds.title IS NULL AND info_embeds.description IS NULL`,
       [
@@ -1043,6 +1060,7 @@ export async function ensureInfoEmbeds(guildId) {
         row.image_url ?? null, row.thumbnail_url ?? null, row.footer_text ?? null,
         JSON.stringify(row.fields ?? []),
         JSON.stringify(coerceButtons(row.buttons)),
+        row.content ?? null, coerceMode(row.mode),
       ],
     );
   }
@@ -1072,19 +1090,23 @@ export async function upsertInfoEmbed(guildId, key, data) {
           .map((f) => ({ name: f.name, value: f.value, inline: Boolean(f.inline) }))
       : [],
     buttons: coerceButtons(data.buttons),
+    content: typeof data.content === 'string' ? data.content : null,
+    mode: coerceMode(data.mode),
   };
   const { rows } = await pool.query(
-    `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields, buttons, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb, now())
+    `INSERT INTO info_embeds (guild_id, key, title, description, color, image_url, thumbnail_url, footer_text, fields, buttons, content, mode, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11,$12, now())
      ON CONFLICT (guild_id, key) DO UPDATE SET
        title=EXCLUDED.title, description=EXCLUDED.description, color=EXCLUDED.color,
        image_url=EXCLUDED.image_url, thumbnail_url=EXCLUDED.thumbnail_url,
-       footer_text=EXCLUDED.footer_text, fields=EXCLUDED.fields, buttons=EXCLUDED.buttons, updated_at=now()
+       footer_text=EXCLUDED.footer_text, fields=EXCLUDED.fields, buttons=EXCLUDED.buttons,
+       content=EXCLUDED.content, mode=EXCLUDED.mode, updated_at=now()
      RETURNING *`,
     [
       guildId, key, values.title, values.description, values.color,
       values.image_url, values.thumbnail_url, values.footer_text,
       JSON.stringify(values.fields), JSON.stringify(values.buttons),
+      values.content, values.mode,
     ],
   );
   return rows[0];
