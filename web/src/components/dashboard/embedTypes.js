@@ -7,7 +7,7 @@ const RDV_ANNONCE = {
   label: 'Annonce (salon Annonce)',
   template: true,
   message: true, // choix message simple / embed / message + embed
-  vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
+  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}'],
   note: 'Posté dans le salon Annonce. Personnalise le bouton ci-dessous.',
   buttons: [{ role: 'join', name: 'Bouton d’inscription', label: 'Je participe', style: 'Success', emoji: '🙋' }],
 };
@@ -15,7 +15,7 @@ const RDV_SALON = {
   key: 'rdv_salon',
   label: 'Panneau du salon',
   template: true,
-  vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
+  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}'],
   note: 'Posté dans le salon. La liste des participants est ajoutée automatiquement.',
   buttons: [
     { role: 'leave', name: 'Bouton pour se désinscrire / quitter', label: 'Se désinscrire et quitter', style: 'Danger', emoji: '🚪' },

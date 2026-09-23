@@ -969,14 +969,14 @@ const INFO_EMBED_DEFAULTS = {
   rdv_annonce: {
     // mode : 'simple' (texte seul) | 'embed' (embed seul) | 'both' (texte + embed).
     mode: 'embed',
-    content: '📣 Nouvelle sortie à {lieu} ({heure}) ! Clique sur **Je participe** pour rejoindre. 🎉',
+    content: 'Une sortie sauvage apparaît ! 🌿 Organisée par {organisateur}. Clique sur **Je participe** pour la rejoindre. 🎉',
     title: '📣 {lieu}',
     color: 0x5865f2,
     description: '{organisateur} organise une sortie ! Clique sur **Je participe** pour rejoindre le salon privé. 🎉',
     footer_text: '🕒 Salon fermé automatiquement le {fermeture}',
     fields: [
       { name: '📍 Lieu', value: '{lieu}', inline: true },
-      { name: '🕒 Heure', value: '{heure}', inline: true },
+      { name: '🕒 Horaire', value: '{heure_debut} → {heure_fin}', inline: true },
     ],
     buttons: { join: { label: 'Je participe', style: 'Success', emoji: '🙋' } },
   },
@@ -991,7 +991,7 @@ const INFO_EMBED_DEFAULTS = {
     footer_text: '🕒 Fermeture automatique du salon le {fermeture}',
     fields: [
       { name: '📍 Lieu', value: '{lieu}', inline: true },
-      { name: '🕒 Heure', value: '{heure}', inline: true },
+      { name: '🕒 Horaire', value: '{heure_debut} → {heure_fin}', inline: true },
       { name: '👤 Organisateur', value: '{organisateur}', inline: true },
     ],
     buttons: {
