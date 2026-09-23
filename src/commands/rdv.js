@@ -25,6 +25,7 @@ function applyVars(s, vars) {
 function substituteRow(row, vars) {
   return {
     ...row,
+    content: applyVars(row.content, vars),
     title: applyVars(row.title, vars),
     description: applyVars(row.description, vars),
     footer_text: applyVars(row.footer_text, vars),
@@ -265,16 +266,33 @@ export async function execute(interaction) {
       .catch(() => null);
 
     if (announceChannel?.isTextBased()) {
-      // Modèle éditable via le dashboard (info_embeds « rdv_annonce ») ; repli
-      // sur l'embed codé si le modèle n'a pas encore été configuré.
+      // Modèle éditable via le dashboard (info_embeds « rdv_annonce »).
       const tpl = await getInfoEmbed(config.guildId, 'rdv_annonce').catch(() => null);
-      const announce = rowHasContent(tpl)
-        ? contentToEmbed(substituteRow(tpl, vars))
-        : buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
+      const sub = tpl ? substituteRow(tpl, vars) : null;
       const joinRow = new ActionRowBuilder().addComponents(
         rdvButton(`rdv:join:${channel.id}:${panel.id}`, tpl?.buttons?.join, 'Je participe', ButtonStyle.Success, '🙋'),
       );
-      await announceChannel.send({ embeds: [announce], components: [joinRow] }).catch(() => {});
+
+      // L'embed : modèle configuré, sinon l'embed codé par défaut.
+      const announceEmbed = () =>
+        rowHasContent(sub)
+          ? contentToEmbed(sub)
+          : buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
+
+      // Assemble le message selon le mode choisi côté site.
+      const mode = sub?.mode || 'embed';
+      const msgText = (sub?.content || '').trim();
+      const payload = { components: [joinRow] };
+      if (mode === 'simple' && msgText) {
+        payload.content = msgText; // texte seul
+      } else if (mode === 'both') {
+        if (msgText) payload.content = msgText;
+        payload.embeds = [announceEmbed()];
+      } else {
+        // 'embed', ou 'simple' sans texte → repli sur l'embed (jamais de message vide).
+        payload.embeds = [announceEmbed()];
+      }
+      await announceChannel.send(payload).catch(() => {});
     }
   }
 

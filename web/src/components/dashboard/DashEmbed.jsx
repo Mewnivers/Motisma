@@ -67,6 +67,8 @@ function FieldsPreview({ fields }) {
 
 export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
   const [m, setM] = useState(() => ({
+    mode: row?.mode ?? 'embed',
+    content: row?.content ?? '',
     title: row?.title ?? '',
     description: row?.description ?? '',
     color: intToHex(row?.color),
@@ -123,6 +125,8 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
     setResult(null);
     try {
       const payload = {
+        mode: meta.message ? m.mode : 'embed',
+        content: m.content,
         title: m.title, description: m.description, color: m.color,
         image_url: m.image_url, thumbnail_url: m.thumbnail_url, footer_text: m.footer_text,
         fields: m.fields.filter((f) => f.name && f.value),
@@ -147,6 +151,13 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
         : 'Enregistré ✓ — mise à jour Discord impossible (droits ?)')
     : null;
 
+  // Ce que l'aperçu montre selon le mode (fidèle à l'envoi du bot).
+  const msgMode = meta.message ? m.mode : 'embed';
+  const hasText = !!dc(m.content);
+  const showText = msgMode !== 'embed' && hasText;
+  // En « Message simple » sans texte, le bot renvoie l'embed → l'aperçu aussi.
+  const showEmbed = !(msgMode === 'simple' && hasText);
+
   return (
     <div>
       <header className="dash-module-head">
@@ -166,6 +177,43 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
       <div className="dash-msg dash-msg-scroll">
         {/* Éditeur */}
         <div className="dash-msg-editor">
+          {meta.message && (
+            <>
+              <div className="dash-field">
+                <span>Type de message</span>
+                <div className="dash-mode-row">
+                  {[['simple', 'Message simple'], ['embed', 'Embed'], ['both', 'Message + embed']].map(([val, label]) => (
+                    <label key={val} className="dash-mode-opt">
+                      <input
+                        type="radio"
+                        name={`mode-${meta.key}`}
+                        checked={m.mode === val}
+                        onChange={() => set('mode', val)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {m.mode !== 'embed' && (
+                <div className="dash-field">
+                  <span>Message (texte)</span>
+                  <div className="dash-textarea-wrap">
+                    <textarea
+                      className="dash-input dash-input-emoji"
+                      rows={3}
+                      value={m.content}
+                      onChange={(e) => set('content', e.target.value)}
+                      onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => set('content', v) }; }}
+                      placeholder="Texte affiché au-dessus de l’embed (ou seul en mode « Message simple »)."
+                    />
+                    <EmojiPicker onSelect={insertEmoji} />
+                  </div>
+                </div>
+              )}
+              {m.mode !== 'simple' && <span className="dash-btn-name">Embed</span>}
+            </>
+          )}
           <div className="dash-field"><span>Titre</span>
             <div className="dash-textarea-wrap">
               <input
@@ -317,6 +365,11 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
             {bot?.avatarUrl ? <img className="discord-avatar-img" src={bot.avatarUrl} alt="" /> : <div className="discord-avatar" />}
             <div className="discord-body">
               <div className="discord-author">{bot?.username || 'Motisma'} <span className="discord-bot">BOT</span></div>
+              {showText && <div className="discord-content"><RichText text={m.content} /></div>}
+              {msgMode === 'simple' && !hasText && (
+                <div className="dash-embed-note">ℹ️ Message vide → l’embed ci-dessous sera affiché à la place.</div>
+              )}
+              {showEmbed && (
               <div className="discord-embed" style={{ borderColor: m.color }}>
                 <div className="discord-embed-main">
                   {dc(m.title) && <div className="discord-embed-title">{renderMarkdown(dc(m.title))}</div>}
@@ -327,6 +380,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                 </div>
                 {m.thumbnail_url && !m.thumbnail_url.startsWith('attachment://') && <img className="discord-embed-thumb" src={m.thumbnail_url} alt="" />}
               </div>
+              )}
               {meta.buttons && (
                 <div className="discord-buttons">
                   {meta.buttons.map((b) => {

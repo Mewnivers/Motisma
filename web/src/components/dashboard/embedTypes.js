@@ -6,6 +6,7 @@ const RDV_ANNONCE = {
   key: 'rdv_annonce',
   label: 'Annonce (salon Annonce)',
   template: true,
+  message: true, // choix message simple / embed / message + embed
   vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
   note: 'Posté dans le salon Annonce. Personnalise le bouton ci-dessous.',
   buttons: [{ role: 'join', name: 'Bouton d’inscription', label: 'Je participe', style: 'Success', emoji: '🙋' }],
