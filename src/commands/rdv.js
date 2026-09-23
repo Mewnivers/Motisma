@@ -65,7 +65,7 @@ function rdvButton(customId, cfg, defLabel, defStyle, defEmoji) {
 }
 
 /** Embed posté dans le salon privé : infos + liste des participants. */
-export function buildPanelEmbed({ place, time, description, organizerId, ids, closeLabel }) {
+export function buildPanelEmbed({ place, horaire, description, organizerId, ids, closeLabel }) {
   return new EmbedBuilder()
     .setColor(BRAND)
     .setTitle('🗓️ Sortie')
@@ -76,7 +76,7 @@ export function buildPanelEmbed({ place, time, description, organizerId, ids, cl
     )
     .addFields(
       { name: '📍 Lieu', value: place, inline: true },
-      { name: '🕒 Heure', value: time, inline: true },
+      { name: '🕒 Horaire', value: horaire, inline: true },
       { name: '👤 Organisateur', value: `<@${organizerId}>`, inline: true },
       {
         name: `Participants (${ids.length})`,
@@ -88,7 +88,7 @@ export function buildPanelEmbed({ place, time, description, organizerId, ids, cl
 }
 
 /** Embed d'annonce (public) : plus soigné, avec un bouton « Je participe ». */
-function buildAnnounceEmbed({ place, time, description, organizerId, closeLabel }) {
+function buildAnnounceEmbed({ place, horaire, description, organizerId, closeLabel }) {
   return new EmbedBuilder()
     .setColor(BRAND)
     .setAuthor({ name: 'Nouvelle sortie' })
@@ -103,7 +103,7 @@ function buildAnnounceEmbed({ place, time, description, organizerId, closeLabel 
     )
     .addFields(
       { name: '📍 Lieu', value: place, inline: true },
-      { name: '🕒 Heure', value: time, inline: true },
+      { name: '🕒 Horaire', value: horaire, inline: true },
     )
     .setFooter({ text: `🕒 Salon fermé automatiquement le ${closeLabel}` });
 }
@@ -173,20 +173,36 @@ export const data = new SlashCommandBuilder()
       .setName('description')
       .setDescription('Petit mot sur la sortie (optionnel)')
       .setMaxLength(300),
+  )
+  .addIntegerOption((opt) =>
+    opt
+      .setName('duree')
+      .setDescription('Durée de la sortie en minutes (par défaut 45).')
+      .setMinValue(5)
+      .setMaxValue(1440),
   );
 
 export async function execute(interaction) {
   const place = interaction.options.getString('place', true);
   const time = interaction.options.getString('time', true);
   const description = interaction.options.getString('description');
+  const duree = interaction.options.getInteger('duree') ?? 45;
 
   await interaction.deferReply({ ephemeral: true });
 
+  const pad = (n) => String(n).padStart(2, '0');
+
+  // Horaire : heure de début (saisie, normalisée) et heure de fin = début + durée.
+  const startEpoch = eventStartEpoch(time);
+  const s = partsInTz(startEpoch, PARIS);
+  const endParts = partsInTz(startEpoch + duree * 60000, PARIS);
+  const heureDebut = `${pad(s.hour)}h${pad(s.minute)}`;
+  const heureFin = `${pad(endParts.hour)}h${pad(endParts.minute)}`;
+  const horaire = `${heureDebut} → ${heureFin}`;
+
   // Fermeture automatique à 00h00 (Paris) du jour suivant la sortie.
-  const s = partsInTz(eventStartEpoch(time), PARIS);
   const deleteAt = wallClockToEpoch(s.year, s.month, s.day + 1, 0, 0, PARIS);
   const c = partsInTz(deleteAt, PARIS);
-  const pad = (n) => String(n).padStart(2, '0');
   const closeLabel = `${pad(c.day)}/${pad(c.month)} à ${pad(c.hour)}h${pad(c.minute)}`;
 
   const name = `${PREFIX}${[slug(place), slug(time)].filter(Boolean).join('-') || 'sortie'}`.slice(
@@ -230,7 +246,9 @@ export async function execute(interaction) {
   // Variables des modèles, remplies pour cette sortie.
   const vars = {
     lieu: place,
-    heure: time,
+    heure: heureDebut, // alias rétro-compat (= heure de début)
+    heure_debut: heureDebut,
+    heure_fin: heureFin,
     organisateur: `<@${organizerId}>`,
     description: description || '',
     fermeture: closeLabel,
@@ -247,7 +265,7 @@ export async function execute(interaction) {
       { name: 'Participants (1)', value: `<@${organizerId}>`, inline: false },
     ];
   } else {
-    panelEmbed = buildPanelEmbed({ place, time, description, organizerId, ids: [organizerId], closeLabel });
+    panelEmbed = buildPanelEmbed({ place, horaire, description, organizerId, ids: [organizerId], closeLabel });
   }
   const panelBtns = (panelTpl && panelTpl.buttons) || {};
   const panelRow = new ActionRowBuilder().addComponents(
@@ -277,7 +295,7 @@ export async function execute(interaction) {
       const announceEmbed = () =>
         rowHasContent(sub)
           ? contentToEmbed(sub)
-          : buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
+          : buildAnnounceEmbed({ place, horaire, description, organizerId, closeLabel });
 
       // Assemble le message selon le mode choisi côté site.
       const mode = sub?.mode || 'embed';
