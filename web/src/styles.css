@@ -1094,11 +1094,15 @@ code {
 .dash-error { color: #e57373; }
 .dash-embed-sep { border: 0; border-top: 1px solid var(--border-soft, #33384a); margin: 30px 0; }
 .dash-btn-name { font-size: 12px; color: var(--muted); }
-.dash-btn-row { display: flex; gap: 8px; }
+.dash-btn-row { display: flex; gap: 8px; align-items: center; }
 .dash-btn-row .dash-input { flex: 1; }
 .dash-btn-color { flex: 0 0 auto; width: auto; cursor: pointer; }
+.dash-btn-emoji { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
+.dash-btn-emoji .dash-input { flex: 0 0 auto; width: 4.5rem; text-align: center; }
 .discord-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.discord-btn { padding: 8px 15px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; color: #fff; }
+.discord-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; color: #fff; }
+.discord-btn-emoji { display: inline-flex; align-items: center; }
+.discord-btn-emoji .discord-emoji { width: 1.2em; height: 1.2em; vertical-align: 0; }
 .discord-btn.btn-primary { background: #5865f2; }
 .discord-btn.btn-secondary { background: #4e5058; }
 .discord-btn.btn-success { background: #248046; }

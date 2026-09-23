@@ -46,13 +46,21 @@ const BTN_STYLE = {
   Danger: ButtonStyle.Danger,
 };
 
-/** Bouton /rdv : applique la config (label/couleur) éditée, sinon les défauts. */
-function rdvButton(customId, emoji, cfg, defLabel, defStyle) {
-  return new ButtonBuilder()
+/** Bouton /rdv : applique la config (label/couleur/emoji) éditée, sinon les défauts. */
+function rdvButton(customId, cfg, defLabel, defStyle, defEmoji) {
+  const b = new ButtonBuilder()
     .setCustomId(customId)
-    .setEmoji(emoji)
     .setLabel((cfg?.label || defLabel).slice(0, 80))
     .setStyle(BTN_STYLE[cfg?.style] || defStyle);
+  const emoji = cfg && 'emoji' in cfg ? cfg.emoji : defEmoji;
+  if (emoji) {
+    try {
+      b.setEmoji(emoji);
+    } catch {
+      // emoji invalide (mal formé) → on l'ignore.
+    }
+  }
+  return b;
 }
 
 /** Embed posté dans le salon privé : infos + liste des participants. */
@@ -242,8 +250,8 @@ export async function execute(interaction) {
   }
   const panelBtns = (panelTpl && panelTpl.buttons) || {};
   const panelRow = new ActionRowBuilder().addComponents(
-    rdvButton('rdv:leave', '🚪', panelBtns.leave, 'Se désinscrire et quitter', ButtonStyle.Danger),
-    rdvButton(`rdv:close:${organizerId}`, '🔒', panelBtns.close, 'Fermer la sortie', ButtonStyle.Secondary),
+    rdvButton('rdv:leave', panelBtns.leave, 'Se désinscrire et quitter', ButtonStyle.Danger, '🚪'),
+    rdvButton(`rdv:close:${organizerId}`, panelBtns.close, 'Fermer la sortie', ButtonStyle.Secondary, '🔒'),
   );
   const panel = await channel.send({ embeds: [panelEmbed], components: [panelRow] });
   await panel.pin().catch(() => {});
@@ -264,7 +272,7 @@ export async function execute(interaction) {
         ? contentToEmbed(substituteRow(tpl, vars))
         : buildAnnounceEmbed({ place, time, description, organizerId, closeLabel });
       const joinRow = new ActionRowBuilder().addComponents(
-        rdvButton(`rdv:join:${channel.id}:${panel.id}`, '🙋', tpl?.buttons?.join, 'Je participe', ButtonStyle.Success),
+        rdvButton(`rdv:join:${channel.id}:${panel.id}`, tpl?.buttons?.join, 'Je participe', ButtonStyle.Success, '🙋'),
       );
       await announceChannel.send({ embeds: [announce], components: [joinRow] }).catch(() => {});
     }
