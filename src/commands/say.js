@@ -8,29 +8,30 @@ export const data = new SlashCommandBuilder()
   .setDescription('Faire parler le bot dans un salon (admin).')
   // Only members with "Manage Server" see and can use this command.
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-  .addChannelOption((opt) =>
-    opt
-      .setName('salon')
-      .setDescription('Salon où poster le message.')
-      .addChannelTypes(
-        ChannelType.GuildText,
-        ChannelType.GuildAnnouncement,
-        ChannelType.PublicThread,
-        ChannelType.PrivateThread,
-        ChannelType.AnnouncementThread,
-      )
-      .setRequired(true),
-  )
+  // Option obligatoire d'abord (Discord l'exige avant les options facultatives).
   .addStringOption((opt) =>
     opt
       .setName('message')
       .setDescription('Texte à envoyer (utilise \\n pour un retour à la ligne).')
       .setMaxLength(2000)
       .setRequired(true),
+  )
+  .addChannelOption((opt) =>
+    opt
+      .setName('salon')
+      .setDescription('Salon où poster (par défaut : le salon courant).')
+      .addChannelTypes(
+        ChannelType.GuildText,
+        ChannelType.GuildAnnouncement,
+        ChannelType.PublicThread,
+        ChannelType.PrivateThread,
+        ChannelType.AnnouncementThread,
+      ),
   );
 
 export async function execute(interaction) {
-  const channel = interaction.options.getChannel('salon', true);
+  // Salon facultatif : par défaut, le salon où la commande est lancée.
+  const channel = interaction.options.getChannel('salon') || interaction.channel;
   const raw = interaction.options.getString('message', true);
   // Slash-command inputs can't hold real line breaks, so let admins type \n.
   const content = raw.replace(/\\n/g, '\n').trim();
