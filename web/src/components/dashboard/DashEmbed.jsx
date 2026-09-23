@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { apiPost } from '../../api.js';
 import { renderMarkdown } from './markdown.jsx';
 import EmojiPicker from './EmojiPicker.jsx';
+import EmojiField from './EmojiField.jsx';
 
 const intToHex = (n) => (n == null ? '#ffffff' : `#${Number(n).toString(16).padStart(6, '0')}`);
 const PRE = { whiteSpace: 'pre-wrap' };
@@ -199,9 +200,10 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                 <div className="dash-field">
                   <span>Message (texte)</span>
                   <div className="dash-textarea-wrap">
-                    <textarea
-                      className="dash-input dash-input-emoji"
+                    <EmojiField
+                      multiline
                       rows={3}
+                      className="dash-input dash-input-emoji"
                       value={m.content}
                       onChange={(e) => set('content', e.target.value)}
                       onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => set('content', v) }; }}
@@ -216,7 +218,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
           )}
           <div className="dash-field"><span>Titre</span>
             <div className="dash-textarea-wrap">
-              <input
+              <EmojiField
                 className="dash-input dash-input-emoji"
                 value={m.title}
                 onChange={(e) => set('title', e.target.value)}
@@ -228,9 +230,10 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
           <div className="dash-field">
             <span>Description</span>
             <div className="dash-textarea-wrap">
-              <textarea
-                className="dash-input dash-input-emoji"
+              <EmojiField
+                multiline
                 rows={6}
+                className="dash-input dash-input-emoji"
                 value={m.description}
                 onChange={(e) => set('description', e.target.value)}
                 onFocus={(e) => { active.current = { el: e.currentTarget, apply: (v) => set('description', v) }; }}
@@ -264,7 +267,7 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                 // eslint-disable-next-line react/no-array-index-key
                 <div className="dash-field-card" key={i}>
                   <div className="dash-field-card-head">
-                    <input
+                    <EmojiField
                       className="dash-input"
                       placeholder="Nom du champ"
                       value={f.name}
@@ -276,9 +279,10 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                     <button type="button" className="dash-pool-del" onClick={() => delField(i)} aria-label="Supprimer">✕</button>
                     <EmojiPicker onSelect={insertEmoji} />
                   </div>
-                  <textarea
-                    className="dash-input"
+                  <EmojiField
+                    multiline
                     rows={2}
+                    className="dash-input"
                     placeholder="Valeur"
                     value={f.value}
                     onChange={(e) => setField(i, 'value', e.target.value)}
