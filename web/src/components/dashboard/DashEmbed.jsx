@@ -79,7 +79,11 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
       ? Object.fromEntries(
           meta.buttons.map((b) => {
             const saved = row?.buttons?.[b.role];
-            return [b.role, { label: saved?.label ?? b.label, style: saved?.style ?? b.style }];
+            return [b.role, {
+              label: saved?.label ?? b.label,
+              style: saved?.style ?? b.style,
+              emoji: saved?.emoji ?? b.emoji ?? '',
+            }];
           }),
         )
       : {},
@@ -250,6 +254,17 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
                   <div className="dash-field-card" key={b.role}>
                     <span className="dash-btn-name">{b.name}</span>
                     <div className="dash-btn-row">
+                      <div className="dash-btn-emoji">
+                        <input
+                          className="dash-input dash-input-sm"
+                          value={m.buttons[b.role]?.emoji ?? ''}
+                          onChange={(e) => setButton(b.role, 'emoji', e.target.value)}
+                          placeholder="Emoji"
+                          maxLength={64}
+                          aria-label="Emoji du bouton"
+                        />
+                        <EmojiPicker onSelect={(code) => setButton(b.role, 'emoji', code)} />
+                      </div>
                       <input
                         className="dash-input"
                         value={m.buttons[b.role]?.label ?? ''}
@@ -314,14 +329,15 @@ export default function DashEmbed({ meta, row, bot, guildId, onSaved }) {
               </div>
               {meta.buttons && (
                 <div className="discord-buttons">
-                  {meta.buttons.map((b) => (
-                    <span
-                      key={b.role}
-                      className={`discord-btn btn-${(m.buttons[b.role]?.style || 'Secondary').toLowerCase()}`}
-                    >
-                      {m.buttons[b.role]?.label || b.label}
-                    </span>
-                  ))}
+                  {meta.buttons.map((b) => {
+                    const bc = m.buttons[b.role] || {};
+                    return (
+                      <span key={b.role} className={`discord-btn btn-${(bc.style || 'Secondary').toLowerCase()}`}>
+                        {bc.emoji && <span className="discord-btn-emoji">{renderMarkdown(bc.emoji)}</span>}
+                        {bc.label || b.label}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>

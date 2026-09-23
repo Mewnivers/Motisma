@@ -967,7 +967,7 @@ const INFO_EMBED_DEFAULTS = {
       { name: '📍 Lieu', value: '{lieu}', inline: true },
       { name: '🕒 Heure', value: '{heure}', inline: true },
     ],
-    buttons: { join: { label: 'Je participe', style: 'Success' } },
+    buttons: { join: { label: 'Je participe', style: 'Success', emoji: '🙋' } },
   },
 
   // Modèle du panneau posté DANS le salon /rdv. La liste « Participants » est
@@ -984,8 +984,8 @@ const INFO_EMBED_DEFAULTS = {
       { name: '👤 Organisateur', value: '{organisateur}', inline: true },
     ],
     buttons: {
-      leave: { label: 'Se désinscrire et quitter', style: 'Danger' },
-      close: { label: 'Fermer la sortie', style: 'Secondary' },
+      leave: { label: 'Se désinscrire et quitter', style: 'Danger', emoji: '🚪' },
+      close: { label: 'Fermer la sortie', style: 'Secondary', emoji: '🔒' },
     },
   },
 };
@@ -1002,6 +1002,7 @@ function coerceButtons(v) {
       out[role] = {
         label: String(b.label ?? '').slice(0, 80),
         style: BUTTON_STYLES.includes(b.style) ? b.style : 'Secondary',
+        emoji: String(b.emoji ?? '').slice(0, 64),
       };
     }
   }

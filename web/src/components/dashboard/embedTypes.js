@@ -8,7 +8,7 @@ const RDV_ANNONCE = {
   template: true,
   vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
   note: 'Posté dans le salon Annonce. Personnalise le bouton ci-dessous.',
-  buttons: [{ role: 'join', name: 'Bouton d’inscription', label: 'Je participe', style: 'Success' }],
+  buttons: [{ role: 'join', name: 'Bouton d’inscription', label: 'Je participe', style: 'Success', emoji: '🙋' }],
 };
 const RDV_SALON = {
   key: 'rdv_salon',
@@ -17,8 +17,8 @@ const RDV_SALON = {
   vars: ['{lieu}', '{heure}', '{organisateur}', '{description}', '{fermeture}'],
   note: 'Posté dans le salon. La liste des participants est ajoutée automatiquement.',
   buttons: [
-    { role: 'leave', name: 'Bouton pour se désinscrire / quitter', label: 'Se désinscrire et quitter', style: 'Danger' },
-    { role: 'close', name: 'Bouton pour fermer la sortie (organisateur)', label: 'Fermer la sortie', style: 'Secondary' },
+    { role: 'leave', name: 'Bouton pour se désinscrire / quitter', label: 'Se désinscrire et quitter', style: 'Danger', emoji: '🚪' },
+    { role: 'close', name: 'Bouton pour fermer la sortie (organisateur)', label: 'Fermer la sortie', style: 'Secondary', emoji: '🔒' },
   ],
 };
 
