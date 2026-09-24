@@ -747,11 +747,15 @@ code {
   color: var(--accent);
 }
 
-/* Hero éditorial, aligné à gauche : un seul point focal (le titre). */
+/* Hero éditorial : texte à gauche, maquette du bot à droite. */
 .motisma-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 36px;
+  align-items: center;
   padding: 8px 0 4px;
 }
-.motisma-hero h1 {
+.motisma-hero-text h1 {
   margin: 0;
   font-size: clamp(30px, 5vw, 46px);
   font-weight: 800;
@@ -823,7 +827,7 @@ code {
 }
 
 /* Commandes citées dans le texte du guide. */
-.step-body code {
+.feature-text code {
   font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
   font-size: 0.86em;
   background: var(--accent-soft);
@@ -832,56 +836,270 @@ code {
   border-radius: 6px;
 }
 
-/* Guide : timeline numérotée (une ligne verticale relie les pastilles). */
-.steps {
-  position: relative;
-  list-style: none;
+/* Guide : rangées illustrées, texte et visuel en alternance. */
+.features {
+  display: grid;
+  gap: 20px;
+}
+.feature {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+  padding: 24px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+}
+.feature-reverse .feature-visual {
+  order: -1;
+}
+.feature-step {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.feature-text h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.feature-text p {
   margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 22px;
+  max-width: 44ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
 }
-.steps::before {
-  content: "";
-  position: absolute;
-  left: 15px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: var(--border);
-}
-.step {
-  position: relative;
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 16px;
-  align-items: start;
-}
-.step-num {
-  position: relative;
-  z-index: 1;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.feature-visual {
   display: grid;
   place-items: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--accent);
-  box-shadow: 0 0 0 4px var(--bg);
 }
-.step-body h3 {
-  margin: 4px 0 4px;
-  font-size: 16px;
+
+/* Maquettes (petites vignettes qui illustrent chaque étape). */
+.mock {
+  width: 100%;
+  max-width: 320px;
+  padding: 16px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+}
+/* Salons & rôles */
+.mock-roles-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  margin-bottom: 12px;
+}
+.mock-roles-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mock-chip {
+  font-size: 13px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  color: var(--muted);
+}
+.mock-chip.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
   font-weight: 600;
 }
-.step-body p {
-  margin: 0;
-  max-width: 62ch;
+/* Profil */
+.mock-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mock-avatar {
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.mock-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.mock-profile-name {
+  font-weight: 700;
   font-size: 15px;
-  line-height: 1.65;
+}
+.mock-profile-code {
+  font-size: 12.5px;
+  color: var(--dim);
+}
+.mock-teams {
+  display: flex;
+  gap: 6px;
+}
+.mock-teams img {
+  width: 24px;
+  height: 24px;
+}
+/* Niveau / XP */
+.mock-level-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.mock-level-lvl {
+  font-weight: 700;
+  font-size: 15px;
+}
+.mock-level-xp {
+  font-size: 12px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.mock-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+.mock-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+/* Médailles */
+.mock-medals {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+.mock-medals figure {
+  margin: 0;
+  text-align: center;
+}
+.mock-medals img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+.mock-medals figcaption {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+}
+/* Sortie /rdv */
+.mock-rdv {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mock-rdv-embed {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+}
+.mock-rdv-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.mock-rdv-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.mock-rdv-meta {
+  font-size: 12.5px;
+  color: var(--dim);
+}
+.mock-rdv-btn {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #248046;
+  border-radius: var(--r-sm);
+  padding: 7px 14px;
+}
+/* Maquette du hero (message du bot) */
+.mock-chat {
+  display: flex;
+  gap: 12px;
+  max-width: none;
+  box-shadow: var(--shadow);
+}
+.mock-chat-avatar {
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.mock-chat-body {
+  min-width: 0;
+}
+.mock-chat-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.mock-chat-bot {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 4px;
+  padding: 1px 5px;
+  vertical-align: 1px;
+}
+.mock-chat-embed {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--accent);
+}
+.mock-chat-embed-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+.mock-chat-embed-line {
+  font-size: 13px;
   color: var(--muted);
+}
+.mock-chat-embed-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--dim);
+}
+.mock-chat-embed-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Référence des commandes. */
@@ -978,6 +1196,26 @@ code {
   .btn-ghost:active,
   .cmd-card:hover {
     transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .motisma-hero,
+  .feature {
+    grid-template-columns: 1fr;
+  }
+  .feature {
+    gap: 20px;
+  }
+  /* Sur mobile, le texte passe toujours avant le visuel. */
+  .feature-reverse .feature-visual {
+    order: 0;
+  }
+  .feature-text p {
+    max-width: none;
+  }
+  .mock {
+    max-width: 100%;
   }
 }
 
