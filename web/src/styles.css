@@ -1541,6 +1541,21 @@ code {
 .discord-quote { border-left: 3px solid currentColor; opacity: 0.85; padding-left: 8px; margin: 4px 0; }
 .discord-emoji { width: 1.25em; height: 1.25em; vertical-align: -0.2em; }
 .discord-link { color: #00a8fc; text-decoration: none; }
+.discord-mention {
+  color: #c9cdfb;
+  background: rgba(88, 101, 242, 0.3);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 500;
+}
+/* Emojis Unicode rendus par Twemoji (même style que Discord). */
+.discord-msg img.emoji {
+  display: inline-block;
+  width: 1.375em;
+  height: 1.375em;
+  vertical-align: -0.25em;
+  margin: 0 0.05em;
+}
 .dash-fields-editor { display: flex; flex-direction: column; gap: 10px; }
 .dash-field-card { border: 1px solid var(--border, #33384a); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
 .dash-field-card-head { display: flex; gap: 6px; align-items: center; }
