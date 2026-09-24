@@ -12,6 +12,7 @@ export const NAV = [
   { to: '/classement', label: 'Classement' },
   { to: '/communaute', label: 'Communauté' },
   { to: '/guides', label: 'Guides' },
+  { to: '/motisma', label: 'Motisma' },
 ];
 
 export const TEAMS = {
