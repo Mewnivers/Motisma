@@ -3,6 +3,7 @@ import { DISCORD_INVITE } from '../config.js';
 import { COMMAND_GROUPS } from '../data/commands.js';
 import DiscordLogo from '../components/DiscordLogo.jsx';
 import Icon from '../components/Icons.jsx';
+import EmbedPreview from '../components/EmbedPreview.jsx';
 
 // Chaque étape : un texte + un visuel (maquette CSS ou vraies images du site).
 const STEPS = [
@@ -106,13 +107,8 @@ const STEPS = [
       </>
     ),
     visual: (
-      <div className="mock mock-rdv">
-        <div className="mock-rdv-embed">
-          <span className="mock-rdv-eyebrow">Nouvelle sortie</span>
-          <span className="mock-rdv-title">Parc Beaumont</span>
-          <span className="mock-rdv-meta">15h → 15h45 · 6 inscrits</span>
-        </div>
-        <span className="mock-rdv-btn">Je participe</span>
+      <div className="feature-embed">
+        <EmbedPreview embedKey="rdv_annonce" />
       </div>
     ),
   },
