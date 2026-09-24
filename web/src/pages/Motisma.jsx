@@ -4,8 +4,7 @@ import { COMMAND_GROUPS } from '../data/commands.js';
 import DiscordLogo from '../components/DiscordLogo.jsx';
 import Icon from '../components/Icons.jsx';
 
-// Étapes de prise en main (guide court pour un nouveau membre). Le corps peut
-// contenir du JSX pour mettre les commandes en <code>.
+// Chaque étape : un texte + un visuel (maquette CSS ou vraies images du site).
 const STEPS = [
   {
     title: 'Rejoins le Discord',
@@ -14,6 +13,20 @@ const STEPS = [
         Choisis ton secteur dans « Salons et rôles » : ça te connecte aux dresseurs proches de
         chez toi et fait vivre la communauté.
       </>
+    ),
+    visual: (
+      <div className="mock mock-roles">
+        <div className="mock-roles-head">
+          <Icon name="grid" size={14} /> Salons et rôles
+        </div>
+        <div className="mock-roles-chips">
+          {['Centre', 'Jurançon', 'Lons', 'Billère', 'Gan', 'Gelos'].map((s, i) => (
+            <span key={s} className={`mock-chip${i === 0 ? ' is-on' : ''}`}>
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
     ),
   },
   {
@@ -24,6 +37,20 @@ const STEPS = [
         apparaissent ensuite dans <code>/userinfo</code>.
       </>
     ),
+    visual: (
+      <div className="mock mock-profile">
+        <img className="mock-avatar" src="/pokeball.png" alt="" width="42" height="42" />
+        <div className="mock-profile-info">
+          <span className="mock-profile-name">RedAsh</span>
+          <span className="mock-profile-code">Code ami · 1234 5678 9012</span>
+        </div>
+        <div className="mock-teams">
+          <img src="/teams/mystic.webp" alt="Sagesse" />
+          <img src="/teams/valor.webp" alt="Bravoure" />
+          <img src="/teams/instinct.webp" alt="Intuition" />
+        </div>
+      </div>
+    ),
   },
   {
     title: 'Discute et gagne de l’XP',
@@ -32,6 +59,17 @@ const STEPS = [
         Tu montes en niveau simplement en participant sur le serveur. Suis ta progression avec{' '}
         <code>/niveau</code> et <code>/classement</code>.
       </>
+    ),
+    visual: (
+      <div className="mock mock-level">
+        <div className="mock-level-top">
+          <span className="mock-level-lvl">Niveau 12</span>
+          <span className="mock-level-xp">8 420 / 12 000 XP</span>
+        </div>
+        <div className="mock-bar">
+          <span style={{ width: '70%' }} />
+        </div>
+      </div>
     ),
   },
   {
@@ -42,6 +80,22 @@ const STEPS = [
         au bot : il lit tes stats tout seul.
       </>
     ),
+    visual: (
+      <div className="mock mock-medals">
+        <figure>
+          <img src="/medals/experience-gold.png" alt="Badge or" />
+          <figcaption>1re</figcaption>
+        </figure>
+        <figure>
+          <img src="/medals/experience-silver.png" alt="Badge argent" />
+          <figcaption>2e</figcaption>
+        </figure>
+        <figure>
+          <img src="/medals/experience-bronze.png" alt="Badge bronze" />
+          <figcaption>3e</figcaption>
+        </figure>
+      </div>
+    ),
   },
   {
     title: 'Organise ou rejoins une sortie',
@@ -50,6 +104,16 @@ const STEPS = [
         Avec <code>/rdv</code>, un salon dédié est créé avec inscriptions par bouton. Tous les
         niveaux sont les bienvenus.
       </>
+    ),
+    visual: (
+      <div className="mock mock-rdv">
+        <div className="mock-rdv-embed">
+          <span className="mock-rdv-eyebrow">Nouvelle sortie</span>
+          <span className="mock-rdv-title">Parc Beaumont</span>
+          <span className="mock-rdv-meta">15h → 15h45 · 6 inscrits</span>
+        </div>
+        <span className="mock-rdv-btn">Je participe</span>
+      </div>
     ),
   },
 ];
@@ -62,37 +126,59 @@ export default function Motisma() {
   return (
     <div className="page motisma">
       <header className="motisma-hero">
-        <span className="eyebrow">Le bot de la communauté</span>
-        <h1>Motisma’Pau</h1>
-        <p className="motisma-lead">
-          Votre Rotom-Dex de poche sur le Discord : profil Pokémon GO, progression, organisation
-          de sorties et petits jeux, le tout en quelques commandes.
-        </p>
-        <div className="motisma-actions">
-          <a className="btn-accent" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-            <DiscordLogo />
-            Rejoindre le Discord
-          </a>
-          <a className="btn-ghost" href="#commandes">
-            Voir les commandes
-          </a>
+        <div className="motisma-hero-text">
+          <span className="eyebrow">Le bot de la communauté</span>
+          <h1>Motisma’Pau</h1>
+          <p className="motisma-lead">
+            Votre Rotom-Dex de poche sur le Discord : profil Pokémon GO, progression, organisation
+            de sorties et petits jeux, le tout en quelques commandes.
+          </p>
+          <div className="motisma-actions">
+            <a className="btn-accent" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
+              <DiscordLogo />
+              Rejoindre le Discord
+            </a>
+            <a className="btn-ghost" href="#commandes">
+              Voir les commandes
+            </a>
+          </div>
+        </div>
+        <div className="motisma-hero-visual" aria-hidden="true">
+          <div className="mock mock-chat">
+            <img className="mock-chat-avatar" src="/pokeball.png" alt="" width="40" height="40" />
+            <div className="mock-chat-body">
+              <div className="mock-chat-name">
+                Motisma’Pau <span className="mock-chat-bot">BOT</span>
+              </div>
+              <div className="mock-chat-embed">
+                <span className="mock-chat-embed-title">Bienvenue chez POGO PAU</span>
+                <span className="mock-chat-embed-line">Ton assistant pour jouer ensemble à Pau.</span>
+                <span className="mock-chat-embed-row">
+                  <span><Icon name="users" size={13} /> Profil</span>
+                  <span><Icon name="star" size={13} /> Niveau</span>
+                  <span><Icon name="calendar" size={13} /> Sorties</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
       <section className="motisma-block">
         <span className="eyebrow">Prise en main</span>
         <h2 className="motisma-h2">Cinq étapes pour bien démarrer</h2>
-        <ol className="steps">
+        <div className="features">
           {STEPS.map((s, i) => (
-            <li className="step" key={s.title}>
-              <span className="step-num">{i + 1}</span>
-              <div className="step-body">
+            <article className={`feature${i % 2 ? ' feature-reverse' : ''}`} key={s.title}>
+              <div className="feature-text">
+                <span className="feature-step">Étape {i + 1}</span>
                 <h3>{s.title}</h3>
                 <p>{s.body}</p>
               </div>
-            </li>
+              <div className="feature-visual">{s.visual}</div>
+            </article>
           ))}
-        </ol>
+        </div>
       </section>
 
       <section className="motisma-block" id="commandes">
