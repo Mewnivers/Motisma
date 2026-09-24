@@ -193,16 +193,17 @@ export default function Motisma() {
               {g.title}
               {g.admin && <span className="cmd-admin-badge">admin</span>}
             </h3>
-            <div className="cmd-grid">
+            <div className="cmd-list">
               {g.commands.map((c) => (
-                <article className="cmd-card" key={c.name}>
+                <div className="cmd-row" key={c.name}>
                   <code className="cmd-name">{c.name}</code>
-                  <p className="cmd-short">{c.short}</p>
-                  <code className="cmd-ex">
-                    <span className="cmd-ex-prompt">›</span>
-                    {c.example}
-                  </code>
-                </article>
+                  <div className="cmd-row-body">
+                    <p className="cmd-short">{c.short}</p>
+                    <code className="cmd-ex">
+                      <span className="cmd-ex-prompt">›</span> {c.example}
+                    </code>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
