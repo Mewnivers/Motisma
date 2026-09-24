@@ -886,6 +886,19 @@ code {
   place-items: center;
 }
 
+/* Aperçu de l'embed réel (rendu Discord). */
+.feature-embed {
+  width: 100%;
+  max-width: 400px;
+}
+.feature-embed .discord-msg {
+  width: 100%;
+}
+.discord-msg-skel {
+  min-height: 130px;
+  opacity: 0.5;
+}
+
 /* Visuels posés directement sur la page (aucun conteneur). */
 .mock {
   width: 100%;
