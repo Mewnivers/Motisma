@@ -1035,62 +1035,18 @@ code {
   border-radius: var(--r-sm);
   padding: 8px 15px;
 }
-/* Maquette du hero : message du bot, juste avatar + texte (sans boîte). */
-.mock-chat {
-  display: flex;
-  gap: 12px;
-  max-width: 380px;
+/* Image de Motisma dans le hero : le sprite (fond transparent) posé sans boîte. */
+.motisma-hero-visual {
+  display: grid;
+  place-items: center;
+}
+.motisma-portrait {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
   margin-left: auto;
-}
-.mock-chat-avatar {
-  border-radius: 50%;
-  flex: 0 0 auto;
-}
-.mock-chat-body {
-  min-width: 0;
-}
-.mock-chat-name {
-  margin-bottom: 8px;
-  font-weight: 700;
-  font-size: 14px;
-}
-.mock-chat-bot {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: #fff;
-  background: var(--accent);
-  border-radius: 4px;
-  padding: 1px 5px;
-  vertical-align: 1px;
-}
-.mock-chat-embed {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding-left: 14px;
-  border-left: 3px solid var(--accent);
-}
-.mock-chat-embed-title {
-  font-weight: 700;
-  font-size: 15px;
-}
-.mock-chat-embed-line {
-  font-size: 13px;
-  color: var(--muted);
-}
-.mock-chat-embed-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--dim);
-}
-.mock-chat-embed-row span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  filter: drop-shadow(0 16px 34px rgba(0, 0, 0, 0.28));
 }
 
 /* Référence des commandes : liste sobre à filets fins, aucune carte. */
@@ -1195,10 +1151,12 @@ code {
   .feature-text p {
     max-width: none;
   }
-  .mock,
-  .mock-chat {
+  .mock {
     max-width: 100%;
-    margin-left: 0;
+  }
+  .motisma-portrait {
+    margin: 0 auto;
+    max-width: 220px;
   }
   .cmd-row {
     gap: 6px;

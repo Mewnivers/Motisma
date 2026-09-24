@@ -143,24 +143,14 @@ export default function Motisma() {
             </a>
           </div>
         </div>
-        <div className="motisma-hero-visual" aria-hidden="true">
-          <div className="mock mock-chat">
-            <img className="mock-chat-avatar" src="/pokeball.png" alt="" width="40" height="40" />
-            <div className="mock-chat-body">
-              <div className="mock-chat-name">
-                Motisma’Pau <span className="mock-chat-bot">BOT</span>
-              </div>
-              <div className="mock-chat-embed">
-                <span className="mock-chat-embed-title">Bienvenue chez POGO PAU</span>
-                <span className="mock-chat-embed-line">Ton assistant pour jouer ensemble à Pau.</span>
-                <span className="mock-chat-embed-row">
-                  <span><Icon name="users" size={13} /> Profil</span>
-                  <span><Icon name="star" size={13} /> Niveau</span>
-                  <span><Icon name="calendar" size={13} /> Sorties</span>
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="motisma-hero-visual">
+          <img
+            className="motisma-portrait"
+            src="/motisma.png"
+            alt="Motisma, la mascotte du serveur"
+            width="300"
+            height="300"
+          />
         </div>
       </header>
 
