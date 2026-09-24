@@ -1076,8 +1076,8 @@ code {
 .cmd-group-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 4px;
+  gap: 10px;
+  margin: 0 0 10px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1086,6 +1086,12 @@ code {
 }
 .cmd-group-icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-soft);
   color: var(--accent);
 }
 .cmd-admin-badge {
@@ -1099,19 +1105,27 @@ code {
 }
 .cmd-list {
   display: grid;
+  gap: 2px;
 }
+/* Lignes sans cadre au repos ; un léger surlignage apparaît au survol. */
 .cmd-row {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 24px;
-  padding: 16px 0;
-  border-top: 1px solid var(--border-soft);
+  grid-template-columns: 190px 1fr;
+  gap: 20px;
+  padding: 12px;
+  margin: 0 -12px;
+  border-radius: 10px;
+  transition: background 0.15s var(--ease-out);
+}
+.cmd-row:hover {
+  background: var(--accent-soft);
 }
 .cmd-name {
+  align-self: start;
   font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
   font-size: 14.5px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--accent);
   background: none;
   border: none;
   padding: 0;
@@ -1128,6 +1142,7 @@ code {
   color: var(--muted);
 }
 .cmd-ex {
+  align-self: start;
   font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
   font-size: 12.5px;
   color: var(--dim);
@@ -1143,7 +1158,8 @@ code {
 
 @media (prefers-reduced-motion: reduce) {
   .btn-accent,
-  .btn-ghost {
+  .btn-ghost,
+  .cmd-row {
     transition: none;
   }
   .btn-accent:active,
