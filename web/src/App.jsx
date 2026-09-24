@@ -9,6 +9,7 @@ const Carte = lazy(() => import('./pages/Carte.jsx'));
 import Classement from './pages/Classement.jsx';
 import Communaute from './pages/Communaute.jsx';
 import Guides from './pages/Guides.jsx';
+import Motisma from './pages/Motisma.jsx';
 import Profil from './pages/Profil.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Terms from './pages/Terms.jsx';
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/classement" element={<Classement />} />
           <Route path="/communaute" element={<Communaute />} />
           <Route path="/guides" element={<Guides />} />
+          <Route path="/motisma" element={<Motisma />} />
           <Route path="/profil" element={<Profil />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/terms" element={<Terms />} />
