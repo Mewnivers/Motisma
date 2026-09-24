@@ -889,7 +889,7 @@ code {
 /* Aperçu de l'embed réel (rendu Discord). */
 .feature-embed {
   width: 100%;
-  max-width: 400px;
+  max-width: 460px;
 }
 .feature-embed .discord-msg {
   width: 100%;
@@ -1535,9 +1535,9 @@ code {
 
 .discord-embed-fields { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .discord-embed-field { flex: 1 1 100%; }
-.discord-embed-field.inline { flex: 1 1 30%; min-width: 150px; }
-.discord-embed-field-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; }
-.discord-embed-field-value { font-size: 0.85rem; }
+.discord-embed-field.inline { flex: 1 1 30%; min-width: 88px; }
+.discord-embed-field-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 2px; color: #f2f3f5; }
+.discord-embed-field-value { font-size: 0.85rem; color: #dbdee1; }
 .discord-quote { border-left: 3px solid currentColor; opacity: 0.85; padding-left: 8px; margin: 4px 0; }
 .discord-emoji { width: 1.25em; height: 1.25em; vertical-align: -0.2em; }
 .discord-link { color: #00a8fc; text-decoration: none; }
