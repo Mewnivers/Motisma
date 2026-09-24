@@ -748,13 +748,17 @@ code {
   color: var(--accent);
 }
 
-/* Hero : texte à gauche, maquette légère du bot à droite (sans boîte). */
+/* Hero : image de Motisma à gauche, texte à droite (sans boîte). */
 .motisma-hero {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: 0.95fr 1.05fr;
   gap: 40px;
   align-items: center;
   padding: 8px 0 4px;
+}
+/* La colonne visuelle passe à gauche (le texte reste premier dans le DOM). */
+.motisma-hero-visual {
+  order: -1;
 }
 .motisma-hero-text h1 {
   margin: 0;
@@ -1045,7 +1049,7 @@ code {
   width: 100%;
   max-width: 300px;
   height: auto;
-  margin-left: auto;
+  margin: 0 auto;
   filter: drop-shadow(0 16px 34px rgba(0, 0, 0, 0.28));
 }
 
@@ -1146,6 +1150,10 @@ code {
     padding: 32px 0;
   }
   .feature-reverse .feature-visual {
+    order: 0;
+  }
+  /* Sur mobile, le texte du hero passe avant l'image. */
+  .motisma-hero-visual {
     order: 0;
   }
   .feature-text p {
