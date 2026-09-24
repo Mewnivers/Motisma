@@ -36,6 +36,8 @@ export function renderEmojiText(text) {
 export function renderMarkdown(text) {
   const rules = [
     [/<(a)?:(\w+):(\d+)>/, 'emoji'],
+    // Mentions : <@id> / <@!id> (Discord) et <@=Nom> (aperçu avec un nom lisible).
+    [/<@[!=]?([\w-]+)>/, 'mention'],
     [/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/, 'link'],
     [/\*\*([\s\S]+?)\*\*/, 'strong'],
     [/__([\s\S]+?)__/, 'u'],
@@ -58,6 +60,13 @@ export function renderMarkdown(text) {
     if (m.index > 0) out.push(str.slice(0, m.index));
     if (tag === 'emoji') {
       out.push(<Emoji key={counter++} animated={m[1] === 'a'} name={m[2]} id={m[3]} />);
+    } else if (tag === 'mention') {
+      const name = /^\d+$/.test(m[1]) ? 'membre' : m[1];
+      out.push(
+        <span key={counter++} className="discord-mention">
+          @{name}
+        </span>,
+      );
     } else if (tag === 'link') {
       out.push(
         <a key={counter++} className="discord-link" href={m[2]} target="_blank" rel="noreferrer">

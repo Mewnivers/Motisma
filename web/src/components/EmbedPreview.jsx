@@ -2,13 +2,32 @@
 // est publié sur Discord. Les variables ({lieu}, {heure_debut}…) sont remplies
 // avec des valeurs d'exemple. Réutilise le rendu markdown du dashboard et les
 // styles .discord-* déjà présents.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '../api.js';
 import { renderMarkdown } from './dashboard/markdown.jsx';
 
-// Valeurs d'exemple pour une sortie fictive.
+// Discord affiche les emojis Unicode via Twemoji : on charge la lib et on
+// remplace les emojis du rendu par les mêmes images (chargée une seule fois).
+let twemojiPromise = null;
+function loadTwemoji() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.twemoji) return Promise.resolve(window.twemoji);
+  if (!twemojiPromise) {
+    twemojiPromise = new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js';
+      s.crossOrigin = 'anonymous';
+      s.onload = () => resolve(window.twemoji || null);
+      s.onerror = () => resolve(null);
+      document.head.appendChild(s);
+    });
+  }
+  return twemojiPromise;
+}
+
+// Valeurs d'exemple pour une sortie fictive. `<@=Nom>` = mention (rendue en bleu).
 const SAMPLE = {
-  organisateur: '@RedAsh',
+  organisateur: '<@=RedAsh>',
   lieu: 'Parc Beaumont',
   heure_debut: '15h00',
   heure_fin: '15h45',
@@ -73,6 +92,7 @@ const BTN = { Primary: 'primary', Secondary: 'secondary', Success: 'success', Da
 
 export default function EmbedPreview({ embedKey = 'rdv_annonce', botAvatar = '/motisma.png', botName = 'Motisma’Pau' }) {
   const [row, setRow] = useState(null); // null = chargement, false = erreur
+  const ref = useRef(null);
 
   useEffect(() => {
     let live = true;
@@ -83,6 +103,21 @@ export default function EmbedPreview({ embedKey = 'rdv_annonce', botAvatar = '/m
       live = false;
     };
   }, [embedKey]);
+
+  // Une fois l'embed rendu, remplace les emojis Unicode par leurs images Twemoji.
+  useEffect(() => {
+    if (!row || row === false || !ref.current) return;
+    loadTwemoji().then((tw) => {
+      if (tw && ref.current) {
+        tw.parse(ref.current, {
+          base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/',
+          folder: 'svg',
+          ext: '.svg',
+          className: 'emoji',
+        });
+      }
+    });
+  }, [row]);
 
   if (row === null) return <div className="discord-msg discord-msg-skel" aria-hidden="true" />;
   if (row === false) return null;
@@ -95,7 +130,7 @@ export default function EmbedPreview({ embedKey = 'rdv_annonce', botAvatar = '/m
   const buttons = Object.values(row.buttons || {}).filter((b) => b && b.label);
 
   return (
-    <div className="discord-msg">
+    <div className="discord-msg" ref={ref}>
       <img className="discord-avatar-img" src={botAvatar} alt="" width="40" height="40" />
       <div className="discord-body">
         <div className="discord-author">
