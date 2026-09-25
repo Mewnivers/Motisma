@@ -993,6 +993,7 @@ const INFO_EMBED_DEFAULTS = {
       { name: '📍 Lieu', value: '{lieu}', inline: true },
       { name: '🕒 Horaire', value: '{heure_debut} → {heure_fin}', inline: true },
       { name: '👤 Organisateur', value: '{organisateur}', inline: true },
+      { name: 'Participants ({participants})', value: '{inscrits}', inline: false },
     ],
     buttons: {
       leave: { label: 'Se désinscrire et quitter', style: 'Danger', emoji: '🚪' },
