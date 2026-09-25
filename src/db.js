@@ -380,6 +380,25 @@ export async function setOutingParticipants(channelId, ids) {
   ]);
 }
 
+/** Met à jour les variables d'une sortie (après modification via /rdv-modifier). */
+export async function setOutingVars(channelId, vars) {
+  if (!pool) return;
+  await pool.query('UPDATE rdv_outings SET vars = $2::jsonb WHERE channel_id = $1', [
+    channelId,
+    JSON.stringify(vars ?? {}),
+  ]);
+}
+
+/** Sorties /rdv en cours d'un serveur (pour l'autocomplétion), les plus récentes. */
+export async function getOpenOutings(guildId) {
+  if (!pool) return [];
+  const { rows } = await pool.query(
+    'SELECT channel_id, vars FROM rdv_outings WHERE guild_id = $1 ORDER BY created_at DESC LIMIT 25',
+    [guildId],
+  );
+  return rows;
+}
+
 /** Lit une sortie /rdv en cours, ou null. */
 export async function getOuting(channelId) {
   if (!pool) return null;
