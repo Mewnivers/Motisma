@@ -9,12 +9,8 @@ import {
 } from 'discord.js';
 import { config } from '../config.js';
 import { getInfoEmbed, saveOuting } from '../db.js';
-import {
-  contentToEmbed,
-  substituteRow,
-  rowHasContent,
-  buildTemplateMessage,
-} from '../embeds/renderInfoEmbed.js';
+import { buildTemplateMessage } from '../embeds/renderInfoEmbed.js';
+import { renderPanel, usesVar } from '../features/rdvPanel.js';
 import { scheduleChannelDeletion } from '../features/rdvControls.js';
 
 const PREFIX = '・';
@@ -43,29 +39,6 @@ function rdvButton(customId, cfg, defLabel, defStyle, defEmoji) {
     }
   }
   return b;
-}
-
-/** Embed posté dans le salon privé : infos + liste des participants. */
-export function buildPanelEmbed({ place, horaire, description, organizerId, ids, closeLabel }) {
-  return new EmbedBuilder()
-    .setColor(BRAND)
-    .setTitle('🗓️ Sortie')
-    .setDescription(
-      [description ? `${description}\n` : null, '-# Bouton ci-dessous pour te désinscrire et quitter le salon.']
-        .filter(Boolean)
-        .join('\n'),
-    )
-    .addFields(
-      { name: '📍 Lieu', value: place, inline: true },
-      { name: '🕒 Horaire', value: horaire, inline: true },
-      { name: '👤 Organisateur', value: `<@${organizerId}>`, inline: true },
-      {
-        name: `Participants (${ids.length})`,
-        value: ids.length ? ids.map((id) => `<@${id}>`).join('\n') : 'Personne pour l’instant.',
-        inline: false,
-      },
-    )
-    .setFooter({ text: `🕒 Fermeture automatique du salon le ${closeLabel}` });
 }
 
 /** Embed d'annonce (public) : plus soigné, avec un bouton « Je participe ». */
@@ -140,28 +113,49 @@ function eventStartEpoch(timeStr) {
   return epoch;
 }
 
-export const data = new SlashCommandBuilder()
-  .setName('rdv')
-  .setDescription('Créer un salon temporaire pour organiser une sortie.')
-  .addStringOption((opt) =>
-    opt.setName('place').setDescription('Où se déroule la sortie').setRequired(true),
-  )
-  .addStringOption((opt) =>
-    opt.setName('time').setDescription('À quelle heure (ex. 15h)').setRequired(true),
-  )
-  .addStringOption((opt) =>
-    opt
-      .setName('description')
-      .setDescription('Petit mot sur la sortie (optionnel)')
-      .setMaxLength(300),
-  )
-  .addIntegerOption((opt) =>
+/** Construit la définition de /rdv. `withDescription` ajoute l'option optionnelle. */
+function makeData({ withDescription }) {
+  const b = new SlashCommandBuilder()
+    .setName('rdv')
+    .setDescription('Créer un salon temporaire pour organiser une sortie.')
+    .addStringOption((opt) =>
+      opt.setName('place').setDescription('Où se déroule la sortie').setRequired(true),
+    )
+    .addStringOption((opt) =>
+      opt.setName('time').setDescription('À quelle heure (ex. 15h)').setRequired(true),
+    );
+  if (withDescription) {
+    b.addStringOption((opt) =>
+      opt.setName('description').setDescription('Petit mot sur la sortie (optionnel)').setMaxLength(300),
+    );
+  }
+  b.addIntegerOption((opt) =>
     opt
       .setName('duree')
       .setDescription('Durée de la sortie en minutes (par défaut 45).')
       .setMinValue(5)
       .setMaxValue(1440),
   );
+  return b;
+}
+
+// Définition statique (avec description) : utilisée au chargement pour le nom.
+export const data = makeData({ withDescription: true });
+
+// Définition dynamique pour le déploiement : n'inclut « description » que si un
+// modèle rdv (annonce / salon / terminée) contient la variable {description}.
+export async function buildData() {
+  const keys = ['rdv_annonce', 'rdv_salon', 'rdv_termine'];
+  let uses = false;
+  for (const key of keys) {
+    const row = await getInfoEmbed(config.guildId, key).catch(() => null);
+    if (usesVar(row, 'description')) {
+      uses = true;
+      break;
+    }
+  }
+  return makeData({ withDescription: uses });
+}
 
 export async function execute(interaction) {
   const place = interaction.options.getString('place', true);
@@ -235,19 +229,10 @@ export async function execute(interaction) {
     fermeture: closeLabel,
   };
 
-  // Panneau du salon : modèle éditable « rdv_salon » + liste des participants
-  // (ajoutée automatiquement) + bouton pour quitter.
+  // Panneau du salon : modèle éditable « rdv_salon » avec {participants} et
+  // {inscrits} (mis à jour à chaque inscription) + boutons.
   const panelTpl = await getInfoEmbed(config.guildId, 'rdv_salon').catch(() => null);
-  let panelEmbed;
-  if (rowHasContent(panelTpl)) {
-    panelEmbed = contentToEmbed(substituteRow(panelTpl, vars));
-    panelEmbed.fields = [
-      ...(panelEmbed.fields || []),
-      { name: 'Participants (1)', value: `<@${organizerId}>`, inline: false },
-    ];
-  } else {
-    panelEmbed = buildPanelEmbed({ place, horaire, description, organizerId, ids: [organizerId], closeLabel });
-  }
+  const panelEmbed = await renderPanel({ vars, participants: [organizerId] });
   const panelBtns = (panelTpl && panelTpl.buttons) || {};
   const panelRow = new ActionRowBuilder().addComponents(
     rdvButton('rdv:leave', panelBtns.leave, 'Se désinscrire et quitter', ButtonStyle.Danger, '🚪'),
@@ -287,6 +272,8 @@ export async function execute(interaction) {
     announceChannelId: announceRef?.channelId,
     announceMessageId: announceRef?.messageId,
     panelMessageId: panel.id,
+    organizerId,
+    participants: [organizerId],
     vars,
   }).catch(() => {});
 

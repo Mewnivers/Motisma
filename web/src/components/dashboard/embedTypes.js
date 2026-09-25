@@ -15,8 +15,8 @@ const RDV_SALON = {
   key: 'rdv_salon',
   label: 'Panneau du salon',
   template: true,
-  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}'],
-  note: 'Posté dans le salon. La liste des participants est ajoutée automatiquement.',
+  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}', '{participants}', '{inscrits}'],
+  note: 'Posté dans le salon. {inscrits} = liste des membres, {participants} = leur nombre (mis à jour à chaque inscription). Si tu ne mets pas {inscrits}, la liste est ajoutée automatiquement.',
   buttons: [
     { role: 'leave', name: 'Bouton pour se désinscrire / quitter', label: 'Se désinscrire et quitter', style: 'Danger', emoji: '🚪' },
     { role: 'close', name: 'Bouton pour fermer la sortie (organisateur)', label: 'Fermer la sortie', style: 'Secondary', emoji: '🔒' },
@@ -27,8 +27,8 @@ const RDV_TERMINE = {
   label: 'Sortie terminée',
   template: true,
   message: true, // choix message simple / embed / message + embed
-  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}', '{participants}'],
-  note: 'Remplace l’annonce quand la sortie se termine. {participants} = nombre d’inscrits (organisateur inclus).',
+  vars: ['{lieu}', '{heure_debut}', '{heure_fin}', '{organisateur}', '{description}', '{fermeture}', '{participants}', '{inscrits}'],
+  note: 'Remplace l’annonce quand la sortie se termine. {participants} = nombre d’inscrits, {inscrits} = leur liste (organisateur inclus).',
 };
 
 export const EMBED_TYPES = [

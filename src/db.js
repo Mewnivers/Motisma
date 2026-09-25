@@ -82,9 +82,17 @@ export async function initDb() {
       announce_channel_id TEXT,
       announce_message_id TEXT,
       panel_message_id    TEXT,
+      organizer_id        TEXT,
+      participants        JSONB NOT NULL DEFAULT '[]'::jsonb,
       vars                JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+  `);
+  // Colonnes ajoutées après coup (sûres sur une table existante).
+  await pool.query(`
+    ALTER TABLE rdv_outings
+      ADD COLUMN IF NOT EXISTS organizer_id TEXT,
+      ADD COLUMN IF NOT EXISTS participants JSONB NOT NULL DEFAULT '[]'::jsonb;
   `);
   console.log('[db] Connected and schema ready.');
 }
@@ -336,17 +344,19 @@ export async function getInfoEmbed(guildId, key) {
   return rows[0] ?? null;
 }
 
-/** Enregistre une sortie /rdv en cours (pour l'embed « terminée »). */
+/** Enregistre une sortie /rdv en cours (participants, embed « terminée »…). */
 export async function saveOuting(channelId, data) {
   if (!pool) return;
   await pool.query(
-    `INSERT INTO rdv_outings (channel_id, guild_id, announce_channel_id, announce_message_id, panel_message_id, vars)
-     VALUES ($1,$2,$3,$4,$5,$6::jsonb)
+    `INSERT INTO rdv_outings (channel_id, guild_id, announce_channel_id, announce_message_id, panel_message_id, organizer_id, participants, vars)
+     VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb)
      ON CONFLICT (channel_id) DO UPDATE SET
        guild_id = EXCLUDED.guild_id,
        announce_channel_id = EXCLUDED.announce_channel_id,
        announce_message_id = EXCLUDED.announce_message_id,
        panel_message_id = EXCLUDED.panel_message_id,
+       organizer_id = EXCLUDED.organizer_id,
+       participants = EXCLUDED.participants,
        vars = EXCLUDED.vars`,
     [
       channelId,
@@ -354,9 +364,20 @@ export async function saveOuting(channelId, data) {
       data.announceChannelId ?? null,
       data.announceMessageId ?? null,
       data.panelMessageId ?? null,
+      data.organizerId ?? null,
+      JSON.stringify(data.participants ?? []),
       JSON.stringify(data.vars ?? {}),
     ],
   );
+}
+
+/** Met à jour la liste des inscrits d'une sortie. */
+export async function setOutingParticipants(channelId, ids) {
+  if (!pool) return;
+  await pool.query('UPDATE rdv_outings SET participants = $2::jsonb WHERE channel_id = $1', [
+    channelId,
+    JSON.stringify(ids ?? []),
+  ]);
 }
 
 /** Lit une sortie /rdv en cours, ou null. */

@@ -11,8 +11,9 @@ if (!guild) {
   process.exit(1);
 }
 
+const data = typeof rdv.buildData === 'function' ? await rdv.buildData() : rdv.data;
 const rest = new REST().setToken(config.token);
 await rest.put(Routes.applicationGuildCommands(config.clientId, guild), {
-  body: [rdv.data.toJSON()],
+  body: [data.toJSON()],
 });
 console.log(`/rdv registered on test guild ${guild} (only this command).`);
