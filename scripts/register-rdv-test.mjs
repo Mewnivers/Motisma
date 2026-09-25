@@ -4,6 +4,7 @@
 import { REST, Routes } from 'discord.js';
 import { config } from '../src/config.js';
 import * as rdv from '../src/commands/rdv.js';
+import * as rdvModifier from '../src/commands/rdv-modifier.js';
 
 const guild = config.rdvTestGuildId;
 if (!guild) {
@@ -11,9 +12,9 @@ if (!guild) {
   process.exit(1);
 }
 
-const data = typeof rdv.buildData === 'function' ? await rdv.buildData() : rdv.data;
+const rdvData = typeof rdv.buildData === 'function' ? await rdv.buildData() : rdv.data;
 const rest = new REST().setToken(config.token);
 await rest.put(Routes.applicationGuildCommands(config.clientId, guild), {
-  body: [data.toJSON()],
+  body: [rdvData.toJSON(), rdvModifier.data.toJSON()],
 });
-console.log(`/rdv registered on test guild ${guild} (only this command).`);
+console.log(`/rdv + /rdv-modifier registered on test guild ${guild}.`);

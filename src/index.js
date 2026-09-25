@@ -127,6 +127,19 @@ registerYoutube(client);
 registerForumKeepAlive(client);
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  // Autocomplétion des options de commande.
+  if (interaction.isAutocomplete()) {
+    const cmd = client.commands.get(interaction.commandName);
+    if (cmd?.autocomplete) {
+      try {
+        await cmd.autocomplete(interaction);
+      } catch (error) {
+        console.error(`Autocomplete /${interaction.commandName}:`, error);
+      }
+    }
+    return;
+  }
+
   // Slash commands and message context-menu commands are both dispatched by name.
   if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) return;
 
