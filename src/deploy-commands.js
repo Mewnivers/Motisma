@@ -14,8 +14,10 @@ const globalCommands = [];
 const commandsDir = join(__dirname, 'commands');
 for (const file of collectCommandPaths(commandsDir)) {
   const command = await import(pathToFileURL(file).href);
-  if ('data' in command) {
-    (command.global ? globalCommands : guildCommands).push(command.data.toJSON());
+  // Une commande peut exposer `buildData()` (définition dynamique) ; sinon `data`.
+  if (typeof command.buildData === 'function' || 'data' in command) {
+    const built = typeof command.buildData === 'function' ? await command.buildData() : command.data;
+    (command.global ? globalCommands : guildCommands).push(built.toJSON());
   }
 }
 

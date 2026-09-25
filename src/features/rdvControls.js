@@ -1,10 +1,14 @@
-import { EmbedBuilder, Events, PermissionFlagsBits } from 'discord.js';
+import { Events, PermissionFlagsBits } from 'discord.js';
 import { config } from '../config.js';
-import { getOuting, deleteOuting, getInfoEmbed } from '../db.js';
+import { getOuting, deleteOuting, setOutingParticipants, getInfoEmbed } from '../db.js';
 import { buildTemplateMessage } from '../embeds/renderInfoEmbed.js';
+import { renderPanel } from './rdvPanel.js';
 
 const MAX_DELAY = 2 ** 31 - 1; // setTimeout cap (~24.8 days)
-const PARTICIPANTS_PREFIX = 'Participants';
+const EMPTY = 'Personne pour l’instant.';
+
+/** Liste de mentions à partir d'ids (ou message « personne »). */
+const mentionsList = (ids) => (ids.length ? ids.map((id) => `<@${id}>`).join('\n') : EMPTY);
 
 /** Embed « terminée » de repli si le modèle rdv_termine n'est pas configuré. */
 function buildTermineEmbed(vars) {
@@ -21,38 +25,30 @@ function buildTermineEmbed(vars) {
 
 /**
  * Fin d'une sortie /rdv : remplace le message d'annonce par l'embed
- * « terminée » (modèle rdv_termine, avec le nombre de participants) et retire
- * le bouton « Je participe ». À appeler AVANT de supprimer le salon.
+ * « terminée » (modèle rdv_termine, avec le nombre et la liste d'inscrits) et
+ * retire le bouton « Je participe ». À appeler AVANT de supprimer le salon.
  * @param {import('discord.js').Guild} guild
  * @param {string} channelId  salon de la sortie
- * @param {object} [opts]
- * @param {import('discord.js').Message} [opts.panel]  panneau déjà en main (compte des participants)
  */
-async function finishOuting(guild, channelId, { panel } = {}) {
+async function finishOuting(guild, channelId) {
   const outing = await getOuting(channelId).catch(() => null);
   if (!outing) return;
 
   // Toujours nettoyer la ligne, même si l'édition de l'annonce échoue.
   try {
     if (outing.announce_channel_id && outing.announce_message_id) {
-      // Nombre de participants (organisateur inclus) lu sur le panneau du salon.
-      let count = 0;
-      let panelMsg = panel ?? null;
-      if (!panelMsg && outing.panel_message_id) {
-        const ch = await guild.channels.fetch(channelId).catch(() => null);
-        panelMsg = ch?.isTextBased?.()
-          ? await ch.messages.fetch(outing.panel_message_id).catch(() => null)
-          : null;
-      }
-      if (panelMsg?.embeds?.[0]) count = getParticipantIds(panelMsg.embeds[0]).length;
-
-      const vars = { ...(outing.vars || {}), participants: String(count) };
+      const ids = outing.participants || [];
+      const vars = {
+        ...(outing.vars || {}),
+        participants: String(ids.length),
+        inscrits: mentionsList(ids),
+      };
       const annCh = await guild.channels.fetch(outing.announce_channel_id).catch(() => null);
       const annMsg = annCh?.isTextBased?.()
         ? await annCh.messages.fetch(outing.announce_message_id).catch(() => null)
         : null;
       if (annMsg) {
-        const tpl = await getInfoEmbed(guild.id, 'rdv_termine').catch(() => null);
+        const tpl = await getInfoEmbed(config.guildId, 'rdv_termine').catch(() => null);
         const payload = buildTemplateMessage(tpl, vars, {
           components: [], // retire le bouton « Je participe »
           fallbackEmbed: buildTermineEmbed(vars),
@@ -78,22 +74,11 @@ export function scheduleChannelDeletion(channel, deleteAt) {
   }, delay);
 }
 
-function getParticipantIds(embed) {
-  const field = embed?.fields?.find((f) => f.name.startsWith(PARTICIPANTS_PREFIX));
-  return field ? [...field.value.matchAll(/<@!?(\d+)>/g)].map((m) => m[1]) : [];
-}
-
-function withParticipants(embed, ids) {
-  const fields = embed.fields.map((f) =>
-    f.name.startsWith(PARTICIPANTS_PREFIX)
-      ? {
-          name: `${PARTICIPANTS_PREFIX} (${ids.length})`,
-          value: ids.length ? ids.map((id) => `<@${id}>`).join('\n') : 'Personne pour l’instant.',
-          inline: false,
-        }
-      : { name: f.name, value: f.value, inline: f.inline },
-  );
-  return EmbedBuilder.from(embed).setFields(fields);
+/** Re-rend le panneau du salon avec la liste d'inscrits à jour (best-effort). */
+async function refreshPanel(outing, ids, panel) {
+  if (!panel || !outing) return;
+  const embed = await renderPanel({ ...outing, participants: ids });
+  await panel.edit({ embeds: [embed] }).catch(() => {});
 }
 
 // "Je participe" (annonce) -> donne l'accès au salon + ajoute à la liste.
@@ -116,11 +101,14 @@ async function join(interaction) {
     return;
   }
 
-  const panel = panelId ? await channel.messages.fetch(panelId).catch(() => null) : null;
-  const ids = panel?.embeds[0] ? getParticipantIds(panel.embeds[0]) : [];
+  const outing = await getOuting(channelId).catch(() => null);
+  const ids = outing?.participants || [];
   const already = ids.includes(uid);
-  if (panel?.embeds[0] && !already) {
-    await panel.edit({ embeds: [withParticipants(panel.embeds[0], [...ids, uid])] }).catch(() => {});
+  if (!already && outing) {
+    const next = [...ids, uid];
+    await setOutingParticipants(channelId, next).catch(() => {});
+    const panel = panelId ? await channel.messages.fetch(panelId).catch(() => null) : null;
+    await refreshPanel(outing, next, panel);
   }
 
   await interaction.reply({
@@ -137,17 +125,17 @@ async function leave(interaction) {
   const panel = interaction.message;
   const uid = interaction.user.id;
 
+  const outing = await getOuting(channel.id).catch(() => null);
   // L'organisateur ne peut pas quitter son propre salon.
-  const orgField = panel?.embeds[0]?.fields?.find((f) => f.name.includes('Organisateur'));
-  const organizerId = orgField?.value.match(/<@!?(\d+)>/)?.[1];
-  if (organizerId === uid) {
+  if (outing?.organizer_id && outing.organizer_id === uid) {
     await interaction.reply({ ephemeral: true, content: 'Tu es l’organisateur — tu ne peux pas quitter la sortie.' });
     return;
   }
 
-  if (panel?.embeds[0]) {
-    const ids = getParticipantIds(panel.embeds[0]).filter((id) => id !== uid);
-    await panel.edit({ embeds: [withParticipants(panel.embeds[0], ids)] }).catch(() => {});
+  if (outing) {
+    const next = (outing.participants || []).filter((id) => id !== uid);
+    await setOutingParticipants(channel.id, next).catch(() => {});
+    await refreshPanel(outing, next, panel);
   }
   await channel.permissionOverwrites.delete(uid).catch(() => {});
 
@@ -165,7 +153,7 @@ async function close(interaction) {
     return;
   }
   await interaction.reply({ ephemeral: true, content: 'Sortie fermée, le salon va être supprimé. 👋' });
-  await finishOuting(interaction.guild, interaction.channel.id, { panel: interaction.message }).catch(() => {});
+  await finishOuting(interaction.guild, interaction.channel.id).catch(() => {});
   await interaction.channel.delete('Sortie fermée par l’organisateur').catch(() => {});
 }
 
