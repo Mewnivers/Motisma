@@ -13,10 +13,39 @@ navigateur ──► nginx ──┬─ /       ► /var/www/<site>   (build Rea
 Dans les commandes ci-dessous, remplace `mon-domaine.fr` par ton domaine et
 `<site>` par un nom de dossier (ex. `pogo-pau`).
 
+## Méthode rapide (un seul script)
+
+Sur la VPS, une fois le dépôt cloné :
+
+```bash
+git clone git@github.com:<compte>/Motisma.git
+cd Motisma
+sudo bash deploy/install.sh
+```
+
+Le script `deploy/install.sh` fait **tout** : il vérifie (et peut installer)
+les prérequis, génère les secrets et remplit `.env`, démarre la base + l'API
+en Docker, build et publie le front, pose le vhost nginx et active le HTTPS.
+
+```bash
+# Tout d'un coup, sans aucune question :
+sudo bash deploy/install.sh --domain pogo-pau.exemple.fr --email moi@exemple.fr --install-deps -y
+```
+
+Options utiles : `--domain`, `--webroot`, `--email`, `--no-https`,
+`--install-deps` (installe docker/nginx/certbot/node sur Debian/Ubuntu), `-y`
+(non-interactif). Voir `sudo bash deploy/install.sh --help`.
+
+Le script est **idempotent** : on peut le relancer sans casse (les secrets
+déjà présents dans `.env` ne sont pas réécrasés).
+
+Les sections ci-dessous décrivent les mêmes étapes **à la main**, si besoin.
+
 ## 1. Prérequis (sur la VPS)
 
 - Docker + le plugin `docker compose`
 - nginx + certbot
+- Node.js 18+ (pour construire le front)
 - Un nom de domaine dont l'enregistrement **A** pointe vers l'IP de la VPS
 
 ## 2. Récupérer le code
