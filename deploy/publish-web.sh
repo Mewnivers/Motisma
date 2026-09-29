@@ -4,7 +4,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WEBROOT="/var/www/pogo-pau"
+# Cible surchargeable pour une autre VPS : WEBROOT=/var/www/mon-site bash deploy/publish-web.sh
+WEBROOT="${WEBROOT:-/var/www/pogo-pau}"
 
 echo "Building web/ ..."
 cd "$REPO/web"
