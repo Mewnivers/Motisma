@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="t">Architecture de Motisma'Pau</title>
+  <desc id="d">Discord communique avec le bot, qui lit et écrit dans PostgreSQL. L'API Fastify partage la même base. nginx sert le site React et relaie /api vers l'API.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="960" height="560" rx="16" fill="#0f172a"/>
+
+  <!-- Docker Compose -->
+  <rect x="300" y="70" width="400" height="300" rx="14" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="316" y="94" font-size="13" fill="#94a3b8" font-weight="600">Docker Compose (VPS)</text>
+
+  <!-- Discord -->
+  <rect x="30" y="140" width="190" height="110" rx="12" fill="#5865f2"/>
+  <text x="125" y="180" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="700">Discord</text>
+  <text x="125" y="204" font-size="13" fill="#e0e7ff" text-anchor="middle">Serveur Pokémon GO Pau</text>
+  <text x="125" y="224" font-size="13" fill="#e0e7ff" text-anchor="middle">Commandes, rôles, salons</text>
+
+  <!-- Bot -->
+  <rect x="330" y="120" width="190" height="110" rx="12" fill="#1e293b" stroke="#818cf8" stroke-width="2"/>
+  <text x="425" y="150" font-size="17" fill="#f1f5f9" text-anchor="middle" font-weight="700">Bot</text>
+  <text x="425" y="172" font-size="12" fill="#cbd5e1" text-anchor="middle">Node.js · discord.js 14</text>
+  <text x="425" y="192" font-size="12" fill="#94a3b8" text-anchor="middle">commands/ · features/</text>
+  <text x="425" y="210" font-size="12" fill="#94a3b8" text-anchor="middle">/rdv, classement, niveaux…</text>
+
+  <!-- API -->
+  <rect x="330" y="270" width="190" height="80" rx="12" fill="#1e293b" stroke="#34d399" stroke-width="2"/>
+  <text x="425" y="300" font-size="17" fill="#f1f5f9" text-anchor="middle" font-weight="700">API</text>
+  <text x="425" y="322" font-size="12" fill="#cbd5e1" text-anchor="middle">Fastify 5 · port 3100 (local)</text>
+  <text x="425" y="340" font-size="12" fill="#94a3b8" text-anchor="middle">OAuth Discord · classement</text>
+
+  <!-- PostgreSQL -->
+  <rect x="560" y="190" width="125" height="110" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+  <text x="622" y="228" font-size="17" fill="#f1f5f9" text-anchor="middle" font-weight="700">PostgreSQL</text>
+  <text x="622" y="250" font-size="12" fill="#cbd5e1" text-anchor="middle">version 16</text>
+  <text x="622" y="270" font-size="12" fill="#94a3b8" text-anchor="middle">réseau interne</text>
+
+  <!-- nginx -->
+  <rect x="330" y="430" width="190" height="90" rx="12" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+  <text x="425" y="460" font-size="17" fill="#f1f5f9" text-anchor="middle" font-weight="700">nginx</text>
+  <text x="425" y="482" font-size="12" fill="#cbd5e1" text-anchor="middle">HTTPS · / → build statique</text>
+  <text x="425" y="500" font-size="12" fill="#94a3b8" text-anchor="middle">/api/ → 127.0.0.1:3100</text>
+
+  <!-- Site -->
+  <rect x="740" y="430" width="190" height="90" rx="12" fill="#1e293b" stroke="#f472b6" stroke-width="2"/>
+  <text x="835" y="460" font-size="17" fill="#f1f5f9" text-anchor="middle" font-weight="700">Site web</text>
+  <text x="835" y="482" font-size="12" fill="#cbd5e1" text-anchor="middle">React 18 · Vite</text>
+  <text x="835" y="500" font-size="12" fill="#94a3b8" text-anchor="middle">carte MapLibre</text>
+
+  <!-- Externes -->
+  <rect x="740" y="120" width="190" height="64" rx="12" fill="#1e293b" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="835" y="148" font-size="14" fill="#f1f5f9" text-anchor="middle" font-weight="600">API Gemini</text>
+  <text x="835" y="168" font-size="12" fill="#94a3b8" text-anchor="middle">lecture des captures (option)</text>
+
+  <rect x="740" y="270" width="190" height="64" rx="12" fill="#1e293b" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="835" y="298" font-size="14" fill="#f1f5f9" text-anchor="middle" font-weight="600">Niantic Spatial</text>
+  <text x="835" y="318" font-size="12" fill="#94a3b8" text-anchor="middle">spots VPS (carte)</text>
+
+  <!-- Flèches -->
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#a)" marker-start="url(#a)">
+    <path d="M222 190 H328"/>
+    <path d="M520 175 H548 V215 H558"/>
+    <path d="M520 310 H548 V275 H558"/>
+    <path d="M425 430 V352"/>
+  </g>
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M520 150 H738" stroke-dasharray="6 5"/>
+    <path d="M520 330 H738" stroke-dasharray="6 5"/>
+  </g>
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#a)" marker-start="url(#a)">
+    <path d="M522 475 H738"/>
+  </g>
+
+  <!-- Libellés -->
+  <g font-size="11" fill="#cbd5e1">
+    <text x="275" y="182" text-anchor="middle">Gateway</text>
+    <text x="275" y="208" text-anchor="middle">+ REST</text>
+    <text x="630" y="470" text-anchor="middle">HTTPS</text>
+    <text x="436" y="398">/api</text>
+    <text x="630" y="144" text-anchor="middle">images</text>
+    <text x="630" y="324" text-anchor="middle">spots</text>
+  </g>
+</svg>

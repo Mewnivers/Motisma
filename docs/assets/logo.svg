@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="160" height="160" role="img" aria-labelledby="t">
+  <title id="t">Motisma'Pau</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5865f2"/>
+      <stop offset="1" stop-color="#2b2f8f"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
+  <!-- grille de carte -->
+  <g stroke="#ffffff" stroke-opacity="0.12" stroke-width="2" fill="none">
+    <path d="M0 70 L200 55 M0 135 L200 150 M62 0 L52 200 M140 0 L150 200"/>
+  </g>
+  <!-- épingle -->
+  <path d="M100 28c-30 0-52 22-52 50 0 36 52 92 52 92s52-56 52-92c0-28-22-50-52-50z" fill="#f8fafc"/>
+  <circle cx="100" cy="78" r="33" fill="#2b2f8f"/>
+  <!-- éclair -->
+  <path d="M108 54 L86 82 H101 L93 104 L116 74 H101 Z" fill="#fde047"/>
+  <!-- ombre au sol -->
+  <ellipse cx="100" cy="178" rx="30" ry="6" fill="#000000" fill-opacity="0.25"/>
+</svg>
