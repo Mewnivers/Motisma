@@ -12,7 +12,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
-<img src="docs/assets/readme/parcours.gif" alt="Website tour: home, leaderboard, then community" width="100%">
+<img src="docs/assets/readme/parcours.gif" alt="Live website tour: home, community, then back to home" width="100%">
 
 [Version française](README.md)
 
@@ -34,7 +34,7 @@ Motisma'Pau has two goals: show every player they are not alone in their area, a
 
 ## Preview
 
-All screenshots use neutral demo data ("Dresseur_01"… players, made-up events). The site's `/carte` page is hidden: the map below comes from the bot.
+Home and Community: screenshots of the live site. Leaderboard and bot map: demo data ("Dresseur_01"… players), so no real members are exposed. The site's `/carte` page is hidden: the map below comes from the bot.
 
 ### `/map` map (Discord)
 
@@ -68,7 +68,7 @@ The community's upcoming and past outings.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/communaute-dark.webp">
-  <img src="docs/assets/readme/communaute-light.webp" alt="Website Community page with demo events" width="100%">
+  <img src="docs/assets/readme/communaute-light.webp" alt="Website Community page with upcoming and past events" width="100%">
 </picture>
 
 ## Architecture

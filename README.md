@@ -12,7 +12,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
-<img src="docs/assets/readme/parcours.gif" alt="Parcours du site : accueil, classement, puis communauté" width="100%">
+<img src="docs/assets/readme/parcours.gif" alt="Parcours du site en ligne : accueil, communauté, puis retour à l'accueil" width="100%">
 
 [English version](README.en.md)
 
@@ -34,7 +34,7 @@ Motisma'Pau a deux buts : montrer à chaque joueur qu'il n'est pas isolé, et fa
 
 ## Aperçu
 
-Toutes les captures utilisent des données de démonstration neutres (joueurs « Dresseur_01 »…, événements inventés). La page `/carte` du site est masquée : la carte ci-dessous vient du bot.
+Accueil et Communauté : captures du site en ligne. Classement et carte du bot : données de démonstration (joueurs « Dresseur_01 »…), pour ne pas exposer de vrais membres. La page `/carte` du site est masquée : la carte ci-dessous vient du bot.
 
 ### Carte `/map` (Discord)
 
@@ -68,7 +68,7 @@ Les sorties à venir et passées de la communauté.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/communaute-dark.webp">
-  <img src="docs/assets/readme/communaute-light.webp" alt="Page Communauté du site avec des événements de démonstration" width="100%">
+  <img src="docs/assets/readme/communaute-light.webp" alt="Page Communauté du site avec les événements à venir et passés" width="100%">
 </picture>
 
 ## Architecture
