@@ -36,7 +36,7 @@
     "@napi-rs/canvas": "^1.0.10",
     "dejavu-fonts-ttf": "^2.37.3",
     "discord.js": "^14.27.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^18.0.5",
     "jimp": "^1.6.1",
     "pg": "^8.23.1"
   }
