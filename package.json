@@ -2,7 +2,7 @@
   "name": "motisma",
   "version": "0.1.0",
   "private": true,
-  "description": "Discord bot for Pokémon GO communities: meetups, player map by area, leaderboards, levels and mini-games.",
+  "description": "Discord bot for Pokémon GO communities: meetups, leaderboards, levels and mini-games.",
   "author": "Marine Mazou",
   "repository": {
     "type": "git",
