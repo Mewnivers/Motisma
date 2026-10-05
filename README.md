@@ -34,6 +34,17 @@ Motisma'Pau a deux buts : montrer à chaque joueur qu'il n'est pas isolé, et fa
 
 La lecture des captures de profil passe par l'API Gemini et demande une clé. Sans clé, elle reste désactivée.
 
+## Aperçu
+
+Aperçus reconstitués à partir des vrais messages du bot, avec des données fictives ; ce ne sont pas des captures de Discord.
+
+<table>
+<tr><td width="50%" valign="top"><b>/rdv — annoncer une sortie</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Annonce de sortie du bot avec le bouton Je participe" width="100%"></td><td width="50%" valign="top"><b>/map — joueurs par secteur</b><br><img src="docs/assets/readme/apercu-map.webp" alt="Carte de Pau avec le nombre de joueurs par secteur" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/niveau — niveau et XP</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="Embed de niveau avec barre de progression" width="100%"></td><td width="50%" valign="top"><b>/classement — top 10 par XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="Top 10 des membres par XP" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/classement-pogo voir — classement Pokémon GO</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="Classement Pokémon GO avec boutons de catégorie" width="100%"></td><td width="50%" valign="top"><b>/help — aide et menu des commandes</b><br><img src="docs/assets/readme/apercu-help.webp" alt="Aide du bot avec le menu de choix d’une commande" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/pendu — le jeu du pendu</b><br><img src="docs/assets/readme/apercu-pendu.webp" alt="Partie de pendu en cours" width="100%"></td><td width="50%" valign="top"><b>Message de bienvenue</b><br><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Message de bienvenue après validation d’un nouveau membre" width="100%"></td></tr>
+</table>
+
 ## Architecture
 
 <div align="center">

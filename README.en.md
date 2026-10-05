@@ -34,6 +34,17 @@ Motisma'Pau has two goals: show every player they are not alone, and make meetup
 
 Reading profile screenshots goes through the Gemini API and needs a key. Without a key, it stays off.
 
+## Preview
+
+Previews reconstituted from the bot's real messages, with fictional data; they are not Discord screenshots.
+
+<table>
+<tr><td width="50%" valign="top"><b>/rdv — announce an outing</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Outing announcement with the Join button" width="100%"></td><td width="50%" valign="top"><b>/map — players per sector</b><br><img src="docs/assets/readme/apercu-map.webp" alt="Map of Pau with the player count per sector" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/niveau — level and XP</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="Level embed with a progress bar" width="100%"></td><td width="50%" valign="top"><b>/classement — top 10 by XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="Top 10 members by XP" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/classement-pogo voir — Pokémon GO leaderboard</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="Pokémon GO leaderboard with category buttons" width="100%"></td><td width="50%" valign="top"><b>/help — help and command menu</b><br><img src="docs/assets/readme/apercu-help.webp" alt="Bot help with the command picker menu" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/pendu — hangman game</b><br><img src="docs/assets/readme/apercu-pendu.webp" alt="Hangman game in progress" width="100%"></td><td width="50%" valign="top"><b>Welcome message</b><br><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Welcome message after a newcomer is validated" width="100%"></td></tr>
+</table>
+
 ## Architecture
 
 <div align="center">
