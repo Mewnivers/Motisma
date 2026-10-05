@@ -18,6 +18,12 @@ body:
         2. …
     validations:
       required: true
+  - type: input
+    id: environnement
+    attributes:
+      label: Environnement
+      description: Docker Compose ou hors Docker, version de Node.js.
+      placeholder: Docker Compose, Node.js 22
   - type: textarea
     id: logs
     attributes:
