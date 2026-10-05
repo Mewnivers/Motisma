@@ -1,14 +1,14 @@
-<img src="docs/assets/banner.webp" alt="Motisma, the Discord bot for Pokémon GO communities: meetups, leaderboard, levels, mini-games" width="100%">
+<img src="docs/assets/banner.en.webp" alt="Motisma, the Discord bot for Pokémon GO communities: meetups, leaderboard, levels, mini-games" width="100%">
 
 <div align="center">
 
 **[Preview](#preview)** · **[Commands](#commands)** · **[Installation](#installation)** · **[Configuration](#configuration)**
 
-[![MIT License](https://img.shields.io/badge/license-MIT-38BDF8?style=flat-square)](LICENSE)
-[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-38BDF8?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![discord.js 14](https://img.shields.io/badge/discord.js-14-38BDF8?style=flat-square)](https://discord.js.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-38BDF8?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Compose-38BDF8?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-E8642C?style=flat-square&labelColor=2B2D31)](LICENSE)
+[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-4E5058?style=flat-square&labelColor=2B2D31&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![discord.js 14](https://img.shields.io/badge/discord.js-14-4E5058?style=flat-square&labelColor=2B2D31)](https://discord.js.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4E5058?style=flat-square&labelColor=2B2D31&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-4E5058?style=flat-square&labelColor=2B2D31&logo=docker&logoColor=white)](docker-compose.yml)
 
 [🇫🇷 Français](README.md) · 🇬🇧 English
 
@@ -22,7 +22,7 @@ It helps organize meetups and shows every player they are not alone, without eve
 </p>
 
 <p align="center">
-<img src="docs/assets/readme/demo-rdv.gif" alt="Demo: Dresseur_01 runs /rdv, the bot posts the announcement, Dresseur_02 clicks Je participe and joins the meetup channel" width="760">
+<img src="docs/assets/readme/demo-rdv.gif" alt="Demo: Dresseur_01 runs /rdv, the bot posts the announcement, Dresseur_02 clicks Je participe and the meetup channel goes to 2 participants" width="800">
 <br>
 <sub>The <code>/rdv</code> flow end to end (reconstructed preview, sample data; the bot speaks French).</sub>
 </p>
@@ -70,20 +70,16 @@ Previews reconstructed from the bot's real messages, with sample data; they are 
 
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv: meetup announcement with the Je participe button" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-classement.webp" alt="/classement: top 10 members by XP" width="100%"></td>
+<td width="50%" valign="top"><b>Meetups</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv: meetup announcement with the Je participe button" width="100%"></td>
+<td width="50%" valign="top"><b>XP leaderboard</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="/classement: top 10 members by XP" width="100%"></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir: Pokémon GO leaderboard with category buttons" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-help.webp" alt="/help: bot help with the command picker menu" width="100%"></td>
+<td width="50%" valign="top"><b>Pokémon GO leaderboard</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir: top 5 of the Pokémon GO leaderboard with category buttons" width="100%"></td>
+<td width="50%" valign="top"><b>Help</b><br><img src="docs/assets/readme/apercu-help.webp" alt="/help: bot help with the command picker menu" width="100%"></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage: poll with three choices and numbered reactions" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau: level and XP with a progress bar" width="100%"></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pendu.webp" alt="/pendu: hangman game in progress" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Welcome message after a newcomer is approved" width="100%"></td>
+<td width="50%" valign="top"><b>Polls</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage: poll with three choices and numbered reactions" width="100%"></td>
+<td width="50%" valign="top"><b>Level</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau: level and XP with a progress bar" width="100%"></td>
 </tr>
 </table>
 
