@@ -1,54 +1,170 @@
+<img src="docs/assets/banner.webp" alt="Motisma, the Discord bot for Pokémon GO communities: meetups, leaderboard, levels, mini-games" width="100%">
+
 <div align="center">
 
-<img src="docs/assets/motisma.png" alt="Motisma profile picture" width="120" height="120">
+**[Preview](#preview)** · **[Commands](#commands)** · **[Installation](#installation)** · **[Configuration](#configuration)**
 
-# Motisma'Pau
+[![MIT License](https://img.shields.io/badge/license-MIT-38BDF8?style=flat-square)](LICENSE)
+[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-38BDF8?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![discord.js 14](https://img.shields.io/badge/discord.js-14-38BDF8?style=flat-square)](https://discord.js.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-38BDF8?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-38BDF8?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
 
-**The Discord bot of the Pokémon GO community of Pau, France.**
-
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![discord.js](https://img.shields.io/badge/discord.js-14-5865F2?logo=discord&logoColor=white)](https://discord.js.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
-
-<img src="docs/assets/readme/apercu-rdv.webp" alt="A meetup announcement with the /rdv command, reconstructed preview" width="100%">
-
-<sub>A meetup announcement with /rdv (reconstructed preview, sample data).</sub>
-
-[Version française](README.md)
+[🇫🇷 Français](README.md) · 🇬🇧 English
 
 </div>
 
----
+<br>
 
-## What it does
+<p align="center">
+Motisma'Pau is the Discord bot of the Pokémon GO community of Pau, France.<br>
+It helps organize meetups and shows every player they are not alone, without ever exposing personal information.
+</p>
 
-Motisma'Pau has two goals: show every player they are not alone, and make meetups easier, without ever exposing personal information.
+<p align="center">
+<img src="docs/assets/readme/demo-rdv.gif" alt="Demo: Dresseur_01 runs /rdv, the bot posts the announcement, Dresseur_02 clicks Je participe and joins the meetup channel" width="760">
+<br>
+<sub>The <code>/rdv</code> flow end to end (reconstructed preview, sample data; the bot speaks French).</sub>
+</p>
 
-1. **Welcome.** A newcomer gets a "pending" role and posts their profile screenshots. A moderator approves with one click (✅ reaction). The profile is updated, then a welcome message is sent.
-2. **Organize.** `/rdv` opens a temporary channel for a meetup (place, time, duration). Members sign up with a button. The channel is deleted automatically at midnight (Paris time) the day after the meetup starts.
-3. **Rank.** Players send a profile screenshot to the bot in a direct message to update their stats. `/classement-pogo` shows the community leaderboard.
-4. **Entertain.** Levels per message, temporary voice channels, games, polls, YouTube announcements.
+## ✨ What it does
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 📅 Meetups
+`/rdv` opens a temporary channel for a meetup. Members sign up with a button, and the channel is deleted automatically at midnight (Paris time) the day after it starts.
+
+</td>
+<td width="50%" valign="top">
+
+### 🏆 Leaderboard
+Players send a profile screenshot to the bot in a direct message to update their stats. `/classement-pogo` shows the community leaderboard.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 📈 Levels
+Each message earns 15 to 25 XP, at most once a minute per member. Reward roles unlock as levels go up.
+
+</td>
+<td width="50%" valign="top">
+
+### 🎮 Mini-games and welcome
+Quiz, hangman, tic-tac-toe, higher or lower, and polls. A moderator approves each newcomer with one click, then the bot posts a welcome message.
+
+</td>
+</tr>
+</table>
 
 Reading profile screenshots goes through the Gemini API and needs a key. Without a key, it stays off.
 
-## Preview
+<a id="preview"></a>
 
-Previews reconstituted from the bot's real messages, with fictional data; they are not Discord screenshots.
+## 📸 Preview
+
+Previews reconstructed from the bot's real messages, with sample data; they are not Discord screenshots.
 
 <table>
-<tr><td width="50%" valign="top"><b>/rdv — announce an outing</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Outing announcement with the Join button" width="100%"></td><td width="50%" valign="top"><b>/sondage — create a poll</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="Poll with three choices and numbered reactions" width="100%"></td></tr>
-<tr><td width="50%" valign="top"><b>/niveau — level and XP</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="Level embed with a progress bar" width="100%"></td><td width="50%" valign="top"><b>/classement — top 10 by XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="Top 10 members by XP" width="100%"></td></tr>
-<tr><td width="50%" valign="top"><b>/classement-pogo voir — Pokémon GO leaderboard</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="Pokémon GO leaderboard with category buttons" width="100%"></td><td width="50%" valign="top"><b>/help — help and command menu</b><br><img src="docs/assets/readme/apercu-help.webp" alt="Bot help with the command picker menu" width="100%"></td></tr>
-<tr><td width="50%" valign="top"><b>/pendu — hangman game</b><br><img src="docs/assets/readme/apercu-pendu.webp" alt="Hangman game in progress" width="100%"></td><td width="50%" valign="top"><b>Welcome message</b><br><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Welcome message after a newcomer is validated" width="100%"></td></tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv: meetup announcement with the Je participe button" width="100%"></td>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-classement.webp" alt="/classement: top 10 members by XP" width="100%"></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir: Pokémon GO leaderboard with category buttons" width="100%"></td>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-help.webp" alt="/help: bot help with the command picker menu" width="100%"></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage: poll with three choices and numbered reactions" width="100%"></td>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau: level and XP with a progress bar" width="100%"></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pendu.webp" alt="/pendu: hangman game in progress" width="100%"></td>
+<td width="50%" valign="top"><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Welcome message after a newcomer is approved" width="100%"></td>
+</tr>
 </table>
 
-## Architecture
+<a id="commands"></a>
 
-<div align="center">
+## 🧭 Commands
+
+Click a category to expand it.
+
+<details>
+<summary><b>📅 Meetups</b> · <code>/rdv</code>, <code>/rdv-modifier</code></summary>
+
+| Command | Description |
+|---|---|
+| `/rdv` | Creates a temporary channel for a meetup (place, time, description, 45 minutes long by default) |
+| `/rdv-modifier` | Edits an open `/rdv` meetup (its organizer, or a member with the "Manage Channels" permission) |
+
+</details>
+
+<details>
+<summary><b>🏆 Pokémon GO</b> · <code>/set-pogo</code>, <code>/classement-pogo</code></summary>
+
+| Command | Description |
+|---|---|
+| `/set-pogo` | Saves your in-game name and friend code (12 digits) |
+| `/classement-pogo voir` | Pokémon GO leaderboard, by level, total XP, Pokémon caught, distance, PokéStops or eggs hatched |
+| `/classement-pogo rejoindre`, `/classement-pogo quitter` | Join or leave the leaderboard (monthly reminder) |
+
+</details>
+
+<details>
+<summary><b>📈 Levels</b> · <code>/niveau</code>, <code>/classement</code></summary>
+
+| Command | Description |
+|---|---|
+| `/niveau` | Shows your level and XP |
+| `/classement` | Top 10 members by XP |
+
+</details>
+
+<details>
+<summary><b>🎮 Games and polls</b> · <code>/quiz</code>, <code>/pendu</code>, <code>/morpion</code>, <code>/devinette</code>, <code>/sondage</code></summary>
+
+| Command | Description |
+|---|---|
+| `/quiz`, `/pendu`, `/morpion`, `/devinette` | Games: "Who's that Pokémon?", hangman, tic-tac-toe, higher or lower |
+| `/sondage` | Creates a poll with reactions (up to 10 choices, Yes / No with no choices) |
+
+</details>
+
+<details>
+<summary><b>ℹ️ Information</b> · <code>/help</code>, <code>/userinfo</code>, <code>/avatar</code></summary>
+
+| Command | Description |
+|---|---|
+| `/help` | Shows help and the command list |
+| `/userinfo` | Shows a member's profile |
+| `/avatar` | Shows a member's or a bot's avatar |
+
+</details>
+
+<details>
+<summary><b>🔒 Staff</b> · moderation and administration</summary>
+
+| Command | Permission | Description |
+|---|---|---|
+| `/clear` | Manage Messages | Deletes recent messages (1 to 100) |
+| `/embed` | Manage Server | Publishes or updates an information embed |
+| `/say` | Manage Server | Makes the bot speak in a channel |
+| `/bingo create`, `/bingo update` | Manage Server | Publishes or updates a bingo image |
+| `/reset-joueur` | Manage Server | Resets all or part of a player's data |
+| `/test`, `/test-log` | Manage Server | Simulate a member joining and show a sample verification log |
+| "Déplacer" context menu | Manage Messages | Moves a message to another channel or a forum post |
+
+</details>
+
+## 🧩 Architecture
+
+<p align="center">
 <img src="docs/assets/architecture.svg" alt="Architecture diagram: Discord, bot, PostgreSQL, and the optional Gemini API" width="900">
-</div>
+</p>
 
 The bot talks to Discord and reads or writes in PostgreSQL. Tables are created at startup if they do not exist.
 
@@ -59,7 +175,8 @@ The bot talks to Discord and reads or writes in PostgreSQL. Tables are created a
 | `assets/` | Sample profile image | PNG |
 | `Dockerfile`, `docker-compose.yml` | Bot image and service | Docker, Compose |
 
-## Features
+<details>
+<summary><b>The modules in <code>src/features/</code></b></summary>
 
 | Module | What it does |
 |---|---|
@@ -77,49 +194,24 @@ The bot talks to Discord and reads or writes in PostgreSQL. Tables are created a
 | `forumKeepAlive` | Unarchives forum posts so their mentions stay readable |
 | `helpControls`, `moveControls` | `/help` menu and destination picker of the "Déplacer" (move) menu |
 
-## Commands
+</details>
 
-| Command | Description |
-|---|---|
-| `/help` | Shows help and the command list |
-| `/rdv` | Creates a temporary channel for a meetup (place, time, description, 45 minutes long by default) |
-| `/rdv-modifier` | Edits an open `/rdv` meetup (its organizer, or a member with the "Manage Channels" permission) |
-| `/set-pogo` | Saves your in-game name and friend code (12 digits) |
-| `/userinfo` | Shows a member's profile |
-| `/niveau` | Shows your level and XP |
-| `/classement` | Top 10 members by XP |
-| `/classement-pogo voir` | Pokémon GO leaderboard, by level, total XP, Pokémon caught, distance, PokéStops or eggs hatched |
-| `/classement-pogo rejoindre`, `/classement-pogo quitter` | Join or leave the leaderboard (monthly reminder) |
-| `/avatar` | Shows a member's or a bot's avatar |
-| `/sondage` | Creates a poll with reactions (up to 10 choices, Yes / No with no choices) |
-| `/quiz`, `/pendu`, `/morpion`, `/devinette` | Games: "Who's that Pokémon?", hangman, tic-tac-toe, higher or lower |
+## 🔐 Privacy
 
-Staff-only commands:
+- **No position.** The bot neither asks for nor stores any geolocation, address or position.
+- **Little data.** Per member: Discord ID, trainer name and friend code (if set with `/set-pogo`), stats read from screenshots (level, XP, Pokémon caught, distance, PokéStops, eggs hatched, team), leaderboard participation and the XP earned by chatting. Details in [docs/base-de-donnees.md](docs/base-de-donnees.md).
+- **No screenshots in the database.** Only the stats read from them are kept. When a newcomer is verified, the screenshot is reposted in the staff log channel, if one is configured.
+- **Short-lived meetups.** A `/rdv` meetup keeps its organizer and sign-ups while it is open; the row is deleted when it closes.
+- **Erasure.** `/reset-joueur` lets staff erase all or part of a player's data.
+- **Gemini is optional.** If the key is configured, profile screenshots are sent to the Gemini API to be read. Without a key, nothing is sent.
 
-| Command | Permission | Description |
-|---|---|---|
-| `/clear` | Manage Messages | Deletes recent messages (1 to 100) |
-| `/embed` | Manage Server | Publishes or updates an information embed |
-| `/say` | Manage Server | Makes the bot speak in a channel |
-| `/bingo create`, `/bingo update` | Manage Server | Publishes or updates a bingo image |
-| `/reset-joueur` | Manage Server | Resets all or part of a player's data |
-| `/test`, `/test-log` | Manage Server | Simulate a member joining and show a sample verification log |
-| "Déplacer" context menu | Manage Messages | Moves a message to another channel or a forum post |
+<a id="installation"></a>
 
-## Privacy
+## 🚀 Installation
 
-- No geolocation, no address, no position: the bot neither asks for nor stores any position.
-- Per member, the PostgreSQL database holds the Discord ID, the trainer name and friend code (if set with `/set-pogo`), the stats read from screenshots (level, XP, Pokémon caught, distance, PokéStops, eggs hatched, team), leaderboard participation and the XP earned by chatting. Details in [docs/base-de-donnees.md](docs/base-de-donnees.md).
-- Profile screenshots are not kept in the database: only the stats read from them are. When a newcomer is verified, the screenshot is reposted in the staff log channel, if one is configured.
-- A `/rdv` meetup keeps its organizer and sign-ups while it is open; the row is deleted when it closes.
-- `/reset-joueur` lets staff erase all or part of a player's data.
-- If the Gemini key is configured, profile screenshots are sent to the Gemini API to be read. Without a key, nothing is sent.
+**Requirements**: Docker with Compose, Node.js 18 or later, and a bot created in the [Discord developer portal](https://discord.com/developers/applications) with the **Server Members** privileged intent enabled. If you set `GEMINI_API_KEY`, also enable **Message Content**: the bot only declares it in that case.
 
-## Installation
-
-Requirements: Docker with Compose, Node.js 18 or later, and a bot created in the [Discord developer portal](https://discord.com/developers/applications) with the **Server Members** privileged intent enabled. If you set `GEMINI_API_KEY`, also enable **Message Content**: the bot only declares it in that case.
-
-**The database.** `docker-compose.yml` only starts the `bot` service. It attaches it to an external Docker network named `mewnivers` and builds `DATABASE_URL` pointing to `db:5432` (user `rotom`, database `rotom`, password `POSTGRES_PASSWORD`). So a PostgreSQL database named `db` must exist on that network before you start the bot. To run the bot alone, you can start it yourself (unverified: these commands were not run):
+**1. Prepare the database.** `docker-compose.yml` only starts the `bot` service. It attaches it to an external Docker network named `mewnivers` and builds `DATABASE_URL` pointing to `db:5432` (user `rotom`, database `rotom`, password `POSTGRES_PASSWORD`). So a PostgreSQL database named `db` must exist on that network. To run the bot alone, you can start it yourself (unverified: these commands were not run):
 
 ```bash
 docker network create mewnivers
@@ -130,7 +222,7 @@ docker run -d --name db --network mewnivers --restart unless-stopped \
 
 Use the same password for `POSTGRES_PASSWORD` in `.env`.
 
-Then install and start the bot:
+**2. Install and start the bot.**
 
 ```bash
 git clone <repository-url> Motisma
@@ -139,20 +231,24 @@ cp .env.example .env       # then fill in at least DISCORD_TOKEN, CLIENT_ID, GUI
 docker compose up -d --build
 ```
 
-Slash commands are registered once, then again whenever a command changes:
+**3. Register the slash commands**, once, then again whenever a command changes:
 
 ```bash
 npm install
 npm run deploy
 ```
 
-**Outside Docker.** Set `DATABASE_URL` in `.env` to your own PostgreSQL database, then run `npm start`. Without `DATABASE_URL`, the bot starts but Pokémon GO profiles are disabled.
+> [!TIP]
+> **Outside Docker**: set `DATABASE_URL` in `.env` to your own PostgreSQL database, then run `npm start`. Without `DATABASE_URL`, the bot starts but Pokémon GO profiles are disabled.
 
-## Configuration
+<a id="configuration"></a>
+
+## ⚙️ Configuration
 
 All configuration goes through the `.env` file (template: `.env.example`). Never commit it.
 
-**Discord and database**
+<details>
+<summary><b>Discord and database</b> · 5 variables</summary>
 
 | Variable | Purpose |
 |---|---|
@@ -162,7 +258,10 @@ All configuration goes through the `.env` file (template: `.env.example`). Never
 | `POSTGRES_PASSWORD` | PostgreSQL database password, used by Compose to build `DATABASE_URL` |
 | `DATABASE_URL` | Connection string. Injected by Compose; only set it outside Docker |
 
-**Roles and channels**
+</details>
+
+<details>
+<summary><b>Roles and channels</b></summary>
 
 | Variable | Purpose |
 |---|---|
@@ -178,7 +277,10 @@ All configuration goes through the `.env` file (template: `.env.example`). Never
 | `AMBASSADOR_ROLE_ID` | Role listed as ambassador in the presentation embed |
 | `TEAM_ROLE_MYSTIC`, `TEAM_ROLE_VALOR`, `TEAM_ROLE_INSTINCT` | Roles of the three teams, assigned automatically |
 
-**Optional features**
+</details>
+
+<details>
+<summary><b>Optional features</b></summary>
 
 | Variable | Purpose |
 |---|---|
@@ -194,7 +296,9 @@ All configuration goes through the `.env` file (template: `.env.example`). Never
 | `LANGUAGE_TIMEOUT_MILD`, `LANGUAGE_TIMEOUT_STRONG` | Timeout length in seconds (default 10 and 30, 0 to disable) |
 | `PRESENCE_TEXT`, `PRESENCE_EMOJI`, `PRESENCE_GAME`, `PRESENCE_GAME_TYPE`, `PRESENCE_STATUS` | Status and activity shown by the bot |
 
-## Development
+</details>
+
+## 🛠️ Development
 
 ```bash
 # Needs a PostgreSQL database and DATABASE_URL in .env
@@ -204,10 +308,10 @@ npm start
 
 `package.json` defines neither tests nor lint.
 
-## License
+## 📄 License
 
 Released under the [MIT](LICENSE) license.
 
----
+<br>
 
-Community project, not affiliated with Niantic or The Pokémon Company. Pokémon is a trademark of Nintendo, Creatures Inc. and GAME FREAK inc.
+<p align="center"><sub>Community project, not affiliated with Niantic or The Pokémon Company.<br>Pokémon is a trademark of Nintendo, Creatures Inc. and GAME FREAK inc.</sub></p>
