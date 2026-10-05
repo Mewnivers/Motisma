@@ -20,6 +20,8 @@
 
 ---
 
+> **Le site et l'API ont déménagé.** Ce dépôt ne contient plus que le bot. Le site (`web/`), l'API (`server/`) et le déploiement (`deploy/`) sont dans le dépôt Mewnivers/PoGo-Pau. Les sections ci-dessous qui en parlent seront mises à jour.
+
 > ⚠️ **État du projet.** Le bot, l'API et le site fonctionnent ensemble. La page « Carte » du site est masquée pour le moment (la route `/carte` renvoie vers l'accueil). La carte reste disponible dans Discord avec `/map`.
 
 ## Ce que ça fait

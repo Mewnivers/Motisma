@@ -20,6 +20,8 @@
 
 ---
 
+> **The website and API have moved.** This repository now only contains the bot. The website (`web/`), the API (`server/`) and the deployment files (`deploy/`) live in the Mewnivers/PoGo-Pau repository. The sections below that mention them will be updated.
+
 > ⚠️ **Project status.** The bot, the API and the website work together. The site's "Map" page is currently hidden (the `/carte` route redirects to the home page). The map is still available in Discord through `/map`.
 
 ## What it does
