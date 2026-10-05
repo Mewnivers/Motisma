@@ -4,11 +4,11 @@
 
 **[Aperçu](#apercu)** · **[Commandes](#commandes)** · **[Installation](#installation)** · **[Configuration](#configuration)**
 
-[![Licence MIT](https://img.shields.io/badge/licence-MIT-38BDF8?style=flat-square)](LICENSE)
-[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-38BDF8?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![discord.js 14](https://img.shields.io/badge/discord.js-14-38BDF8?style=flat-square)](https://discord.js.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-38BDF8?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Compose-38BDF8?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-E8642C?style=flat-square&labelColor=2B2D31)](LICENSE)
+[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-4E5058?style=flat-square&labelColor=2B2D31&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![discord.js 14](https://img.shields.io/badge/discord.js-14-4E5058?style=flat-square&labelColor=2B2D31)](https://discord.js.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4E5058?style=flat-square&labelColor=2B2D31&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-4E5058?style=flat-square&labelColor=2B2D31&logo=docker&logoColor=white)](docker-compose.yml)
 
 🇫🇷 Français · [🇬🇧 English](README.en.md)
 

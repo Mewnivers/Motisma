@@ -1,14 +1,14 @@
-<img src="docs/assets/banner.webp" alt="Motisma, the Discord bot for Pokémon GO communities: meetups, leaderboard, levels, mini-games" width="100%">
+<img src="docs/assets/banner.en.webp" alt="Motisma, the Discord bot for Pokémon GO communities: meetups, leaderboard, levels, mini-games" width="100%">
 
 <div align="center">
 
 **[Preview](#preview)** · **[Commands](#commands)** · **[Installation](#installation)** · **[Configuration](#configuration)**
 
-[![MIT License](https://img.shields.io/badge/license-MIT-38BDF8?style=flat-square)](LICENSE)
-[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-38BDF8?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![discord.js 14](https://img.shields.io/badge/discord.js-14-38BDF8?style=flat-square)](https://discord.js.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-38BDF8?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Compose-38BDF8?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-E8642C?style=flat-square&labelColor=2B2D31)](LICENSE)
+[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-4E5058?style=flat-square&labelColor=2B2D31&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![discord.js 14](https://img.shields.io/badge/discord.js-14-4E5058?style=flat-square&labelColor=2B2D31)](https://discord.js.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4E5058?style=flat-square&labelColor=2B2D31&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-4E5058?style=flat-square&labelColor=2B2D31&logo=docker&logoColor=white)](docker-compose.yml)
 
 [🇫🇷 Français](README.md) · 🇬🇧 English
 
