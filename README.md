@@ -22,7 +22,7 @@ Il aide à organiser les sorties et montre à chaque joueur qu'il n'est pas isol
 </p>
 
 <p align="center">
-<img src="docs/assets/readme/demo-rdv.gif" alt="Démo : Dresseur_01 lance /rdv, le bot publie l'annonce, Dresseur_02 clique sur Je participe et rejoint le salon de la sortie" width="760">
+<img src="docs/assets/readme/demo-rdv.gif" alt="Démo : Dresseur_01 lance /rdv, le bot publie l'annonce, Dresseur_02 clique sur Je participe et le salon de la sortie passe à 2 participants" width="800">
 <br>
 <sub>Le flux <code>/rdv</code> de bout en bout (aperçu reconstitué, données fictives).</sub>
 </p>

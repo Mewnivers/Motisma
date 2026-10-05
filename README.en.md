@@ -22,7 +22,7 @@ It helps organize meetups and shows every player they are not alone, without eve
 </p>
 
 <p align="center">
-<img src="docs/assets/readme/demo-rdv.gif" alt="Demo: Dresseur_01 runs /rdv, the bot posts the announcement, Dresseur_02 clicks Je participe and joins the meetup channel" width="760">
+<img src="docs/assets/readme/demo-rdv.gif" alt="Demo: Dresseur_01 runs /rdv, the bot posts the announcement, Dresseur_02 clicks Je participe and the meetup channel goes to 2 participants" width="800">
 <br>
 <sub>The <code>/rdv</code> flow end to end (reconstructed preview, sample data; the bot speaks French).</sub>
 </p>
