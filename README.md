@@ -12,9 +12,9 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
-<img src="docs/assets/readme/carte-bot.png" alt="Carte des secteurs de Pau générée par la commande /map, avec un compteur de joueurs par secteur" width="100%">
+<img src="docs/assets/readme/apercu-rdv.webp" alt="Annonce d’une sortie avec la commande /rdv, aperçu reconstitué" width="100%">
 
-<sub>Aperçu de `/map` : compteurs de démonstration, affichés à partir de 3 joueurs par secteur.</sub>
+<sub>Annonce d'une sortie avec /rdv (aperçu reconstitué, données fictives).</sub>
 
 [English version](README.en.md)
 
@@ -28,9 +28,8 @@ Motisma'Pau a deux buts : montrer à chaque joueur qu'il n'est pas isolé, et fa
 
 1. **Accueillir.** Un nouvel arrivant reçoit un rôle « en attente » et poste ses captures de profil. Un modérateur valide d'un clic (réaction ✅). Le profil est mis à jour, puis un message de bienvenue est envoyé.
 2. **Organiser.** `/rdv` ouvre un salon temporaire pour une sortie (lieu, heure, durée). Les membres s'inscrivent avec un bouton. Le salon est supprimé automatiquement à minuit (heure de Paris) le lendemain du début de la sortie.
-3. **Compter.** `/map` affiche le nombre de joueurs par secteur de Pau, à partir des rôles que les joueurs se donnent eux-mêmes.
-4. **Classer.** Les joueurs envoient une capture de profil au bot en message privé pour mettre à jour leurs stats. `/classement-pogo` affiche le classement de la communauté.
-5. **Animer.** Niveaux par message, salons vocaux temporaires, jeux, sondages, annonces YouTube.
+3. **Classer.** Les joueurs envoient une capture de profil au bot en message privé pour mettre à jour leurs stats. `/classement-pogo` affiche le classement de la communauté.
+4. **Animer.** Niveaux par message, salons vocaux temporaires, jeux, sondages, annonces YouTube.
 
 La lecture des captures de profil passe par l'API Gemini et demande une clé. Sans clé, elle reste désactivée.
 
@@ -39,7 +38,7 @@ La lecture des captures de profil passe par l'API Gemini et demande une clé. Sa
 Aperçus reconstitués à partir des vrais messages du bot, avec des données fictives ; ce ne sont pas des captures de Discord.
 
 <table>
-<tr><td width="50%" valign="top"><b>/rdv — annoncer une sortie</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Annonce de sortie du bot avec le bouton Je participe" width="100%"></td><td width="50%" valign="top"><b>/map — joueurs par secteur</b><br><img src="docs/assets/readme/apercu-map.webp" alt="Carte de Pau avec le nombre de joueurs par secteur" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/rdv — annoncer une sortie</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Annonce de sortie du bot avec le bouton Je participe" width="100%"></td><td width="50%" valign="top"><b>/sondage — créer un sondage</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="Sondage avec trois choix et réactions numérotées" width="100%"></td></tr>
 <tr><td width="50%" valign="top"><b>/niveau — niveau et XP</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="Embed de niveau avec barre de progression" width="100%"></td><td width="50%" valign="top"><b>/classement — top 10 par XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="Top 10 des membres par XP" width="100%"></td></tr>
 <tr><td width="50%" valign="top"><b>/classement-pogo voir — classement Pokémon GO</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="Classement Pokémon GO avec boutons de catégorie" width="100%"></td><td width="50%" valign="top"><b>/help — aide et menu des commandes</b><br><img src="docs/assets/readme/apercu-help.webp" alt="Aide du bot avec le menu de choix d’une commande" width="100%"></td></tr>
 <tr><td width="50%" valign="top"><b>/pendu — le jeu du pendu</b><br><img src="docs/assets/readme/apercu-pendu.webp" alt="Partie de pendu en cours" width="100%"></td><td width="50%" valign="top"><b>Message de bienvenue</b><br><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Message de bienvenue après validation d’un nouveau membre" width="100%"></td></tr>
@@ -56,8 +55,8 @@ Le bot dialogue avec Discord et lit ou écrit dans PostgreSQL. Les tables sont c
 | Dossier | Rôle | Pile |
 |---|---|---|
 | `src/` | Bot Discord : commandes (`commands/`) et fonctionnalités (`features/`) | Node.js, discord.js 14 |
-| `scripts/` | Scripts de développement : aperçu de la carte avec de faux compteurs, enregistrement de `/rdv` seul sur un serveur de test | Node.js |
-| `assets/` | Géométrie des secteurs, image d'exemple de profil | GeoJSON, PNG |
+| `scripts/` | Scripts de développement : enregistrement de `/rdv` et `/rdv-modifier` seuls sur un serveur de test | Node.js |
+| `assets/` | Image d'exemple de profil | PNG |
 | `Dockerfile`, `docker-compose.yml` | Image et service du bot | Docker, Compose |
 
 ## Fonctionnalités
@@ -99,7 +98,6 @@ Commandes réservées au staff :
 
 | Commande | Permission | Description |
 |---|---|---|
-| `/map` | Gérer le serveur | Joueurs par secteur, en image PNG |
 | `/clear` | Gérer les messages | Supprime des messages récents (1 à 100) |
 | `/embed` | Gérer le serveur | Publie ou met à jour un embed d'information |
 | `/say` | Gérer le serveur | Fait parler le bot dans un salon |
@@ -110,9 +108,11 @@ Commandes réservées au staff :
 
 ## Confidentialité
 
-- Aucune géolocalisation, aucune adresse, aucune position individuelle.
-- L'aire est **déclarative et volontaire** : le joueur choisit lui-même son rôle de secteur.
-- La carte n'affiche que des totaux par secteur. Un secteur ne montre son compteur qu'à partir de **3 joueurs** (`MIN_VISIBLE_PLAYERS`), pour qu'aucun joueur isolé ne soit identifiable.
+- Aucune géolocalisation, aucune adresse, aucune position : le bot ne demande ni ne stocke de position.
+- Par membre, la base PostgreSQL contient l'identifiant Discord, le nom de dresseur et le code ami (si renseignés avec `/set-pogo`), les stats lues sur les captures (niveau, XP, Pokémon capturés, distance, PokéStops, œufs éclos, équipe), la participation au classement et l'XP gagnée en discutant. Détail dans [docs/base-de-donnees.md](docs/base-de-donnees.md).
+- Les captures de profil ne sont pas conservées dans la base : seules les stats lues le sont. Lors de la vérification d'un nouvel arrivant, la capture est republiée dans le salon de logs du staff, s'il est configuré.
+- Une sortie `/rdv` garde son organisateur et ses inscrits tant qu'elle est ouverte ; la ligne est supprimée à la fermeture.
+- `/reset-joueur` permet au staff d'effacer tout ou partie des données d'un joueur.
 - Si la clé Gemini est configurée, les captures de profil sont envoyées à l'API Gemini pour lecture. Sans clé, rien n'est envoyé.
 
 ## Installation
@@ -201,8 +201,6 @@ Toute la configuration passe par le fichier `.env` (modèle : `.env.example`). N
 npm install
 npm start
 ```
-
-Les secteurs de `/map` sont définis dans `src/config/sectors.js` (un rôle Discord par secteur) ; la géométrie est dans `assets/sectors.geojson`.
 
 `package.json` ne définit ni tests ni lint.
 

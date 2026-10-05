@@ -12,9 +12,9 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
-<img src="docs/assets/readme/carte-bot.png" alt="Map of Pau's areas drawn by the /map command, with a player counter per area" width="100%">
+<img src="docs/assets/readme/apercu-rdv.webp" alt="A meetup announcement with the /rdv command, reconstructed preview" width="100%">
 
-<sub>Preview of `/map`: demo counters, shown from 3 players per area.</sub>
+<sub>A meetup announcement with /rdv (reconstructed preview, sample data).</sub>
 
 [Version française](README.md)
 
@@ -28,9 +28,8 @@ Motisma'Pau has two goals: show every player they are not alone, and make meetup
 
 1. **Welcome.** A newcomer gets a "pending" role and posts their profile screenshots. A moderator approves with one click (✅ reaction). The profile is updated, then a welcome message is sent.
 2. **Organize.** `/rdv` opens a temporary channel for a meetup (place, time, duration). Members sign up with a button. The channel is deleted automatically at midnight (Paris time) the day after the meetup starts.
-3. **Count.** `/map` shows the number of players per area of Pau, based on the roles players give themselves.
-4. **Rank.** Players send a profile screenshot to the bot in a direct message to update their stats. `/classement-pogo` shows the community leaderboard.
-5. **Entertain.** Levels per message, temporary voice channels, games, polls, YouTube announcements.
+3. **Rank.** Players send a profile screenshot to the bot in a direct message to update their stats. `/classement-pogo` shows the community leaderboard.
+4. **Entertain.** Levels per message, temporary voice channels, games, polls, YouTube announcements.
 
 Reading profile screenshots goes through the Gemini API and needs a key. Without a key, it stays off.
 
@@ -39,7 +38,7 @@ Reading profile screenshots goes through the Gemini API and needs a key. Without
 Previews reconstituted from the bot's real messages, with fictional data; they are not Discord screenshots.
 
 <table>
-<tr><td width="50%" valign="top"><b>/rdv — announce an outing</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Outing announcement with the Join button" width="100%"></td><td width="50%" valign="top"><b>/map — players per sector</b><br><img src="docs/assets/readme/apercu-map.webp" alt="Map of Pau with the player count per sector" width="100%"></td></tr>
+<tr><td width="50%" valign="top"><b>/rdv — announce an outing</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="Outing announcement with the Join button" width="100%"></td><td width="50%" valign="top"><b>/sondage — create a poll</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="Poll with three choices and numbered reactions" width="100%"></td></tr>
 <tr><td width="50%" valign="top"><b>/niveau — level and XP</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="Level embed with a progress bar" width="100%"></td><td width="50%" valign="top"><b>/classement — top 10 by XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="Top 10 members by XP" width="100%"></td></tr>
 <tr><td width="50%" valign="top"><b>/classement-pogo voir — Pokémon GO leaderboard</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="Pokémon GO leaderboard with category buttons" width="100%"></td><td width="50%" valign="top"><b>/help — help and command menu</b><br><img src="docs/assets/readme/apercu-help.webp" alt="Bot help with the command picker menu" width="100%"></td></tr>
 <tr><td width="50%" valign="top"><b>/pendu — hangman game</b><br><img src="docs/assets/readme/apercu-pendu.webp" alt="Hangman game in progress" width="100%"></td><td width="50%" valign="top"><b>Welcome message</b><br><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Welcome message after a newcomer is validated" width="100%"></td></tr>
@@ -56,8 +55,8 @@ The bot talks to Discord and reads or writes in PostgreSQL. Tables are created a
 | Folder | Role | Stack |
 |---|---|---|
 | `src/` | Discord bot: commands (`commands/`) and features (`features/`) | Node.js, discord.js 14 |
-| `scripts/` | Development scripts: map preview with fake counters, registering `/rdv` alone on a test server | Node.js |
-| `assets/` | Area geometry, sample profile image | GeoJSON, PNG |
+| `scripts/` | Development scripts: registering `/rdv` and `/rdv-modifier` alone on a test server | Node.js |
+| `assets/` | Sample profile image | PNG |
 | `Dockerfile`, `docker-compose.yml` | Bot image and service | Docker, Compose |
 
 ## Features
@@ -99,7 +98,6 @@ Staff-only commands:
 
 | Command | Permission | Description |
 |---|---|---|
-| `/map` | Manage Server | Players per area, as a PNG image |
 | `/clear` | Manage Messages | Deletes recent messages (1 to 100) |
 | `/embed` | Manage Server | Publishes or updates an information embed |
 | `/say` | Manage Server | Makes the bot speak in a channel |
@@ -110,9 +108,11 @@ Staff-only commands:
 
 ## Privacy
 
-- No geolocation, no address, no individual position.
-- The area is **self-declared and voluntary**: players pick their own area role.
-- The map only shows totals per area. An area only shows its counter from **3 players** (`MIN_VISIBLE_PLAYERS`), so no isolated player can be identified.
+- No geolocation, no address, no position: the bot neither asks for nor stores any position.
+- Per member, the PostgreSQL database holds the Discord ID, the trainer name and friend code (if set with `/set-pogo`), the stats read from screenshots (level, XP, Pokémon caught, distance, PokéStops, eggs hatched, team), leaderboard participation and the XP earned by chatting. Details in [docs/base-de-donnees.md](docs/base-de-donnees.md).
+- Profile screenshots are not kept in the database: only the stats read from them are. When a newcomer is verified, the screenshot is reposted in the staff log channel, if one is configured.
+- A `/rdv` meetup keeps its organizer and sign-ups while it is open; the row is deleted when it closes.
+- `/reset-joueur` lets staff erase all or part of a player's data.
 - If the Gemini key is configured, profile screenshots are sent to the Gemini API to be read. Without a key, nothing is sent.
 
 ## Installation
@@ -201,8 +201,6 @@ All configuration goes through the `.env` file (template: `.env.example`). Never
 npm install
 npm start
 ```
-
-The `/map` areas are defined in `src/config/sectors.js` (one Discord role per area); the geometry is in `assets/sectors.geojson`.
 
 `package.json` defines neither tests nor lint.
 
