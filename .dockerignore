@@ -1,13 +1,28 @@
+# Version control and repository-only files
+.git
+.github
+.gitignore
+.dockerignore
+.editorconfig
+.nvmrc
+Dockerfile
+docker-compose.yml
+docs/
+*.md
+LICENSE
+
+# Dependencies (installed inside the image)
 node_modules
 npm-debug.log*
-.git
-.gitignore
+*.log
+
+# Secrets: never copied into the image
 .env
 .env.*
-!.env.example
+*.token
+
+# Tests and generated files
+**/*.test.js
 assets/basemap_*.png
 map_*.png
 preview_*.png
-*.log
-Sans titre.png
-docs/
