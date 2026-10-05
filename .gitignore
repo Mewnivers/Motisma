@@ -41,3 +41,7 @@ scripts/preview.mjs
 scripts/map-mock.mjs
 scripts/map-geojson-mock.mjs
 scripts/map-real-mock.mjs
+
+# temporary captures and tooling
+.playwright-mcp/
+/*.png

@@ -1,0 +1,25 @@
+name: Proposer une fonctionnalité
+description: Une idée pour améliorer le bot.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: besoin
+    attributes:
+      label: Besoin
+      description: Quel problème rencontrent les joueurs ou les modérateurs ?
+    validations:
+      required: true
+  - type: textarea
+    id: proposition
+    attributes:
+      label: Proposition
+      description: Comment cela fonctionnerait-il, côté Discord ?
+    validations:
+      required: true
+  - type: checkboxes
+    id: confidentialite
+    attributes:
+      label: Confidentialité
+      options:
+        - label: La proposition n'utilise aucune donnée de position ni information personnelle.
+          required: true

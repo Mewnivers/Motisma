@@ -1,0 +1,33 @@
+name: Signaler un bug
+description: Quelque chose ne fonctionne pas comme prévu.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Que se passe-t-il, et qu'attendiez-vous ?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: |
+        1. Lancer la commande…
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Messages d'erreur
+      description: Extrait de la console, sans jeton ni identifiant privé.
+      render: text
+  - type: checkboxes
+    id: secrets
+    attributes:
+      label: Vérification
+      options:
+        - label: Je n'ai inclus aucun secret (jeton, clé d'API, mot de passe).
+          required: true
