@@ -70,20 +70,16 @@ Previews reconstructed from the bot's real messages, with sample data; they are 
 
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv: meetup announcement with the Je participe button" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-classement.webp" alt="/classement: top 10 members by XP" width="100%"></td>
+<td width="50%" valign="top"><b>Meetups</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv: meetup announcement with the Je participe button" width="100%"></td>
+<td width="50%" valign="top"><b>XP leaderboard</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="/classement: top 10 members by XP" width="100%"></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir: Pokémon GO leaderboard with category buttons" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-help.webp" alt="/help: bot help with the command picker menu" width="100%"></td>
+<td width="50%" valign="top"><b>Pokémon GO leaderboard</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir: top 5 of the Pokémon GO leaderboard with category buttons" width="100%"></td>
+<td width="50%" valign="top"><b>Help</b><br><img src="docs/assets/readme/apercu-help.webp" alt="/help: bot help with the command picker menu" width="100%"></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage: poll with three choices and numbered reactions" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau: level and XP with a progress bar" width="100%"></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pendu.webp" alt="/pendu: hangman game in progress" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Welcome message after a newcomer is approved" width="100%"></td>
+<td width="50%" valign="top"><b>Polls</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage: poll with three choices and numbered reactions" width="100%"></td>
+<td width="50%" valign="top"><b>Level</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau: level and XP with a progress bar" width="100%"></td>
 </tr>
 </table>
 

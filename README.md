@@ -70,20 +70,16 @@ Aperçus reconstitués à partir des vrais messages du bot, avec des données fi
 
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv : annonce d'une sortie avec le bouton Je participe" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-classement.webp" alt="/classement : top 10 des membres par XP" width="100%"></td>
+<td width="50%" valign="top"><b>Sorties</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv : annonce d'une sortie avec le bouton Je participe" width="100%"></td>
+<td width="50%" valign="top"><b>Classement XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="/classement : top 10 des membres par XP" width="100%"></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir : classement Pokémon GO avec boutons de catégorie" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-help.webp" alt="/help : aide du bot avec le menu de choix d'une commande" width="100%"></td>
+<td width="50%" valign="top"><b>Classement Pokémon GO</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir : top 5 du classement Pokémon GO avec boutons de catégorie" width="100%"></td>
+<td width="50%" valign="top"><b>Aide</b><br><img src="docs/assets/readme/apercu-help.webp" alt="/help : aide du bot avec le menu de choix d'une commande" width="100%"></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage : sondage avec trois choix et réactions numérotées" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau : niveau et XP avec barre de progression" width="100%"></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-pendu.webp" alt="/pendu : partie de pendu en cours" width="100%"></td>
-<td width="50%" valign="top"><img src="docs/assets/readme/apercu-bienvenue.webp" alt="Message de bienvenue après la validation d'un nouveau membre" width="100%"></td>
+<td width="50%" valign="top"><b>Sondages</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage : sondage avec trois choix et réactions numérotées" width="100%"></td>
+<td width="50%" valign="top"><b>Niveau</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau : niveau et XP avec barre de progression" width="100%"></td>
 </tr>
 </table>
 
