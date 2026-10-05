@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.svg" alt="Logo Motisma'Pau" width="120" height="120">
+<img src="docs/assets/motisma.png" alt="Photo de profil de Motisma" width="120" height="120">
 
 # Motisma'Pau
 
@@ -11,6 +11,14 @@
 [![discord.js](https://img.shields.io/badge/discord.js-14-5865F2?logo=discord&logoColor=white)](https://discord.js.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
+
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/accueil-dark.webp">
+  <img src="docs/assets/readme/accueil-light.webp" alt="Page d'accueil du site de la communauté" width="100%">
+</picture>
+
+<sub>Le site web de la communauté (dépôt séparé).</sub>
 
 [English version](README.en.md)
 
