@@ -1,313 +1,82 @@
-<img src="docs/assets/banner.webp" alt="Motisma, le bot Discord des communautés Pokémon GO : sorties, classement, niveaux, mini-jeux" width="100%">
+<img src="docs/assets/motisma.png" alt="" width="96" align="right">
 
-<div align="center">
+# Motisma
 
-**[Aperçu](#apercu)** · **[Commandes](#commandes)** · **[Installation](#installation)** · **[Configuration](#configuration)**
+Motisma est le bot Discord de la communauté Pokémon GO de Pau.
 
-[![Licence MIT](https://img.shields.io/badge/licence-MIT-E8642C?style=flat-square&labelColor=2B2D31)](LICENSE)
-[![Node.js ≥ 18](https://img.shields.io/badge/Node.js-%E2%89%A5%2018-4E5058?style=flat-square&labelColor=2B2D31&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![discord.js 14](https://img.shields.io/badge/discord.js-14-4E5058?style=flat-square&labelColor=2B2D31)](https://discord.js.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4E5058?style=flat-square&labelColor=2B2D31&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Compose-4E5058?style=flat-square&labelColor=2B2D31&logo=docker&logoColor=white)](docker-compose.yml)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
+[![Node.js 22](https://img.shields.io/badge/node-22-brightgreen)](.nvmrc)
 
-🇫🇷 Français · [🇬🇧 English](README.en.md)
+[English version](README.en.md)
 
-</div>
+Quand quelqu'un arrive sur le serveur, il reçoit un rôle « en attente » et poste une capture de son profil Pokémon GO. Un modérateur valide d'une réaction, le bot renomme le membre et lui souhaite la bienvenue. Pour une sortie, `/rdv` ouvre un salon privé où l'on s'inscrit avec un bouton ; le salon disparaît le lendemain à minuit, heure de Paris. Chaque message rapporte un peu d'XP, et il y a un classement Pokémon GO mis à jour par capture d'écran. Le reste, ce sont des petits jeux, des sondages et l'annonce des nouvelles vidéos d'une chaîne YouTube.
 
-<br>
+Le bot ne demande jamais de position. Des captures, il n'enregistre en base que les stats lues, jamais l'image. La lecture passe par l'API Gemini, et seulement si une clé est configurée.
 
-<p align="center">
-Motisma'Pau est le bot Discord de la communauté Pokémon GO de Pau.<br>
-Il aide à organiser les sorties et montre à chaque joueur qu'il n'est pas isolé, sans jamais exposer d'information personnelle.
-</p>
+## Aperçu
 
-<p align="center">
-<img src="docs/assets/readme/demo-rdv.gif" alt="Démo : Dresseur_01 lance /rdv, le bot publie l'annonce, Dresseur_02 clique sur Je participe et le salon de la sortie passe à 2 participants" width="800">
-<br>
-<sub>Le flux <code>/rdv</code> de bout en bout (aperçu reconstitué, données fictives).</sub>
-</p>
+Aperçus reconstitués avec les vrais messages du bot et des données fictives, ce ne sont pas des captures de Discord.
 
-## ✨ Ce que ça fait
+<img src="docs/assets/readme/rdv.webp" alt="Annonce d'une sortie au Parc Beaumont de 15h00 à 15h45, avec le bouton Je participe" width="720">
 
-<table>
-<tr>
-<td width="50%" valign="top">
+L'annonce publiée par `/rdv` dans le salon des sorties.
 
-### 📅 Sorties
-`/rdv` ouvre un salon temporaire pour une sortie. Les membres s'inscrivent avec un bouton, et le salon est supprimé automatiquement à minuit (heure de Paris) le lendemain du début.
+<img src="docs/assets/readme/classement.webp" alt="Réponse à /classement : les dix membres qui ont le plus d'XP, avec leur niveau" width="720">
 
-</td>
-<td width="50%" valign="top">
+`/classement` : le top 10 des membres par XP.
 
-### 🏆 Classement
-Les joueurs envoient une capture de profil au bot en message privé pour mettre à jour leurs stats. `/classement-pogo` affiche le classement de la communauté.
+<img src="docs/assets/readme/niveau.webp" alt="Réponse à /niveau, visible seulement par son auteur : niveau 6 et barre de progression vers le niveau 7" width="720">
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+`/niveau` : la réponse n'est visible que par celui qui l'a demandée.
 
-### 📈 Niveaux
-Chaque message rapporte de 15 à 25 XP, au plus une fois par minute et par membre. Des rôles de récompense se débloquent avec les niveaux.
+## Commandes
 
-</td>
-<td width="50%" valign="top">
-
-### 🎮 Mini-jeux et accueil
-Quiz, pendu, morpion, plus ou moins et sondages. Un nouvel arrivant est validé d'un clic par un modérateur, puis accueilli par un message de bienvenue.
-
-</td>
-</tr>
-</table>
-
-La lecture des captures de profil passe par l'API Gemini et demande une clé. Sans clé, elle reste désactivée.
-
-<a id="apercu"></a>
-
-## 📸 Aperçu
-
-Aperçus reconstitués à partir des vrais messages du bot, avec des données fictives ; ce ne sont pas des captures de Discord.
-
-<table>
-<tr>
-<td width="50%" valign="top"><b>Sorties</b><br><img src="docs/assets/readme/apercu-rdv.webp" alt="/rdv : annonce d'une sortie avec le bouton Je participe" width="100%"></td>
-<td width="50%" valign="top"><b>Classement XP</b><br><img src="docs/assets/readme/apercu-classement.webp" alt="/classement : top 10 des membres par XP" width="100%"></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><b>Classement Pokémon GO</b><br><img src="docs/assets/readme/apercu-pogo.webp" alt="/classement-pogo voir : top 5 du classement Pokémon GO avec boutons de catégorie" width="100%"></td>
-<td width="50%" valign="top"><b>Aide</b><br><img src="docs/assets/readme/apercu-help.webp" alt="/help : aide du bot avec le menu de choix d'une commande" width="100%"></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><b>Sondages</b><br><img src="docs/assets/readme/apercu-sondage.webp" alt="/sondage : sondage avec trois choix et réactions numérotées" width="100%"></td>
-<td width="50%" valign="top"><b>Niveau</b><br><img src="docs/assets/readme/apercu-niveau.webp" alt="/niveau : niveau et XP avec barre de progression" width="100%"></td>
-</tr>
-</table>
-
-<a id="commandes"></a>
-
-## 🧭 Commandes
-
-Clique sur une catégorie pour la déplier.
-
-<details>
-<summary><b>📅 Sorties</b> · <code>/rdv</code>, <code>/rdv-modifier</code></summary>
-
-| Commande | Description |
-|---|---|
-| `/rdv` | Crée un salon temporaire pour une sortie (lieu, heure, description, durée de 45 minutes par défaut) |
-| `/rdv-modifier` | Modifie une sortie `/rdv` déjà ouverte (son organisateur, ou un membre avec la permission « Gérer les salons ») |
-
-</details>
-
-<details>
-<summary><b>🏆 Pokémon GO</b> · <code>/set-pogo</code>, <code>/classement-pogo</code></summary>
-
-| Commande | Description |
-|---|---|
-| `/set-pogo` | Enregistre ton nom de jeu et ton code ami (12 chiffres) |
-| `/classement-pogo voir` | Classement Pokémon GO, au choix : niveau, XP totale, Pokémon capturés, distance, PokéStops, œufs éclos |
-| `/classement-pogo rejoindre`, `/classement-pogo quitter` | Rejoint ou quitte le classement (rappel mensuel) |
-
-</details>
-
-<details>
-<summary><b>📈 Niveaux</b> · <code>/niveau</code>, <code>/classement</code></summary>
-
-| Commande | Description |
-|---|---|
-| `/niveau` | Affiche ton niveau et ton XP |
-| `/classement` | Top 10 des membres par XP |
-
-</details>
-
-<details>
-<summary><b>🎮 Jeux et sondages</b> · <code>/quiz</code>, <code>/pendu</code>, <code>/morpion</code>, <code>/devinette</code>, <code>/sondage</code></summary>
-
-| Commande | Description |
-|---|---|
-| `/quiz`, `/pendu`, `/morpion`, `/devinette` | Jeux : « Qui est ce Pokémon ? », pendu, morpion, plus ou moins |
-| `/sondage` | Crée un sondage avec réactions (jusqu'à 10 choix, Oui / Non sans choix) |
-
-</details>
-
-<details>
-<summary><b>ℹ️ Informations</b> · <code>/help</code>, <code>/userinfo</code>, <code>/avatar</code></summary>
-
-| Commande | Description |
-|---|---|
-| `/help` | Affiche l'aide et la liste des commandes |
-| `/userinfo` | Affiche le profil d'un membre |
-| `/avatar` | Affiche l'avatar d'un membre ou d'un bot |
-
-</details>
-
-<details>
-<summary><b>🔒 Staff</b> · modération et administration</summary>
-
-| Commande | Permission | Description |
+| Commande | Ce qu'elle fait | Qui |
 |---|---|---|
-| `/clear` | Gérer les messages | Supprime des messages récents (1 à 100) |
-| `/embed` | Gérer le serveur | Publie ou met à jour un embed d'information |
-| `/say` | Gérer le serveur | Fait parler le bot dans un salon |
-| `/bingo create`, `/bingo update` | Gérer le serveur | Publie ou met à jour l'image d'un bingo |
-| `/reset-joueur` | Gérer le serveur | Réinitialise tout ou partie des données d'un joueur |
-| `/test`, `/test-log` | Gérer le serveur | Simulent l'arrivée d'un membre et affichent un exemple de log de vérification |
-| Menu contextuel « Déplacer » | Gérer les messages | Déplace un message vers un autre salon ou un post de forum |
+| `/rdv` | Crée un salon temporaire pour une sortie (45 minutes par défaut) | Tout le monde |
+| `/rdv-modifier` | Change le lieu, l'heure, la durée ou la description d'une sortie ouverte | L'organisateur, ou « Gérer les salons » |
+| `/set-pogo` | Enregistre ton nom de dresseur et ton code ami | Tout le monde |
+| `/classement-pogo` | `voir` le classement (niveau, XP, Pokémon capturés, distance, PokéStops, œufs), le `rejoindre` ou le `quitter` | Tout le monde |
+| `/niveau`, `/classement` | Ton niveau et ton XP ; le top 10 du serveur | Tout le monde |
+| `/quiz`, `/pendu`, `/morpion`, `/devinette` | Qui est ce Pokémon, pendu, morpion, plus ou moins | Tout le monde |
+| `/sondage` | Sondage à réactions, jusqu'à 10 choix (Oui / Non s'il n'y en a pas) | Tout le monde |
+| `/help`, `/userinfo`, `/avatar` | Aide, profil d'un membre, avatar | Tout le monde |
+| `/clear` | Supprime de 1 à 100 messages récents | « Gérer les messages » |
+| Menu « Déplacer » sur un message | Déplace un message vers un autre salon ou un post de forum | « Gérer les messages » |
+| `/embed`, `/say`, `/bingo` | Publie un embed d'information, fait parler le bot, publie l'image d'un bingo | « Gérer le serveur » |
+| `/reset-joueur` | Efface tout ou partie des données d'un joueur | « Gérer le serveur » |
+| `/test`, `/test-log` | Simulent une arrivée et affichent un exemple de log | « Gérer le serveur » |
 
-</details>
+## Installation
 
-## 🧩 Architecture
+1. Il faut Node.js 22, une base PostgreSQL et un bot créé sur le [portail développeur Discord](https://discord.com/developers/applications), avec l'intent privilégié **Server Members**. Si tu mets une clé Gemini, active aussi **Message Content**.
+2. Copie `.env.example` en `.env` et remplis-le (voir plus bas).
+3. `npm install`
+4. `npm run deploy` enregistre les commandes slash sur le serveur. À relancer quand une commande change.
+5. `npm start`
 
-<p align="center">
-<img src="docs/assets/architecture.svg" alt="Schéma d'architecture : Discord, bot, PostgreSQL, et l'API Gemini en option" width="900">
-</p>
+Avec Docker, remplace la dernière étape par `docker compose up -d --build`. Le `docker-compose.yml` ne lance que le bot : il le branche sur un réseau Docker externe `mewnivers` et attend une base PostgreSQL nommée `db` sur ce réseau (utilisateur et base `rotom`, mot de passe `POSTGRES_PASSWORD`).
 
-Le bot dialogue avec Discord et lit ou écrit dans PostgreSQL. Les tables sont créées au démarrage si elles n'existent pas.
+## Configuration
 
-| Dossier | Rôle | Pile |
-|---|---|---|
-| `src/` | Bot Discord : commandes (`commands/`) et fonctionnalités (`features/`) | Node.js, discord.js 14 |
-| `scripts/` | Scripts de développement : enregistrement de `/rdv` et `/rdv-modifier` seuls sur un serveur de test | Node.js |
-| `assets/` | Image d'exemple de profil | PNG |
-| `Dockerfile`, `docker-compose.yml` | Image et service du bot | Docker, Compose |
-
-<details>
-<summary><b>Les modules de <code>src/features/</code></b></summary>
-
-| Module | Ce qu'il fait |
-|---|---|
-| `verification` | Rôle « en attente », lecture des captures, validation par réaction ✅ d'un modérateur |
-| `visionExtract` | Lit une capture de profil avec l'API Gemini pour détecter le nom de dresseur. Facultatif : sans clé, le module reste inactif |
-| `welcome` | Message de bienvenue tiré au hasard à la validation |
-| `teamRole` | Détecte l'équipe (Sagesse, Bravoure, Intuition) depuis la capture et attribue le rôle |
-| `rdv*` | Sorties : salon temporaire, inscriptions, modification, suppression automatique |
-| `classement` | Classement mensuel des stats, rappel par message privé, alerte staff si une capture semble retouchée ou si les stats régressent |
-| `leveling` | XP par message (15 à 25, au plus une fois par minute et par membre), niveaux, rôles de récompense |
-| `tempVoice` | Salon vocal « rejoindre pour créer », supprimé dès qu'il se vide |
-| `languageWatch` | Réponse aux gros mots, avec mise en sourdine de quelques secondes |
-| `youtube` | Annonce les nouvelles vidéos d'une chaîne (flux public, sans clé d'API, vérification toutes les 10 minutes) |
-| `forumHeart` | Réagit avec ❤️ aux images postées dans un forum ou un post de forum |
-| `forumKeepAlive` | Désarchive des posts de forum pour que leurs mentions restent lisibles |
-| `helpControls`, `moveControls` | Menu de `/help` et sélection de la destination du menu « Déplacer » |
-
-</details>
-
-## 🔐 Confidentialité
-
-- **Aucune position.** Le bot ne demande ni ne stocke de géolocalisation, d'adresse ou de position.
-- **Peu de données.** Par membre : identifiant Discord, nom de dresseur et code ami (si renseignés avec `/set-pogo`), stats lues sur les captures (niveau, XP, Pokémon capturés, distance, PokéStops, œufs éclos, équipe), participation au classement et XP gagnée en discutant. Détail dans [docs/base-de-donnees.md](docs/base-de-donnees.md).
-- **Pas de captures en base.** Seules les stats lues sont gardées. Lors de la vérification d'un nouvel arrivant, la capture est republiée dans le salon de logs du staff, s'il est configuré.
-- **Sorties éphémères.** Une sortie `/rdv` garde son organisateur et ses inscrits tant qu'elle est ouverte ; la ligne est supprimée à la fermeture.
-- **Effacement.** `/reset-joueur` permet au staff d'effacer tout ou partie des données d'un joueur.
-- **Gemini en option.** Si la clé est configurée, les captures de profil sont envoyées à l'API Gemini pour lecture. Sans clé, rien n'est envoyé.
-
-<a id="installation"></a>
-
-## 🚀 Installation
-
-**Prérequis** : Docker avec Compose, Node.js 18 ou plus, et un bot créé sur le [portail développeur Discord](https://discord.com/developers/applications) avec l'intent privilégié **Server Members** activé. Si tu configures `GEMINI_API_KEY`, active aussi **Message Content** : le bot le déclare dans ce cas seulement.
-
-**1. Préparer la base de données.** Le `docker-compose.yml` ne lance que le service `bot`. Il le branche sur un réseau Docker externe nommé `mewnivers` et construit `DATABASE_URL` vers `db:5432` (utilisateur `rotom`, base `rotom`, mot de passe `POSTGRES_PASSWORD`). Il faut donc une base PostgreSQL nommée `db` sur ce réseau. Pour faire tourner le bot seul, tu peux la démarrer toi-même (non vérifié : ces commandes n'ont pas été exécutées) :
-
-```bash
-docker network create mewnivers
-docker run -d --name db --network mewnivers --restart unless-stopped \
-  -e POSTGRES_USER=rotom -e POSTGRES_PASSWORD=<ton-mot-de-passe> -e POSTGRES_DB=rotom \
-  -v motisma-db:/var/lib/postgresql/data postgres:16
-```
-
-Utilise le même mot de passe dans `POSTGRES_PASSWORD` du `.env`.
-
-**2. Installer et lancer le bot.**
-
-```bash
-git clone <url-du-depot> Motisma
-cd Motisma
-cp .env.example .env       # puis remplis au minimum DISCORD_TOKEN, CLIENT_ID, GUILD_ID, POSTGRES_PASSWORD
-docker compose up -d --build
-```
-
-**3. Enregistrer les commandes slash**, une fois, puis à chaque changement de commande :
-
-```bash
-npm install
-npm run deploy
-```
-
-> [!TIP]
-> **Hors Docker** : définis `DATABASE_URL` dans `.env` vers ta propre base PostgreSQL, puis lance `npm start`. Sans `DATABASE_URL`, le bot démarre mais les profils Pokémon GO sont désactivés.
-
-<a id="configuration"></a>
-
-## ⚙️ Configuration
-
-Toute la configuration passe par le fichier `.env` (modèle : `.env.example`). Ne le commite jamais.
-
-<details>
-<summary><b>Discord et base de données</b> · 5 variables</summary>
+Tout passe par `.env`, qui ne doit jamais être commité. Pour démarrer, quatre valeurs comptent :
 
 | Variable | Rôle |
 |---|---|
 | `DISCORD_TOKEN` | Jeton du bot |
-| `CLIENT_ID` | ID de l'application, nécessaire à l'enregistrement des commandes |
-| `GUILD_ID` | ID du serveur Discord |
-| `POSTGRES_PASSWORD` | Mot de passe de la base PostgreSQL, utilisé par Compose pour construire `DATABASE_URL` |
-| `DATABASE_URL` | Chaîne de connexion. Injectée par Compose ; à définir seulement hors Docker |
+| `CLIENT_ID` | ID de l'application, utilisé par `npm run deploy` |
+| `GUILD_ID` | ID du serveur |
+| `DATABASE_URL` | Connexion PostgreSQL hors Docker. Avec Compose, elle est construite à partir de `POSTGRES_PASSWORD` |
 
-</details>
+Sans `DATABASE_URL`, le bot démarre quand même, mais sans profils Pokémon GO. Les rôles, les salons et les options (Gemini, YouTube, niveaux, statut) sont tous décrits dans [`.env.example`](.env.example), qui fait référence.
 
-<details>
-<summary><b>Rôles et salons</b></summary>
-
-| Variable | Rôle |
-|---|---|
-| `VERIFICATION_ROLE_ID` | Rôle « en attente » donné aux arrivants |
-| `MEMBER_ROLE_ID` | Rôle membre donné à la validation |
-| `VERIFICATION_CHANNEL_ID` | Limite la vérification à un seul salon |
-| `TEMP_VOICE_HUB_ID` | Salon vocal « rejoindre pour créer » |
-| `TEMP_VOICE_CATEGORY_ID` | Catégorie des salons vocaux temporaires |
-| `RDV_CATEGORY_ID` | Catégorie des salons de sortie `/rdv` |
-| `RDV_ANNOUNCE_CHANNEL_ID` | Salon où `/rdv` annonce les sorties |
-| `WELCOME_CHANNEL_ID` | Salon du message de bienvenue |
-| `LOG_CHANNEL_ID` | Salon de logs du staff (vide : aucun log) |
-| `AMBASSADOR_ROLE_ID` | Rôle listé comme ambassadeur dans l'embed de présentation |
-| `TEAM_ROLE_MYSTIC`, `TEAM_ROLE_VALOR`, `TEAM_ROLE_INSTINCT` | Rôles des trois équipes, attribués automatiquement |
-
-</details>
-
-<details>
-<summary><b>Fonctionnalités facultatives</b></summary>
-
-| Variable | Rôle |
-|---|---|
-| `GEMINI_API_KEY` | Clé Gemini pour lire les captures de profil. Vide : désactivé |
-| `VISION_MODEL` | Modèle de vision (par défaut `gemini-2.5-flash`) |
-| `LEVELUP_CHANNEL_ID` | Salon des annonces de niveau (sinon le salon du message) |
-| `LEVEL_ROLES` | Rôles de récompense par niveau, au format `10:idRole,20:idRole` |
-| `FORUM_HEART_CHANNEL_ID` | Forum ou post de forum où le bot réagit avec ❤️ |
-| `FORUM_KEEPALIVE_IDS` | Posts de forum à désarchiver régulièrement |
-| `CLASSEMENT_ROLE_ID` | Rôle synchronisé avec la participation au classement |
-| `CLASSEMENT_REMINDER_DAY`, `CLASSEMENT_REMINDER_HOUR` | Jour (1 à 28, défaut 1) et heure (0 à 23, défaut 10) du rappel mensuel |
-| `CLASSEMENT_ADMIN_CHANNEL_ID` | Salon staff alerté si une capture semble retouchée ou si les stats régressent |
-| `LANGUAGE_TIMEOUT_MILD`, `LANGUAGE_TIMEOUT_STRONG` | Durée de mise en sourdine en secondes (défaut 10 et 30, 0 pour désactiver) |
-| `PRESENCE_TEXT`, `PRESENCE_EMOJI`, `PRESENCE_GAME`, `PRESENCE_GAME_TYPE`, `PRESENCE_STATUS` | Statut et activité affichés par le bot |
-
-</details>
-
-## 🛠️ Développement
+## Développement et licence
 
 ```bash
-# Nécessite une base PostgreSQL et DATABASE_URL dans .env
-npm install
-npm start
+npm run check   # syntaxe de src/ et scripts/
+npm test
 ```
 
-`package.json` ne définit ni tests ni lint.
+Les deux tournent aussi en CI sur chaque pull request. Pour contribuer, lis [CONTRIBUTING.md](CONTRIBUTING.md) ; pour signaler une faille, [SECURITY.md](SECURITY.md). La doc technique (base de données, embeds) est dans [docs/](docs/README.md).
 
-## 📄 Licence
-
-Publié sous licence [MIT](LICENSE).
-
-<br>
-
-<p align="center"><sub>Projet communautaire, sans lien avec Niantic ni The Pokémon Company.<br>Pokémon est une marque de Nintendo, Creatures Inc. et GAME FREAK inc.</sub></p>
+Licence [MIT](LICENSE). Projet de fans, sans lien avec Niantic ni The Pokémon Company.
