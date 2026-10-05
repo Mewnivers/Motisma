@@ -1,7 +1,24 @@
 {
-  "name": "rotom-pau",
+  "name": "motisma",
   "version": "0.1.0",
-  "description": "Discord bot for the Pokemon GO community of Pau: play-area map and meetup organization through temporary threads.",
+  "private": true,
+  "description": "Discord bot for Pokémon GO communities: meetups, player map by area, leaderboards, levels and mini-games.",
+  "author": "Marine Mazou",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mewnivers/Motisma.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mewnivers/Motisma/issues"
+  },
+  "homepage": "https://github.com/Mewnivers/Motisma#readme",
+  "keywords": [
+    "discord-bot",
+    "discordjs",
+    "pokemon-go",
+    "postgresql",
+    "community-tools"
+  ],
   "type": "module",
   "main": "src/index.js",
   "scripts": {
