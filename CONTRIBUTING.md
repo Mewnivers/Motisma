@@ -27,11 +27,11 @@ Copier `.env.example` vers `.env`, puis renseigner au minimum `DISCORD_TOKEN`, `
 
 Relancer `npm run deploy` quand le nom, la description ou les options d'une commande changent. `npm run check` et `npm test` tournent aussi dans l'intégration continue à chaque PR.
 
-L'organisation du code est décrite dans la section [Architecture du README](README.md#-architecture), et la documentation technique dans [docs/](docs/README.md).
+La documentation technique est dans [docs/](docs/README.md).
 
 ## Confidentialité
 
-Le projet n'expose jamais d'information personnelle. Les règles et les données conservées sont listées dans la section [Confidentialité du README](README.md#-confidentialité) et dans [docs/base-de-donnees.md](docs/base-de-donnees.md). Toute contribution doit les respecter.
+Le projet n'expose jamais d'information personnelle. Les données conservées sont listées dans [docs/base-de-donnees.md](docs/base-de-donnees.md). Toute contribution doit les respecter.
 
 ## Branches et commits
 
