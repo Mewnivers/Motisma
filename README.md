@@ -1,6 +1,8 @@
-<img src="docs/assets/motisma.png" alt="" width="96" align="right">
+<div align="center">
 
-# Motisma
+<img src="docs/assets/motisma.png" alt="" width="110">
+
+<h1>Motisma</h1>
 
 Motisma est le bot Discord de la communauté Pokémon GO de Pau.
 
@@ -8,6 +10,8 @@ Motisma est le bot Discord de la communauté Pokémon GO de Pau.
 [![Node.js 22](https://img.shields.io/badge/node-22-brightgreen)](.nvmrc)
 
 [English version](README.en.md)
+
+</div>
 
 Quand quelqu'un arrive sur le serveur, il reçoit un rôle « en attente » et poste une capture de son profil Pokémon GO. Un modérateur valide d'une réaction, le bot renomme le membre et lui souhaite la bienvenue. Pour une sortie, `/rdv` ouvre un salon privé où l'on s'inscrit avec un bouton ; le salon disparaît le lendemain à minuit, heure de Paris. Chaque message rapporte un peu d'XP, et il y a un classement Pokémon GO mis à jour par capture d'écran. Le reste, ce sont des petits jeux, des sondages et l'annonce des nouvelles vidéos d'une chaîne YouTube.
 

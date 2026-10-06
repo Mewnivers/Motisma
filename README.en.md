@@ -1,6 +1,8 @@
-<img src="docs/assets/motisma.png" alt="" width="96" align="right">
+<div align="center">
 
-# Motisma
+<img src="docs/assets/motisma.png" alt="" width="110">
+
+<h1>Motisma</h1>
 
 Motisma is the Discord bot of the Pokémon GO community in Pau, France.
 
@@ -8,6 +10,8 @@ Motisma is the Discord bot of the Pokémon GO community in Pau, France.
 [![Node.js 22](https://img.shields.io/badge/node-22-brightgreen)](.nvmrc)
 
 [Version française](README.md)
+
+</div>
 
 New members land with a "pending" role and post a screenshot of their Pokémon GO profile. A moderator approves them with a reaction, and the bot sets their nickname and posts a welcome message. To plan a meetup, `/rdv` opens a private channel that people join with a button; it goes away at midnight (Paris time) the next day. Chatting earns XP, and there is a Pokémon GO leaderboard that players update by sending a screenshot. On top of that: a few games, polls, and posts for new videos from a YouTube channel.
 
