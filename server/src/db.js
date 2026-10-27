@@ -939,7 +939,7 @@ const INFO_EMBED_DEFAULTS = {
     color: WHITE,
     // thumbnail_url est rempli dynamiquement (avatar du bot) par ensureInfoEmbeds.
     description: [
-      '<:pogo:1519020981308624896> **Motisma** est le bot du serveur, votre compagnon au quotidien — un peu comme un Rotom-Dex de poche. Voici ce qu’il fait pour vous.',
+      '<:pogo:1519020981308624896> **Motisma** est le bot du serveur, votre compagnon au quotidien — un peu comme un Motisma de poche. Voici ce qu’il fait pour vous.',
       '',
       '<a:pikahi:1519057356812587018> **VOTRE PROFIL POKÉMON GO**',
       '`/userinfo` — ton profil, le tien ou celui d’un membre.',
