@@ -1,4 +1,4 @@
-# Contributing to Rotom'Pau
+# Contributing to Motisma'Pau
 
 Thanks for your interest in the project. This repository supports the Pokémon GO
 community of Pau; contributions are welcome, whether code, documentation, or usage
@@ -31,6 +31,6 @@ exposed, regenerate it immediately from the Discord developer portal.
 
 ## Project spirit
 
-Rotom'Pau aims to strengthen local connections without ever exposing personal
+Motisma'Pau aims to strengthen local connections without ever exposing personal
 information. Every contribution must respect this principle: no geolocation, no
 address, only declarative and aggregated data.

@@ -18,10 +18,10 @@ sudo mkdir -p /var/www/pogo-pau
 sudo chown -R "$USER:$USER" /var/www/pogo-pau
 
 # 2. Build & publish the React site
-bash ~/Projects/Rotom/deploy/publish-web.sh
+bash ~/Projects/Motisma/deploy/publish-web.sh
 
 # 3. Install the nginx vhost (SPA fallback + /api proxy)
-sudo cp ~/Projects/Rotom/deploy/nginx/pogo-pau.conf \
+sudo cp ~/Projects/Motisma/deploy/nginx/pogo-pau.conf \
         /etc/nginx/sites-available/pogo-pau
 sudo ln -sf /etc/nginx/sites-available/pogo-pau \
             /etc/nginx/sites-enabled/pogo-pau
@@ -42,7 +42,7 @@ Fill the new `# --- Web API ---` values in `.env` first (see `.env.example`):
 `OAUTH_REDIRECT_URI`, `ADMIN_DISCORD_IDS`.
 
 ```bash
-cd ~/Projects/Rotom
+cd ~/Projects/Motisma
 docker compose up -d --build api      # starts the API (and db if needed)
 curl -s localhost:3100/api/health     # -> {"ok":true,...}
 ```
@@ -53,7 +53,7 @@ In the Discord Developer Portal (**OAuth2 → Redirects**) register:
 ## Updating afterwards
 
 ```bash
-bash ~/Projects/Rotom/deploy/publish-web.sh    # front-end (no sudo)
+bash ~/Projects/Motisma/deploy/publish-web.sh    # front-end (no sudo)
 docker compose up -d --build api               # API after server/ changes
 ```
 

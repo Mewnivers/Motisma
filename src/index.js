@@ -16,6 +16,7 @@ import { registerClassement } from './features/classement.js';
 import { registerLanguageWatch } from './features/languageWatch.js';
 import { registerYoutube } from './features/youtube.js';
 import { registerForumKeepAlive } from './features/forumKeepAlive.js';
+import { registerServerLogs } from './features/serverLogs.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -32,12 +33,15 @@ const intents = [
   GatewayIntentBits.GuildVoiceStates,
   // Non-privileged — lets participants DM the bot a screenshot to update stats.
   GatewayIntentBits.DirectMessages,
+  // Non-privileged — ban add/remove events for the server moderation logs.
+  GatewayIntentBits.GuildModeration,
 ];
 
-// Privileged — only declared when vision is configured, because declaring an
-// intent that isn't enabled in the Developer Portal makes login fail.
-// Enable "Message Content" in the portal at the same time you set GEMINI_API_KEY.
-if (config.geminiApiKey) {
+// Privileged — only declared when vision is configured OR message-content logging
+// is enabled, because declaring an intent that isn't enabled in the Developer
+// Portal makes login fail. Enable "Message Content" in the portal too.
+// LOG_MESSAGE_CONTENT lets the deleted/edited message logs show the actual text.
+if (config.geminiApiKey || process.env.LOG_MESSAGE_CONTENT === 'true') {
   intents.push(GatewayIntentBits.MessageContent);
 }
 
@@ -125,6 +129,7 @@ registerClassement(client);
 registerLanguageWatch(client);
 registerYoutube(client);
 registerForumKeepAlive(client);
+registerServerLogs(client);
 
 client.on(Events.InteractionCreate, async (interaction) => {
   // Autocomplétion des options de commande.

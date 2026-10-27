@@ -7,7 +7,7 @@
 const CLIENT_ID = "1513455321853460584";
 const REDIRECT_URI = location.origin + "/";
 const SCOPE = "identify";
-const STORE_KEY = "rotom.discord";
+const STORE_KEY = "motisma.discord";
 
 const $ = (id) => document.getElementById(id);
 
@@ -19,7 +19,7 @@ function randomState() {
 
 function login() {
   const state = randomState();
-  sessionStorage.setItem("rotom.oauth_state", state);
+  sessionStorage.setItem("motisma.oauth_state", state);
   const url =
     "https://discord.com/oauth2/authorize?" +
     new URLSearchParams({
@@ -44,8 +44,8 @@ function consumeRedirect() {
   const token = p.get("access_token");
   if (!token) return null;
 
-  const expected = sessionStorage.getItem("rotom.oauth_state");
-  sessionStorage.removeItem("rotom.oauth_state");
+  const expected = sessionStorage.getItem("motisma.oauth_state");
+  sessionStorage.removeItem("motisma.oauth_state");
   // Clear the fragment so the token never lingers in the address bar / history.
   history.replaceState(null, "", location.pathname + location.search);
   if (expected && p.get("state") !== expected) return null;

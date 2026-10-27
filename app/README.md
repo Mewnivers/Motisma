@@ -1,4 +1,4 @@
-# Rotom — interactive web map
+# Motisma — interactive web map
 
 Static site (Leaflet + OpenStreetMap) showing how many Pokemon GO players are
 active in each area of Pau. No address is ever exposed: a sector reveals its
