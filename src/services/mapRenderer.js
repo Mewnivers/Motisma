@@ -18,7 +18,7 @@ const TILE = 256;
 const MARGIN = 48;
 const MAX_DIM = 2048;
 const HEADER_H = 76;
-const UA = 'RotomPau-bot/0.1 (community map; +https://github.com/ZelPhyris/Rotom)';
+const UA = 'MotismaPau-bot/0.1 (community map; +https://github.com/mxriine-mz/Motisma)';
 
 const COLD = [44, 125, 160];
 const HOT = [244, 121, 31];
