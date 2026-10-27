@@ -126,7 +126,7 @@ export default function Motisma() {
           <span className="eyebrow">Le bot de la communauté</span>
           <h1>Motisma’Pau</h1>
           <p className="motisma-lead">
-            Votre Motisma de poche sur le Discord : profil Pokémon GO, progression, organisation
+            Votre petit assistant de poche sur le Discord : profil Pokémon GO, progression, organisation
             de sorties et petits jeux, le tout en quelques commandes.
           </p>
           <div className="motisma-actions">

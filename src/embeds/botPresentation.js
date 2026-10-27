@@ -32,7 +32,7 @@ export function buildBotPresentationEmbed(interaction) {
     .setTitle('Motisma’Pau — votre assistant sur le serveur')
     .setDescription(
       [
-        `${E.pogo} **Motisma** est le bot du serveur, votre compagnon au quotidien — un peu comme un Motisma de poche. Voici ce qu’il fait pour vous.`,
+        `${E.pogo} **Motisma** est le bot du serveur, votre compagnon au quotidien — un peu comme un petit assistant de poche. Voici ce qu’il fait pour vous.`,
         '',
         `${E.profil} **VOTRE PROFIL POKÉMON GO**`,
         '`/userinfo` — ton profil, le tien ou celui d’un membre.',
