@@ -89,8 +89,10 @@ export function buildVerificationLogEmbed({ target, mod, name, team, suspected, 
   return embed;
 }
 
-// Post the audit embed to the log channel. No-op if no LOG_CHANNEL_ID is set.
+// Post the audit embed to the log channel. No-op if the verification log switch
+// is off (dashboard: guilds.logs_verification) or no LOG_CHANNEL_ID is set.
 async function sendVerificationLog(guild, data) {
+  if (!config.logsVerification) return;
   if (!config.logChannelId) return;
   const channel = await guild.channels.fetch(config.logChannelId).catch(() => null);
   if (!channel?.isTextBased?.()) return;

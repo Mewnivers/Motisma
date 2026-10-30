@@ -144,4 +144,17 @@ export const config = {
   // Discord auto-archives them. Comma/space separated thread ids. Empty = off.
   // These are the PARTAGE posts surfaced in the "salons à connaître" embed.
   forumKeepAliveIds: parseIdList(process.env.FORUM_KEEPALIVE_IDS),
+  // --- Server event logs (per-type toggles, edited from the dashboard → guilds) ---
+  // Posted as embeds in logChannelId. Defaults match the DB DDL; hydrateConfig
+  // overrides them at runtime from guilds.logs_* (a false there wins over a true
+  // here). Verification is on by default; the 8 others are off.
+  logsVerification: true,
+  logsJoins: false,
+  logsLeaves: false,
+  logsMessages: false,
+  logsModeration: false,
+  logsRoles: false,
+  logsChannels: false,
+  logsVoice: false,
+  logsBoosts: false,
 };
