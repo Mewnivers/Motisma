@@ -16,37 +16,37 @@ const GOHUB = 'https://pokemongohub.net';
 const LEEKDUCK = 'https://leekduck.com';
 
 /**
- * Server rules embed.
+ * Server rules embed. Sober typographic style (no emoji), consistent with the
+ * presentation and resources embeds it is published alongside.
  * @returns {EmbedBuilder}
  */
 export function buildReglementEmbed() {
   return new EmbedBuilder()
     .setColor(BRAND)
-    .setTitle('📜 Règles du serveur')
+    .setTitle('Règles du serveur')
     .setDescription(
       [
-        'Pour une atmosphère **respectueuse, tolérante et accueillante** pour tous. 💙',
+        'Pour une atmosphère **respectueuse, tolérante et accueillante** pour tous.',
         '',
         '**1 —** On est sympa.',
         '**2 —** On évite les sujets qui fâchent.',
         '**3 —** Pas de pub : contacte un·e admin au préalable.',
-        '',
         '**4 —** On reste matures.',
-        '> L’âge minimum sur les réseaux sociaux est de **13 ans**. Les joueurs plus jeunes peuvent participer à nos rencontres IRL avec un parent ou gardien.',
-        '> On est majoritairement des adultes : **comportement mature et responsable** attendu. Pas de flood, d’insolence, ni de remarques NSFW.',
-        '',
         '**5 —** On suit les **CGU de Niantic et Pokémon GO** (détail ci-dessous).',
+        '',
+        '> **Sur la maturité —** l’âge minimum sur les réseaux sociaux est de **13 ans** ; les plus jeunes peuvent participer aux rencontres IRL avec un parent ou gardien. On est majoritairement des adultes : comportement responsable attendu, pas de flood, d’insolence ni de remarques NSFW.',
       ].join('\n'),
     )
     .addFields(
       {
-        name: '🚫 5.A · Applications tierces',
+        name: '5.A · Applications tierces',
         value: [
+          '**Interdit**',
           '• Piratage GPS (*fly*, *spoof*)',
           '• Sites ou cartes indiquant où sont les Pokémon (bots, scanners)',
           '• Applis de « fausse marche » ou qui font payer pour raider à distance',
           '',
-          '✅ **Ressources autorisées**',
+          '**Autorisé**',
           `• Calcul d’IV & renommage — [CalcyIV](${CALCYIV})`,
           `• Contres en raid — [PokeBattler](${POKEBATTLER})`,
           `• PvP — [PvPoke](${PVPOKE}), [GO Stadium](${STADIUM})`,
@@ -54,7 +54,7 @@ export function buildReglementEmbed() {
         ].join('\n'),
       },
       {
-        name: '🔒 5.B & 5.C · Comptes',
+        name: '5.B & 5.C · Comptes',
         value: [
           '• Le **partage de compte est interdit**, y compris si un ami en voyage se connecte pour vous.',
           '• Un joueur = **un seul et unique compte**.',
