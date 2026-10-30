@@ -1,3 +1,5 @@
+name: motisma
+
 services:
   db:
     image: postgres:16-alpine
@@ -16,6 +18,7 @@ services:
     # No published port: the bot reaches the DB over the internal compose network.
 
   bot:
+    image: motisma-bot:latest
     build: .
     restart: unless-stopped
     env_file: .env
@@ -28,6 +31,7 @@ services:
   # Web API for the React site (Discord login + stats leaderboard). Published
   # only on localhost so the host nginx can reverse-proxy /api to it.
   api:
+    image: motisma-api:latest
     build: ./server
     restart: unless-stopped
     env_file: .env
@@ -43,3 +47,6 @@ services:
 
 volumes:
   pgdata:
+    # Volume historique gardé tel quel (données du bot).
+    external: true
+    name: rotom_pgdata
