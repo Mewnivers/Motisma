@@ -74,6 +74,8 @@ export const config = {
   logChannelId: process.env.LOG_CHANNEL_ID || '',
   // PostgreSQL connection string. Empty disables DB-backed features.
   databaseUrl: process.env.DATABASE_URL || '',
+  // Public origin of the website (shared WEB_ORIGIN with the server).
+  webOrigin: process.env.WEB_ORIGIN || 'https://pogo-pau.mxrine-mz.dev',
   // Google Gemini API key (free tier) for reading profile screenshots. Empty disables it.
   geminiApiKey: process.env.GEMINI_API_KEY || '',
   // Vision model used to extract the trainer name from a screenshot.
