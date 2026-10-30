@@ -1,8 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { topPogoStat } from '../db.js';
+import { config } from '../config.js';
 
 const BRAND = 0xffffff; // white
-const WEB_URL = 'https://pogo-pau.mxrine-mz.dev/classement';
+const WEB_URL = config.webOrigin + '/classement';
 const fr = (v) => Number(v).toLocaleString('fr-FR');
 
 // Custom application emojis (the bot's own medals, usable in any guild). One per

@@ -944,7 +944,7 @@ const INFO_EMBED_DEFAULTS = {
       '<a:pikahi:1519057356812587018> **VOTRE PROFIL POKÉMON GO**',
       '`/userinfo` — ton profil, le tien ou celui d’un membre.',
       '`/classement-pogo` — rejoins le classement de la commu : envoie une **capture de ton profil en MP** au bot, il lit tes stats tout seul.',
-      'Le classement complet est aussi sur le site **[PoGo Pau](https://pogo-pau.mxrine-mz.dev/classement)**.',
+      `Le classement complet est aussi sur le site **[PoGo Pau](${config.webOrigin}/classement)**.`,
       '',
       '<a:Pokemon_Evolve:1519057363896631317> **TA PROGRESSION SUR LE SERVEUR**',
       'Tu gagnes de l’XP simplement en discutant.',

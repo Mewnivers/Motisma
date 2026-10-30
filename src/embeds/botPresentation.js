@@ -1,9 +1,10 @@
 import { EmbedBuilder } from 'discord.js';
+import { config } from '../config.js';
 
 const BRAND = 0xffffff; // white
 
 // Community website — the Pokémon GO leaderboard lives here too.
-const SITE_CLASSEMENT = 'https://pogo-pau.mxrine-mz.dev/classement';
+const SITE_CLASSEMENT = config.webOrigin + '/classement';
 
 // Server custom emoji used as section accents. They render in the description
 // of a bot's own embed (never in a title, field name or footer). <a:…> forms
