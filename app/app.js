@@ -1,4 +1,4 @@
-/* Rotom — interactive sector map for the Pau Pokemon GO community.
+/* Motisma — interactive sector map for the Pau Pokemon GO community.
    Loads the zone geometry (sectors.geojson) and live counts (counts.json),
    paints each zone on a heat scale, and keeps individual addresses private:
    a sector only reveals its number once it reaches the anonymity threshold. */

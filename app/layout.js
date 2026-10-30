@@ -74,4 +74,4 @@ if (foot) {
 }
 
 // expose invite for page CTAs
-window.ROTOM = { DISCORD_INVITE, GITHUB_URL };
+window.MOTISMA = { DISCORD_INVITE, GITHUB_URL };
