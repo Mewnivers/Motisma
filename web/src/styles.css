@@ -1103,17 +1103,18 @@ code {
   border-radius: 999px;
   padding: 2px 8px;
 }
+/* Deux colonnes sur grand écran, une seule sur mobile. */
 .cmd-list {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 2px;
 }
-/* Lignes sans cadre au repos ; un léger surlignage apparaît au survol. */
+/* Chaque commande : nom, description, exemple empilés ; surlignage au survol. */
 .cmd-row {
-  display: grid;
-  grid-template-columns: 190px 1fr;
-  gap: 20px;
-  padding: 12px;
-  margin: 0 -12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
   border-radius: 10px;
   transition: background 0.15s var(--ease-out);
 }
@@ -1168,10 +1169,17 @@ code {
   }
 }
 
+/* Grand écran : commandes sur deux colonnes. */
+@media (min-width: 760px) {
+  .cmd-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+  }
+}
+
 @media (max-width: 760px) {
   .motisma-hero,
-  .feature,
-  .cmd-row {
+  .feature {
     grid-template-columns: 1fr;
   }
   .feature {
@@ -1194,9 +1202,6 @@ code {
   .motisma-portrait {
     margin: 0 auto;
     max-width: 220px;
-  }
-  .cmd-row {
-    gap: 6px;
   }
 }
 
