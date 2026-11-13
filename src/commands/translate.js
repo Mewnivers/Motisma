@@ -1,5 +1,5 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType } from 'discord.js';
-import { otherLanguageButtons, targetLanguage, translate as claudeTranslate } from '../services/translate.js';
+import { LANGUAGES, otherLanguageButtons, targetLanguage, translate as claudeTranslate } from '../services/translate.js';
 
 /**
  * Message context-menu command "Traduire" — right-click a message → Apps →
@@ -26,7 +26,7 @@ export async function execute(interaction, { translate = claudeTranslate } = {})
     if (translated === null) {
       const { channelId, id } = interaction.targetMessage;
       await interaction.editReply({
-        content: 'Traduire dans une autre langue :',
+        content: `Ce message est déjà en ${LANGUAGES[lang]}. Dans quelle langue veux-tu le traduire ?`,
         components: [otherLanguageButtons(lang, channelId, id)],
       });
       return;

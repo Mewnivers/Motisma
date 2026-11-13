@@ -4,7 +4,7 @@
 
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
-const LANGUAGES = { fr: 'français', en: 'anglais', es: 'espagnol' };
+export const LANGUAGES = { fr: 'français', en: 'anglais', es: 'espagnol' };
 const LABELS = { fr: 'Français', en: 'Anglais', es: 'Espagnol' };
 const MODEL = 'claude-haiku-5-5';
 const ALREADY = '===DEJA===';
