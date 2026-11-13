@@ -2,7 +2,7 @@ import { EmbedBuilder } from 'discord.js';
 
 const BRAND = 0xffffff; // white
 
-const INVITE = 'https://discord.gg/bWYwAdXes3';
+const INVITE = 'https://pogo-pau.mxrine-mz.dev/invitation';
 const NIANTIC_TERMS = 'https://nianticlabs.com/terms';
 const DISCORD_TERMS = 'https://discord.com/terms';
 const DISCORD_GUIDELINES = 'https://discord.com/guidelines';
