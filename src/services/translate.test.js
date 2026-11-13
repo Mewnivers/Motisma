@@ -69,7 +69,7 @@ test('message déjà dans la langue de l’utilisateur : boutons vers les autres
   assert.deepEqual(i.calls[0], ['deferReply', { ephemeral: true }]);
   const [kind, reply] = i.calls[1];
   assert.equal(kind, 'editReply');
-  assert.doesNotMatch(reply.content ?? '', /déjà en français/);
+  assert.equal(reply.content, 'Ce message est déjà en français. Dans quelle langue veux-tu le traduire ?');
   const buttons = reply.components[0].toJSON().components;
   assert.deepEqual(buttons.map((b) => b.label), ['Anglais', 'Espagnol']);
   assert.deepEqual(buttons.map((b) => b.custom_id), ['traduire:en:c1:m1', 'traduire:es:c1:m1']);
@@ -120,4 +120,12 @@ test('message anglais + locale fr : traduction directe, sans bouton', async () =
   await execute(i, { translate: async (text, lang) => { asked = [text, lang]; return 'Bonjour à tous'; } });
   assert.deepEqual(asked, ['Hello everyone', 'fr']);
   assert.deepEqual(i.calls[1], ['editReply', { content: 'Bonjour à tous' }]);
+});
+
+test('message déjà en anglais ou en espagnol : la langue est nommée', async () => {
+  for (const [locale, langue] of [['en-US', 'anglais'], ['es-ES', 'espagnol']]) {
+    const i = fakeInteraction('x', locale);
+    await execute(i, { translate: async () => null });
+    assert.equal(i.calls[1][1].content, `Ce message est déjà en ${langue}. Dans quelle langue veux-tu le traduire ?`);
+  }
 });
