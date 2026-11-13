@@ -16,6 +16,7 @@ import { registerClassement } from './features/classement.js';
 import { registerLanguageWatch } from './features/languageWatch.js';
 import { registerYoutube } from './features/youtube.js';
 import { registerForumKeepAlive } from './features/forumKeepAlive.js';
+import { registerTranslateControls } from './features/translateControls.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -125,6 +126,7 @@ registerClassement(client);
 registerLanguageWatch(client);
 registerYoutube(client);
 registerForumKeepAlive(client);
+registerTranslateControls(client);
 
 client.on(Events.InteractionCreate, async (interaction) => {
   // Autocomplétion des options de commande.

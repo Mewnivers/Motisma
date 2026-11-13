@@ -1,10 +1,12 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType } from 'discord.js';
-import { targetLanguage, translate as claudeTranslate } from '../services/translate.js';
+import { otherLanguageButtons, targetLanguage, translate as claudeTranslate } from '../services/translate.js';
 
 /**
  * Message context-menu command "Traduire" — right-click a message → Apps →
  * Traduire. Open to every member; the translation is ephemeral (only the
  * member who clicked sees it), in their Discord language (FR, EN, ES, else FR).
+ * When the message is already in that language, the reply offers buttons for
+ * the other languages (handled in features/translateControls.js).
  */
 export const data = new ContextMenuCommandBuilder()
   .setName('Traduire')
@@ -19,7 +21,16 @@ export async function execute(interaction, { translate = claudeTranslate } = {})
 
   await interaction.deferReply({ ephemeral: true });
   try {
-    const translated = await translate(text, targetLanguage(interaction.locale));
+    const lang = targetLanguage(interaction.locale);
+    const translated = await translate(text, lang);
+    if (translated === null) {
+      const { channelId, id } = interaction.targetMessage;
+      await interaction.editReply({
+        content: 'Traduire dans une autre langue :',
+        components: [otherLanguageButtons(lang, channelId, id)],
+      });
+      return;
+    }
     await interaction.editReply({ content: translated.slice(0, 2000) });
   } catch (error) {
     console.error('[traduire]', error.message);
