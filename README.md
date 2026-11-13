@@ -47,6 +47,7 @@ L'annonce publiée par `/rdv` dans le salon des sorties.
 | `/help`, `/userinfo`, `/avatar` | Aide, profil d'un membre, avatar | Tout le monde |
 | `/clear` | Supprime de 1 à 100 messages récents | « Gérer les messages » |
 | Menu « Déplacer » sur un message | Déplace un message vers un autre salon ou un post de forum | « Gérer les messages » |
+| Menu « Traduire » sur un message | Traduit le message dans ta langue Discord (FR, EN, ES), visible de toi seul | Tout le monde |
 | `/embed`, `/say`, `/bingo` | Publie un embed d'information, fait parler le bot, publie l'image d'un bingo | « Gérer le serveur » |
 | `/reset-joueur` | Efface tout ou partie des données d'un joueur | « Gérer le serveur » |
 | `/test`, `/test-log` | Simulent une arrivée et affichent un exemple de log | « Gérer le serveur » |
