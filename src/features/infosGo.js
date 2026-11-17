@@ -81,7 +81,7 @@ export async function classify(text, images) {
   return JSON.parse(out).theme;
 }
 
-async function downloadBuffer(url) {
+export async function downloadBuffer(url) {
   const res = await fetch(url, { signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return Buffer.from(await res.arrayBuffer());
@@ -158,6 +158,51 @@ export async function fileInfo(message, deps) {
   const tag = forum.availableTags.find((t) => t.name === theme);
   const post = await forum.threads.create({ name: theme, message: payload, appliedTags: tag ? [tag.id] : [] });
   await deps.store.set(key, post.id);
+}
+
+// --- Backfill (scripts/infos-go-rattrapage.mjs) ---
+
+const BACKFILL_USAGE =
+  'usage : infos-go-rattrapage <salon source (id ou nom)> <guilde:source:forum> [--limit N] [--dry-run] [--depuis <messageId>]';
+
+/** CLI args → { source, rule, limit, dryRun, depuis }. Throws the usage on anything odd. */
+export function parseBackfillArgs(argv) {
+  const out = { source: null, rule: null, limit: 50, dryRun: false, depuis: null };
+  const positional = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--dry-run') out.dryRun = true;
+    else if (a === '--limit') out.limit = Number(argv[++i]);
+    else if (a === '--depuis') out.depuis = argv[++i] ?? '';
+    else if (a.startsWith('--')) throw new Error(BACKFILL_USAGE);
+    else positional.push(a);
+  }
+  const rules = parseRules(positional[1]);
+  if (positional.length !== 2 || rules.length !== 1 || !(Number.isInteger(out.limit) && out.limit > 0) || out.depuis === '') {
+    throw new Error(BACKFILL_USAGE);
+  }
+  return { ...out, source: positional[0], rule: rules[0] };
+}
+
+const byId = (a, b) => (BigInt(a.id) < BigInt(b.id) ? -1 : BigInt(a.id) > BigInt(b.id) ? 1 : 0);
+
+/** Normal messages only (type 0: no follow notice, pin notice…), the `limit` newest, oldest first. */
+export function selectBackfill(messages, { limit, depuis = null }) {
+  const kept = [...messages].filter((m) => m.type === 0).sort(byId).slice(-limit);
+  return depuis ? kept.filter((m) => BigInt(m.id) >= BigInt(depuis)) : kept;
+}
+
+/** What fileInfo reads, as if the message came from the rule's source channel. Read only: no methods. */
+export function asBackfill(message, rule) {
+  return {
+    id: message.id,
+    guildId: rule.guildId,
+    channelId: rule.sourceId,
+    url: message.url,
+    content: message.content,
+    attachments: message.attachments,
+    embeds: message.embeds,
+  };
 }
 
 /**

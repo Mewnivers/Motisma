@@ -186,3 +186,52 @@ test('classify() : Haiku, sortie contrainte aux thèmes + programme, images en b
     if (saved[0] === undefined) delete process.env.ANTHROPIC_API_KEY;
   }
 });
+
+// --- Rattrapage (scripts/infos-go-rattrapage.mjs) ---
+import { parseBackfillArgs, selectBackfill, asBackfill } from './infosGo.js';
+
+test('rattrapage : arguments source, règle, --limit, --dry-run, --depuis', () => {
+  assert.deepEqual(parseBackfillArgs(['g47ix', '1:2:3']), {
+    source: 'g47ix', rule: { guildId: '1', sourceId: '2', forumId: '3' }, limit: 50, dryRun: false, depuis: null,
+  });
+  assert.deepEqual(parseBackfillArgs(['99', '1:2:3', '--limit', '10', '--dry-run', '--depuis', '42']), {
+    source: '99', rule: { guildId: '1', sourceId: '2', forumId: '3' }, limit: 10, dryRun: true, depuis: '42',
+  });
+  assert.throws(() => parseBackfillArgs(['99']), /usage/);
+  assert.throws(() => parseBackfillArgs(['99', '1:2']), /usage/);
+  assert.throws(() => parseBackfillArgs(['99', '1:2:3', '--limit', '0']), /usage/);
+  assert.throws(() => parseBackfillArgs(['99', '1:2:3', '--vite']), /usage/);
+});
+
+const msg = (id, type = 0) => ({ id, type });
+
+test('rattrapage : seulement les messages normaux, les N plus récents, du plus ancien au plus récent', () => {
+  // Discord rend du plus récent au plus ancien ; ids snowflake de longueurs différentes.
+  const fetched = [msg('1000'), msg('999', 12), msg('998'), msg('99'), msg('98', 7), msg('97')];
+  assert.deepEqual(selectBackfill(fetched, { limit: 50 }).map((m) => m.id), ['97', '99', '998', '1000']);
+  assert.deepEqual(selectBackfill(fetched, { limit: 2 }).map((m) => m.id), ['998', '1000']);
+});
+
+test('rattrapage : --depuis reprend à ce message (inclus)', () => {
+  const fetched = [msg('5'), msg('4'), msg('3'), msg('2')];
+  assert.deepEqual(selectBackfill(fetched, { limit: 50, depuis: '4' }).map((m) => m.id), ['4', '5']);
+});
+
+test('rattrapage : le message est rangé comme s’il venait du salon source de la règle, lien vers l’original', async () => {
+  const original = {
+    id: 'p1', guildId: 'pogoPau', channelId: 'g47ixProd', url: 'https://discord.com/channels/pogoPau/g47ixProd/p1',
+    content: 'Heure vedette', attachments: new Map(), embeds: [],
+    delete: async () => assert.fail('salon de prod en lecture seule'),
+  };
+  const view = asBackfill(original, RULE);
+  assert.equal(view.guildId, 'gTest');
+  assert.equal(view.channelId, 'g47ix');
+  assert.equal(view.url, original.url);
+  assert.equal(view.delete, undefined);
+
+  const w = fakeWorld();
+  await fileInfo(view, w.deps('Heures vedettes'));
+  assert.equal(w.log[0][2].name, 'Heures vedettes');
+  assert.match(w.log[0][2].message.content, /channels\/pogoPau\/g47ixProd\/p1/);
+  assert.equal(w.kv.has('infos-go:gTest:Heures vedettes'), true);
+});
