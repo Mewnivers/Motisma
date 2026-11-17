@@ -141,12 +141,13 @@ test('image non téléchargeable : réenvoyée par son URL, info pas perdue', as
   assert.deepEqual(w.log[0][2].message.files, [{ attachment: 'https://cdn/a.png?ex=1', name: 'a.png' }]);
 });
 
-test('programme de la semaine : nouveau post épinglé, le précédent supprimé', async () => {
+test('programme de la semaine : nouveau post épinglé, le précédent désépinglé et gardé', async () => {
   const w = fakeWorld({ old: 'Programme de la semaine' });
   w.kv.set('infos-go:gTest:programme', 'old');
   await fileInfo(fakeMessage(), w.deps('programme'));
   const kinds = w.log.map(([k, id]) => `${k}:${id}`);
-  assert.deepEqual(kinds, ['create:new1', 'delete:old', 'pin:new1']);
+  assert.deepEqual(kinds, ['create:new1', 'unpin:old', 'pin:new1']);
+  assert.ok(!kinds.includes('delete:old'), "l'ancien programme ne doit jamais être supprimé");
   assert.equal(w.log[0][2].name, 'Programme de la semaine');
   assert.equal(w.kv.get('infos-go:gTest:programme'), 'new1');
 });

@@ -1,7 +1,7 @@
 // infos-go: every new message of a source channel (🎨・g47ix, fed by an
 // announcement follow) is copied into the permanent post of its theme in a
-// forum (📚・infos-go). The weekly programme gets its own pinned post, replaced
-// each week. The theme comes from the Claude API; any doubt or error = Divers.
+// forum (📚・infos-go). The weekly programme gets its own pinned post each week;
+// the previous one is unpinned and kept. The theme comes from the Claude API; any doubt or error = Divers.
 // The original is never deleted. Enabled per guild by INFOS_GO, see .env.example.
 
 import { Events } from 'discord.js';
@@ -143,7 +143,8 @@ export async function fileInfo(message, deps) {
     await deps.store.set(key, post.id);
     if (knownId) {
       const old = await deps.fetchChannel(knownId).catch(() => null);
-      if (old) await old.delete().catch(() => old.unpin().catch(() => {}));
+      // Old programmes stay in the forum, only unpinned (one pin per forum).
+      if (old) await old.unpin().catch((err) => console.error('[infos-go] désépinglage impossible :', err.message));
     }
     await post.pin().catch((err) => console.error('[infos-go] épinglage impossible :', err.message));
     return;
