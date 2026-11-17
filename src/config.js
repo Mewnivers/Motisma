@@ -72,6 +72,25 @@ export const config = {
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID || '',
   // Staff log channel for audit embeds (e.g. who validated whom). Empty = no log.
   logChannelId: process.env.LOG_CHANNEL_ID || '',
+  // Server event logs, one switch per kind, edited from the dashboard
+  // (guilds.logs_*, hydrated by guildConfig.js). Defaults match the DB:
+  // verification on, the others off.
+  logsVerification: true,
+  logsJoins: false,
+  logsLeaves: false,
+  logsMessages: false,
+  logsModeration: false,
+  logsRoles: false,
+  logsChannels: false,
+  logsVoice: false,
+  logsBoosts: false,
+  // Extra guilds (test server) where every server log kind is posted, whatever
+  // the switches above say: { guildId: logChannelId }. LOGS_GUILDS="guild:channel,…".
+  logsGuilds: Object.fromEntries(
+    parseIdList(process.env.LOGS_GUILDS)
+      .map((pair) => pair.split(':'))
+      .filter(([g, c]) => g && c),
+  ),
   // PostgreSQL connection string. Empty disables DB-backed features.
   databaseUrl: process.env.DATABASE_URL || '',
   // Google Gemini API key (free tier) for reading profile screenshots. Empty disables it.
