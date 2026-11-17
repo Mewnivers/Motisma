@@ -178,7 +178,7 @@ test('classify() : Haiku, sortie contrainte aux thèmes + programme, images en b
     const theme = await classify('Heure vedette Pikachu', [{ data: Buffer.from('img'), mediaType: 'image/png' }]);
     assert.equal(theme, 'Heures vedettes');
     assert.equal(sent.model, 'claude-haiku-5-5');
-    assert.deepEqual(sent.output_config.format.schema.properties.theme.enum, [...THEMES, 'programme']);
+    assert.deepEqual(sent.output_config.format.schema.properties.theme.enum, [...THEMES, 'programme', 'programme-mois']);
     const image = sent.messages[0].content.find((b) => b.type === 'image');
     assert.deepEqual(image.source, { type: 'base64', media_type: 'image/png', data: Buffer.from('img').toString('base64') });
   } finally {
@@ -235,3 +235,83 @@ test('rattrapage : le message est rangé comme s’il venait du salon source de 
   assert.match(w.log[0][2].message.content, /channels\/pogoPau\/g47ixProd\/p1/);
   assert.equal(w.kv.has('infos-go:gTest:Heures vedettes'), true);
 });
+
+// --- Images et programme du mois (essai à blanc du 2026-11-17) ---
+const PNG = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.from('reste')]);
+
+test('type d’image lu dans les octets, pas dans le content-type de Discord ; inconnu = non envoyé à Claude', async () => {
+  const w = fakeWorld();
+  const deps = w.deps('Raids');
+  let seen;
+  deps.classify = async (_t, images) => {
+    seen = images;
+    return 'Raids';
+  };
+  deps.download = async (url) => (url.includes('png') ? PNG : Buffer.from('pas une image'));
+  const attachments = new Map([
+    ['a1', { url: 'https://cdn/IMG.png', name: 'IMG.png', contentType: 'image/jpeg', size: PNG.length }],
+    ['a2', { url: 'https://cdn/x.bin', name: 'x.bin', contentType: 'image/png', size: 13 }],
+  ]);
+  await fileInfo(fakeMessage({ attachments }), deps);
+  assert.deepEqual(seen, [{ data: PNG, mediaType: 'image/png' }]);
+  assert.equal(w.log[0][2].message.files.length, 2); // les deux fichiers sont quand même recopiés
+});
+
+test('image trop lourde pour le base64 : envoyée à Claude par son URL', async () => {
+  const w = fakeWorld();
+  const deps = w.deps('Raids');
+  let seen;
+  deps.classify = async (_t, images) => {
+    seen = images;
+    return 'Raids';
+  };
+  const big = Buffer.concat([PNG, Buffer.alloc(4 * 1024 * 1024)]);
+  deps.download = async () => big;
+  const attachments = new Map([['a1', { url: 'https://cdn/big.png?ex=1', name: 'big.png', contentType: 'image/png', size: big.length }]]);
+  await fileInfo(fakeMessage({ attachments }), deps);
+  // Pas de deepEqual sur un Buffer de 4 Mo : le diff d'échec ferait exploser la mémoire.
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0].url, 'https://cdn/big.png?ex=1');
+  assert.equal(seen[0].data, undefined);
+});
+
+function withFetch(responses, fn) {
+  return async () => {
+    const saved = [process.env.ANTHROPIC_API_KEY, globalThis.fetch];
+    process.env.ANTHROPIC_API_KEY = 'test';
+    const sent = [];
+    globalThis.fetch = async (_url, opts) => {
+      sent.push(JSON.parse(opts.body));
+      return responses.shift();
+    };
+    try {
+      await fn(sent);
+    } finally {
+      [process.env.ANTHROPIC_API_KEY, globalThis.fetch] = saved;
+      if (saved[0] === undefined) delete process.env.ANTHROPIC_API_KEY;
+    }
+  };
+}
+const ok = (theme) => ({ ok: true, json: async () => ({ content: [{ type: 'text', text: JSON.stringify({ theme }) }] }) });
+const bad = (message) => ({ ok: false, status: 400, json: async () => ({ error: { type: 'invalid_request_error', message } }) });
+
+test('classify() : image par URL envoyée en source url', withFetch([ok('Raids')], async (sent) => {
+  await classify('', [{ url: 'https://cdn/big.png?ex=1' }]);
+  assert.deepEqual(sent[0].messages[0].content[0], { type: 'image', source: { type: 'url', url: 'https://cdn/big.png?ex=1' } });
+}));
+
+test('classify() : 400 sur les images → nouvel essai sur le texte seul', withFetch([bad('image refusée'), ok('Recherches')], async (sent) => {
+  assert.equal(await classify('Étude de terrain', [{ data: PNG, mediaType: 'image/png' }]), 'Recherches');
+  assert.equal(sent.length, 2);
+  assert.equal(sent[1].messages[0].content.some((b) => b.type === 'image'), false);
+}));
+
+test('classify() : l’erreur garde le message de l’API', withFetch([bad('image refusée')], async () => {
+  await assert.rejects(classify('', [{ data: PNG, mediaType: 'image/png' }]), /HTTP 400 : image refusée/);
+}));
+
+test('classify() : programme du mois rangé dans Événements, pas épinglé', withFetch([ok('programme-mois')], async (sent) => {
+  assert.equal(await classify('Programme de NOVEMBRE', []), 'Événements');
+  assert.ok(sent[0].output_config.format.schema.properties.theme.enum.includes('programme-mois'));
+  assert.match(sent[0].system, /semaine/);
+}));

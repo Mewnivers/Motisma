@@ -10,9 +10,19 @@ export const THEMES = ['Raids', 'Événements', 'Community Day', 'Heures vedette
 const PROGRAMME = 'programme';
 const PROGRAMME_TITLE = 'Programme de la semaine';
 const MODEL = 'claude-haiku-5-5';
-const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // API limit per image
+const MONTHLY = 'programme-mois'; // monthly programme: filed under Événements, never pinned
+const MAX_BASE64_BYTES = 3.75 * 1024 * 1024; // 5 MB once base64-encoded (API limit)
 const MAX_IMAGES = 4; // enough to classify, caps the cost
+
+// Discord's content-type is not reliable (PNG files announced as image/jpeg):
+// the API checks the real type, so read it from the first bytes.
+export function sniffImageType(buf) {
+  if (buf.length >= 8 && buf.readUInt32BE(0) === 0x89504e47) return 'image/png';
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+  if (buf.subarray(0, 4).toString('latin1') === 'GIF8') return 'image/gif';
+  if (buf.subarray(0, 4).toString('latin1') === 'RIFF' && buf.subarray(8, 12).toString('latin1') === 'WEBP') return 'image/webp';
+  return null;
+}
 
 /** "guildId:sourceId:forumId, …" → [{ guildId, sourceId, forumId }]. */
 export function parseRules(raw) {
@@ -23,22 +33,19 @@ export function parseRules(raw) {
     .map(([guildId, sourceId, forumId]) => ({ guildId, sourceId, forumId }));
 }
 
-/**
- * Ask Claude for the theme of an info. Resolves to one of THEMES or 'programme'.
- * Throws on any failure (the caller files it under Divers).
- * @param {string} text
- * @param {{ data: Buffer, mediaType: string }[]} images
- */
-export async function classify(text, images) {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new Error('ANTHROPIC_API_KEY manquante');
+const SYSTEM =
+  'Tu ranges des infographies Pokémon GO (en français) dans un forum Discord. ' +
+  'Choisis le thème du message : ' +
+  '« Raids » (boss de raid, raids Méga, Dynamax, Gigamax, heures de raids) ; ' +
+  '« Événements » (événements, saisons, GO Fest, Pass, bonus d’événement) ; ' +
+  '« Community Day » (Journée Communauté, Community Day Classique) ; ' +
+  '« Heures vedettes » (heure vedette du mardi) ; ' +
+  '« Recherches » (études de terrain, recherches spéciales ou temporaires, récompenses de quêtes) ; ' +
+  '« programme » UNIQUEMENT pour le programme de la semaine (les 7 jours à venir, récapitulatif hebdomadaire) ; ' +
+  '« programme-mois » pour un programme ou calendrier du mois entier (ex. « Programme de NOVEMBRE ») ; ' +
+  '« Divers » pour tout le reste ou en cas de doute.';
 
-  const content = images.map((img) => ({
-    type: 'image',
-    source: { type: 'base64', media_type: img.mediaType, data: img.data.toString('base64') },
-  }));
-  content.push({ type: 'text', text: text?.trim() || '(pas de texte, seulement les images)' });
-
+async function ask(key, content) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -50,23 +57,14 @@ export async function classify(text, images) {
       model: MODEL,
       max_tokens: 64,
       thinking: { type: 'disabled' },
-      system:
-        'Tu ranges des infographies Pokémon GO (en français) dans un forum Discord. ' +
-        'Choisis le thème du message : ' +
-        '« Raids » (boss de raid, raids Méga, Dynamax, Gigamax, heures de raids) ; ' +
-        '« Événements » (événements, saisons, GO Fest, Pass, bonus d’événement) ; ' +
-        '« Community Day » (Journée Communauté, Community Day Classique) ; ' +
-        '« Heures vedettes » (heure vedette du mardi) ; ' +
-        '« Recherches » (études de terrain, recherches spéciales ou temporaires, récompenses de quêtes) ; ' +
-        '« programme » (programme ou planning de toute la semaine à venir, récapitulatif hebdomadaire) ; ' +
-        '« Divers » pour tout le reste ou en cas de doute.',
+      system: SYSTEM,
       messages: [{ role: 'user', content }],
       output_config: {
         format: {
           type: 'json_schema',
           schema: {
             type: 'object',
-            properties: { theme: { type: 'string', enum: [...THEMES, PROGRAMME] } },
+            properties: { theme: { type: 'string', enum: [...THEMES, PROGRAMME, MONTHLY] } },
             required: ['theme'],
             additionalProperties: false,
           },
@@ -75,10 +73,44 @@ export async function classify(text, images) {
     }),
     signal: AbortSignal.timeout(30_000),
   });
-  if (!res.ok) throw new Error(`API Anthropic : HTTP ${res.status}`);
+  if (!res.ok) {
+    const detail = await res.json().then((b) => b?.error?.message).catch(() => null);
+    throw Object.assign(new Error(`API Anthropic : HTTP ${res.status}${detail ? ` : ${detail}` : ''}`), { status: res.status });
+  }
   const body = await res.json();
   const out = body.content?.find((b) => b.type === 'text')?.text;
   return JSON.parse(out).theme;
+}
+
+/**
+ * Ask Claude for the theme of an info. Resolves to one of THEMES or 'programme'
+ * (a monthly programme comes back as Événements). Images the API refuses (400)
+ * are dropped and the text alone is classified. Throws on any other failure
+ * (the caller files it under Divers).
+ * @param {string} text
+ * @param {({ data: Buffer, mediaType: string } | { url: string })[]} images
+ */
+export async function classify(text, images) {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error('ANTHROPIC_API_KEY manquante');
+
+  const textBlock = { type: 'text', text: text?.trim() || '(pas de texte, seulement les images)' };
+  const imageBlocks = images.map((img) => ({
+    type: 'image',
+    source: img.url
+      ? { type: 'url', url: img.url }
+      : { type: 'base64', media_type: img.mediaType, data: img.data.toString('base64') },
+  }));
+
+  let theme;
+  try {
+    theme = await ask(key, [...imageBlocks, textBlock]);
+  } catch (err) {
+    if (err.status !== 400 || !imageBlocks.length || !text?.trim()) throw err;
+    console.error('[infos-go] images refusées, classement sur le texte seul :', err.message);
+    theme = await ask(key, [textBlock]);
+  }
+  return theme === MONTHLY ? 'Événements' : theme;
 }
 
 export async function downloadBuffer(url) {
@@ -117,8 +149,10 @@ export async function fileInfo(message, deps) {
     try {
       const data = await deps.download(a.url);
       files.push({ attachment: data, name: a.name });
-      if (IMAGE_TYPES.has(a.contentType) && data.length <= MAX_IMAGE_BYTES && images.length < MAX_IMAGES) {
-        images.push({ data, mediaType: a.contentType });
+      const mediaType = sniffImageType(data);
+      if (mediaType && images.length < MAX_IMAGES) {
+        // Too heavy for base64: Claude fetches it by its (fresh) CDN URL.
+        images.push(data.length <= MAX_BASE64_BYTES ? { data, mediaType } : { url: a.url });
       }
     } catch {
       files.push({ attachment: a.url, name: a.name });
