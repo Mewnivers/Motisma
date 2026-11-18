@@ -124,7 +124,7 @@ test('classement en erreur ou hors liste : Divers', async () => {
   };
   await fileInfo(fakeMessage(), deps);
   assert.equal(w.log[0][2].name, 'Divers');
-  assert.deepEqual(w.log[0][2].appliedTags, ['tag5']);
+  assert.deepEqual(w.log[0][2].appliedTags, [TAGS.find((t) => t.name === 'Divers').id]);
 
   const w2 = fakeWorld();
   await fileInfo(fakeMessage(), w2.deps('Pokémon du jour'));
@@ -314,4 +314,15 @@ test('classify() : programme du mois rangé dans Événements, pas épinglé', w
   assert.equal(await classify('Programme de NOVEMBRE', []), 'Événements');
   assert.ok(sent[0].output_config.format.schema.properties.theme.enum.includes('programme-mois'));
   assert.match(sent[0].system, /semaine/);
+}));
+
+test('Passe GO : son propre post « Passe GO » avec son tag, plus dans Événements', withFetch([ok('Passe GO')], async (sent) => {
+  assert.ok(THEMES.includes('Passe GO'));
+  assert.equal(await classify('## Passe GO : Octobre', []), 'Passe GO');
+  assert.ok(sent[0].output_config.format.schema.properties.theme.enum.includes('Passe GO'));
+  assert.match(sent[0].system, /« Passe GO »/);
+  const w = fakeWorld();
+  await fileInfo(fakeMessage({ content: '## Passe GO : Octobre' }), w.deps('Passe GO'));
+  assert.equal(w.log[0][2].name, 'Passe GO');
+  assert.deepEqual(w.log[0][2].appliedTags, [TAGS.find((t) => t.name === 'Passe GO').id]);
 }));

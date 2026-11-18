@@ -6,7 +6,7 @@
 
 import { Events } from 'discord.js';
 
-export const THEMES = ['Raids', 'Événements', 'Community Day', 'Heures vedettes', 'Recherches', 'Divers'];
+export const THEMES = ['Raids', 'Événements', 'Community Day', 'Heures vedettes', 'Recherches', 'Passe GO', 'Divers'];
 const PROGRAMME = 'programme';
 const PROGRAMME_TITLE = 'Programme de la semaine';
 const MODEL = 'claude-haiku-5-5';
@@ -37,10 +37,11 @@ const SYSTEM =
   'Tu ranges des infographies Pokémon GO (en français) dans un forum Discord. ' +
   'Choisis le thème du message : ' +
   '« Raids » (boss de raid, raids Méga, Dynamax, Gigamax, heures de raids) ; ' +
-  '« Événements » (événements, saisons, GO Fest, Pass, bonus d’événement) ; ' +
+  '« Événements » (événements, saisons, GO Fest, bonus d’événement) ; ' +
   '« Community Day » (Journée Communauté, Community Day Classique) ; ' +
   '« Heures vedettes » (heure vedette du mardi) ; ' +
   '« Recherches » (études de terrain, recherches spéciales ou temporaires, récompenses de quêtes) ; ' +
+  '« Passe GO » (Passe GO du mois, ex. « Passe GO : Octobre », paliers et récompenses du Passe) ; ' +
   '« programme » UNIQUEMENT pour le programme de la semaine (les 7 jours à venir, récapitulatif hebdomadaire) ; ' +
   '« programme-mois » pour un programme ou calendrier du mois entier (ex. « Programme de NOVEMBRE ») ; ' +
   '« Divers » pour tout le reste ou en cas de doute.';
