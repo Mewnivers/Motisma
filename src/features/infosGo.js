@@ -1,7 +1,8 @@
 // infos-go: every new message of a source channel (🎨・g47ix, fed by an
 // announcement follow) is copied into the permanent post of its theme in a
-// forum (📚・infos-go). The weekly programme gets its own pinned post each week;
-// the previous one is unpinned and kept. The theme comes from the Claude API; any doubt or error = Divers.
+// forum (📚・infos-go). The weekly programme has one pinned post; each new week
+// the previous one is copied into the « Archives des programmes » post, then deleted.
+// The theme comes from the Claude API; any doubt or error = Divers.
 // The original is never deleted. Enabled per guild by INFOS_GO, see .env.example.
 
 import { Events } from 'discord.js';
@@ -35,6 +36,11 @@ export const INFOS_GO_WELCOME = {
   'Divers':
     "Ce qui ne rentre dans aucune autre case finit ici : mises à jour du jeu, nouveautés et petites infos en vrac. Ça vaut le coup d'y jeter un œil de temps en temps <a:Mewlove:1519057678410711171>",
 };
+
+/** First message of the archive post, where each past weekly programme is copied. */
+export const ARCHIVE_TITLE = 'Archives des programmes';
+export const ARCHIVE_WELCOME =
+  "<:shiny:1519251122336825355> Les programmes des semaines passées sont rangés ici, du plus ancien au plus récent. Celui de la semaine en cours reste épinglé en haut du forum.";
 
 // Discord's content-type is not reliable (PNG files announced as image/jpeg):
 // the API checks the real type, so read it from the first bytes.
@@ -155,6 +161,36 @@ function buildPayload(message, files) {
   };
 }
 
+/** Copy of a posted message: same text (Source line included), files re-uploaded, rich embeds. */
+export async function copyMessage(m, download) {
+  const files = [];
+  for (const a of m.attachments.values()) files.push({ attachment: await download(a.url), name: a.name });
+  return {
+    content: m.content,
+    files,
+    embeds: (m.embeds ?? []).filter((e) => (e.data?.type ?? e.type ?? 'rich') === 'rich'),
+    allowedMentions: { parse: [] },
+  };
+}
+
+/** The archive post (created on its welcome if missing or gone). */
+export async function archivePost(forum, guildId, deps) {
+  const key = `infos-go:${guildId}:archives`;
+  const knownId = await deps.store.get(key);
+  const known = knownId ? await deps.fetchChannel(knownId).catch(() => null) : null;
+  if (known) return known;
+  const post = await forum.threads.create({ name: ARCHIVE_TITLE, message: { content: ARCHIVE_WELCOME, allowedMentions: { parse: [] } } });
+  await deps.store.set(key, post.id);
+  return post;
+}
+
+/** Append every message of a programme post to the archive post, oldest first. */
+async function archiveProgramme(old, forum, guildId, deps) {
+  const messages = [...(await old.messages.fetch({ limit: 100 })).values()].sort(byId);
+  const archive = await archivePost(forum, guildId, deps);
+  for (const m of messages) await archive.send(await copyMessage(m, deps.download));
+}
+
 /**
  * File one message of a source channel into its forum.
  * @param {*} message  discord.js Message
@@ -198,10 +234,17 @@ export async function fileInfo(message, deps) {
   if (theme === PROGRAMME) {
     const post = await forum.threads.create({ name: PROGRAMME_TITLE, message: payload });
     await deps.store.set(key, post.id);
-    if (knownId) {
-      const old = await deps.fetchChannel(knownId).catch(() => null);
-      // Old programmes stay in the forum, only unpinned (one pin per forum).
-      if (old) await old.unpin().catch((err) => console.error('[infos-go] désépinglage impossible :', err.message));
+    const old = knownId ? await deps.fetchChannel(knownId).catch(() => null) : null;
+    if (old) {
+      // One programme post only: the old one is copied to the archive post, then deleted.
+      // Copy failed = never deleted, only unpinned (one pin per forum).
+      try {
+        await archiveProgramme(old, forum, rule.guildId, deps);
+        await old.delete();
+      } catch (err) {
+        console.error('[infos-go] archivage du programme impossible, gardé :', err.message);
+        await old.unpin().catch((e) => console.error('[infos-go] désépinglage impossible :', e.message));
+      }
     }
     await post.pin().catch((err) => console.error('[infos-go] épinglage impossible :', err.message));
     return;
