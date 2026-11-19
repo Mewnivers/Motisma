@@ -14,6 +14,28 @@ const MONTHLY = 'programme-mois'; // monthly programme: filed under Événements
 const MAX_BASE64_BYTES = 3.75 * 1024 * 1024; // 5 MB once base64-encoded (API limit)
 const MAX_IMAGES = 4; // enough to classify, caps the cost
 
+/**
+ * First message of each theme post, like the ・logs posts: one emoji, what lands there.
+ * The weekly programme has none: each programme is its own post.
+ * Custom emojis must belong to a guild the bot is in (here: Pokémon GO - Pau).
+ */
+export const INFOS_GO_WELCOME = {
+  'Raids':
+    "<:pass_raid:1519020978296983552> Les boss de raid arrivent ici : raids Méga, Dynamax et Gigamax, heures de raids et les meilleurs counters pour les battre. La dernière annonce est tout en bas, il ne reste qu'à trouver un groupe !",
+  'Événements':
+    "Tout ce qui anime le jeu atterrit ici : événements, saisons, GO Fest, bonus du moment et programme du mois. La dernière annonce est toujours en bas <a:Party_blob:1529145371513590003>",
+  'Community Day':
+    "<a:Pokemonball:1531352075609571449> Chaque Journée Communauté passe par ici : le Pokémon vedette, son attaque exclusive, les bonus et les horaires. De quoi préparer ses Poké Balls à l'avance.",
+  'Heures vedettes':
+    "Le rendez-vous du mardi soir : le Pokémon vedette et le bonus de chaque heure vedette arrivent ici. Une heure, pas une minute de plus, alors on ne la rate pas <:shiny:1519251122336825355>",
+  'Recherches':
+    "<a:Eveee:1529918494727082064> Études de terrain, recherches spéciales et temporaires : les quêtes du moment et leurs récompenses sont rangées ici. Pratique pour savoir quelle Pokéstop tourner.",
+  'Passe GO':
+    "<a:Meowthmoney:1519057385770061934> Le Passe GO de chaque mois atterrit ici : paliers, récompenses et ce qu'il faut faire pour les débloquer. Le plus récent est tout en bas.",
+  'Divers':
+    "Ce qui ne rentre dans aucune autre case finit ici : mises à jour du jeu, nouveautés et petites infos en vrac. Ça vaut le coup d'y jeter un œil de temps en temps <a:Mewlove:1519057678410711171>",
+};
+
 // Discord's content-type is not reliable (PNG files announced as image/jpeg):
 // the API checks the real type, so read it from the first bytes.
 export function sniffImageType(buf) {
@@ -191,8 +213,28 @@ export async function fileInfo(message, deps) {
     return;
   }
   const tag = forum.availableTags.find((t) => t.name === theme);
-  const post = await forum.threads.create({ name: theme, message: payload, appliedTags: tag ? [tag.id] : [] });
+  const welcome = { content: INFOS_GO_WELCOME[theme], allowedMentions: { parse: [] } };
+  const post = await forum.threads.create({ name: theme, message: welcome, appliedTags: tag ? [tag.id] : [] });
   await deps.store.set(key, post.id);
+  await post.send(payload);
+}
+
+/**
+ * Existing post that starts with an announcement: Discord cannot insert a
+ * message, so shift everything down one place. The first message becomes the
+ * welcome, each next message takes the previous one's content, the last
+ * announcement is sent again at the end. Every message must be the bot's own.
+ * @param {{ id: string, content: string }[]} messages  the whole post, any order
+ * @returns {({ edit: string, welcome: string } | { edit: string, from: object } | { send: true, from: object })[]}
+ */
+export function planWelcomeShift(messages, welcome) {
+  const ordered = [...messages].sort(byId);
+  if (!ordered.length || ordered[0].content === welcome) return [];
+  return [
+    { edit: ordered[0].id, welcome },
+    ...ordered.slice(1).map((m, i) => ({ edit: m.id, from: ordered[i] })),
+    { send: true, from: ordered.at(-1) },
+  ];
 }
 
 // --- Backfill (scripts/infos-go-rattrapage.mjs) ---
