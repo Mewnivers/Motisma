@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRules, fileInfo, classify, THEMES, INFOS_GO_WELCOME, planWelcomeShift } from './infosGo.js';
+import { parseRules, fileInfo, classify, THEMES, INFOS_GO_WELCOME, planWelcomeShift, ARCHIVE_WELCOME } from './infosGo.js';
 
 const RULE = { guildId: 'gTest', sourceId: 'g47ix', forumId: 'forum' };
 const TAGS = THEMES.map((name, i) => ({ id: `tag${i}`, name }));
@@ -25,10 +25,16 @@ function fakeWorld(existing = {}) {
   const log = [];
   const kv = new Map();
   const threads = new Map();
+  const messagesOf = new Map(); // thread id -> its messages, oldest first
+  const failSend = new Set();
   const mkThread = (id, name) => ({
     id,
     name,
-    send: async (p) => log.push(['send', id, p]),
+    messages: { fetch: async () => new Map([...(messagesOf.get(id) ?? [])].reverse().map((m) => [m.id, m])) },
+    send: async (p) => {
+      if (failSend.has(id)) throw new Error('Missing Access');
+      log.push(['send', id, p]);
+    },
     pin: async () => log.push(['pin', id]),
     unpin: async () => log.push(['unpin', id]),
     delete: async () => log.push(['delete', id]),
@@ -50,6 +56,8 @@ function fakeWorld(existing = {}) {
   return {
     log,
     kv,
+    messagesOf,
+    failSend,
     deps: (theme) => ({
       rules: [RULE],
       classify: async () => theme,
@@ -151,15 +159,52 @@ test('image non téléchargeable : réenvoyée par son URL, info pas perdue', as
   assert.deepEqual(w.log[1][2].files, [{ attachment: 'https://cdn/a.png?ex=1', name: 'a.png' }]);
 });
 
-test('programme de la semaine : nouveau post épinglé, le précédent désépinglé et gardé', async () => {
+const OLD_PROGRAMME = [
+  { id: '11', content: 'Programme du 10 au 16\n-# [Source](https://x/1)', attachments: new Map([['a', { url: 'https://cdn/p.png', name: 'p.png' }]]), embeds: [] },
+  { id: '12', content: 'suite', attachments: new Map(), embeds: [] },
+];
+
+test('nouvelle semaine : ancien programme recopié aux archives (créées avec accueil), puis son post supprimé ; le nouveau créé et épinglé', async () => {
   const w = fakeWorld({ old: 'Programme de la semaine' });
+  w.messagesOf.set('old', OLD_PROGRAMME);
   w.kv.set('infos-go:gTest:programme', 'old');
   await fileInfo(fakeMessage(), w.deps('programme'));
   const kinds = w.log.map(([k, id]) => `${k}:${id}`);
-  assert.deepEqual(kinds, ['create:new1', 'unpin:old', 'pin:new1']);
-  assert.ok(!kinds.includes('delete:old'), "l'ancien programme ne doit jamais être supprimé");
+  assert.deepEqual(kinds, ['create:new1', 'create:new2', 'send:new2', 'send:new2', 'delete:old', 'pin:new1']);
   assert.equal(w.log[0][2].name, 'Programme de la semaine');
+  assert.equal(w.log[1][2].name, 'Archives des programmes');
+  assert.deepEqual(w.log[1][2].message, { content: ARCHIVE_WELCOME, allowedMentions: { parse: [] } });
+  assert.equal(w.log[2][2].content, 'Programme du 10 au 16\n-# [Source](https://x/1)');
+  assert.deepEqual(w.log[2][2].files, [{ attachment: Buffer.from('img'), name: 'p.png' }]);
+  assert.equal(w.log[3][2].content, 'suite');
   assert.equal(w.kv.get('infos-go:gTest:programme'), 'new1');
+  assert.equal(w.kv.get('infos-go:gTest:archives'), 'new2');
+});
+
+test('archives déjà créées : l’ancien programme est ajouté à la fin du post d’archives', async () => {
+  const w = fakeWorld({ old: 'Programme de la semaine', arch: 'Archives des programmes' });
+  w.messagesOf.set('old', OLD_PROGRAMME.slice(0, 1));
+  w.kv.set('infos-go:gTest:programme', 'old');
+  w.kv.set('infos-go:gTest:archives', 'arch');
+  await fileInfo(fakeMessage(), w.deps('programme'));
+  assert.deepEqual(w.log.map(([k, id]) => `${k}:${id}`), ['create:new1', 'send:arch', 'delete:old', 'pin:new1']);
+});
+
+test('copie aux archives en échec : l’ancien programme n’est pas supprimé, seulement désépinglé', async () => {
+  const w = fakeWorld({ old: 'Programme de la semaine', arch: 'Archives des programmes' });
+  w.messagesOf.set('old', OLD_PROGRAMME.slice(0, 1));
+  w.kv.set('infos-go:gTest:programme', 'old');
+  w.kv.set('infos-go:gTest:archives', 'arch');
+  w.failSend.add('arch');
+  await fileInfo(fakeMessage(), w.deps('programme'));
+  const kinds = w.log.map(([k, id]) => `${k}:${id}`);
+  assert.ok(!kinds.includes('delete:old'), 'jamais supprimé sans copie');
+  assert.deepEqual(kinds, ['create:new1', 'unpin:old', 'pin:new1']);
+});
+
+test('accueil des archives : un seul emoji du serveur, une ou deux phrases', () => {
+  assert.equal(ARCHIVE_WELCOME.match(/<a?:\w+:\d+>/g)?.length, 1);
+  assert.ok(ARCHIVE_WELCOME.length <= 300);
 });
 
 test('premier programme (aucun précédent) : créé et épinglé', async () => {
