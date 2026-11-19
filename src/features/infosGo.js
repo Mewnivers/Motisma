@@ -27,7 +27,7 @@ export const INFOS_GO_WELCOME = {
   'Community Day':
     "<a:Pokemonball:1531352075609571449> Chaque Journée Communauté passe par ici : le Pokémon vedette, son attaque exclusive, les bonus et les horaires. De quoi préparer ses Poké Balls à l'avance.",
   'Heures vedettes':
-    "Le rendez-vous du mardi soir : le Pokémon vedette et le bonus de chaque heure vedette arrivent ici. Une heure, pas une minute de plus, alors on ne la rate pas <:shiny:1519251122336825355>",
+    "Le rendez-vous du jeudi soir : le Pokémon vedette et le bonus de chaque heure vedette arrivent ici. Une heure, pas une minute de plus, alors on ne la rate pas <:shiny:1519251122336825355>",
   'Recherches':
     "<a:Eveee:1529918494727082064> Études de terrain, recherches spéciales et temporaires : les quêtes du moment et leurs récompenses sont rangées ici. Pratique pour savoir quelle Pokéstop tourner.",
   'Passe GO':
@@ -61,7 +61,7 @@ const SYSTEM =
   '« Raids » (boss de raid, raids Méga, Dynamax, Gigamax, heures de raids) ; ' +
   '« Événements » (événements, saisons, GO Fest, bonus d’événement) ; ' +
   '« Community Day » (Journée Communauté, Community Day Classique) ; ' +
-  '« Heures vedettes » (heure vedette du mardi) ; ' +
+  '« Heures vedettes » (heure vedette du jeudi) ; ' +
   '« Recherches » (études de terrain, recherches spéciales ou temporaires, récompenses de quêtes) ; ' +
   '« Passe GO » (Passe GO du mois, ex. « Passe GO : Octobre », paliers et récompenses du Passe) ; ' +
   '« programme » UNIQUEMENT pour le programme de la semaine (les 7 jours à venir, récapitulatif hebdomadaire) ; ' +
