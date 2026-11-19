@@ -5,6 +5,7 @@ import { extractStats, hasVision } from './visionExtract.js';
 import { applyTeamRole, TEAMS } from './teamRole.js';
 import { setPogoIgn, setPogoFriendCode, setPogoStats } from '../db.js';
 import { formatFriendCode } from '../commands/set-pogo.js';
+import { postToLogChannel, logPostFor } from './serverLogs.js';
 
 const STAT_KEYS = ['level', 'levelXp', 'levelXpMax', 'xp', 'pokedex', 'distance', 'pokestops', 'eggs', 'team'];
 const emptyStats = () => Object.fromEntries(STAT_KEYS.map((k) => [k, null]));
@@ -90,12 +91,11 @@ export function buildVerificationLogEmbed({ target, mod, name, team, suspected, 
 }
 
 // Post the audit embed to the log channel. No-op if the dashboard switch
-// guilds.logs_verification is off or no LOG_CHANNEL_ID is set.
-async function sendVerificationLog(guild, data) {
+// guilds.logs_verification is off or no LOG_CHANNEL_ID is set. A forum log
+// channel → the « Arrivées et départs » post (serverLogs routing).
+export async function sendVerificationLog(guild, data) {
   if (!config.logsVerification) return;
   if (!config.logChannelId) return;
-  const channel = await guild.channels.fetch(config.logChannelId).catch(() => null);
-  if (!channel?.isTextBased?.()) return;
 
   // Re-upload the submitted screenshot(s) so the proof lives on in the log even
   // after the originals are deleted from the verification channel. The first one
@@ -106,9 +106,7 @@ async function sendVerificationLog(guild, data) {
   const files = urls.map((url, i) => new AttachmentBuilder(url, { name: proofName(url, i) }));
   const embed = buildVerificationLogEmbed({ ...data, imageName: files[0]?.name ?? null });
 
-  await channel.send({ embeds: [embed], files }).catch((e) =>
-    console.error('[verification] Failed to send the log embed:', e?.message ?? e),
-  );
+  await postToLogChannel(guild, config.logChannelId, logPostFor('joins'), { embeds: [embed], files });
 }
 
 async function onMemberJoin(member) {

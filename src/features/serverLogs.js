@@ -76,6 +76,21 @@ const LOG_POSTS = {
   messages: 'Messages',
 };
 
+/**
+ * Opening message of each forum post, in this order (scripts/logs-forum-init).
+ * Custom emojis must belong to a guild the bot is in (here: the main guild).
+ */
+export const LOG_POSTS_WELCOME = {
+  'Arrivées et départs':
+    "<a:Pikahi:1519057356812587018> Ici, le carnet des allées et venues : chaque arrivée, chaque départ volontaire, et le journal des vérifications avec les captures envoyées. Pratique pour accueillir les nouveaux… et voir qui a filé à l'anglaise <a:Mewlove:1519057678410711171>",
+  'Modération':
+    "<:attention:1519020989680189651> Tout ce que fait la modération atterrit ici : bans, débans, expulsions et exclusions temporaires, avec qui l'a fait et pourquoi. On espère qu'il restera bien calme <:bouclier:1538921855669501953>",
+  'Messages':
+    "<:Pika_detective:1538907953162100806> Les messages supprimés et modifiés passent par ici, avec l'auteur, le salon et le contenu avant/après. Rien ne se perd, même ce qu'on aurait préféré effacer <:Ecto_oups:1529128340059848755>",
+  'Autres':
+    "<:Eeveecool:1518360298837250068> Le reste de la vie du serveur : rôles ajoutés ou retirés, salons créés ou supprimés, passages en vocal et boosts. Moins urgent, mais utile pour savoir qui a touché à quoi <a:Pokemondance:1519057370754322503>",
+};
+
 /** Forum post name for a log kind. */
 export function logPostFor(kind) {
   return LOG_POSTS[kind] ?? 'Autres'; // roles, channels, voice, boosts
@@ -157,56 +172,73 @@ function infoEmbed(color, title, fields) {
 // --- Discord plumbing -------------------------------------------------------
 
 const dbStore = { get: getState, set: setState };
-// forum:post name → Promise<post>, so simultaneous first logs share one post.
+// forum:post name → Promise<{post, created}>, so simultaneous first logs share one post.
 const forumPosts = new Map();
+const postKey = (forumId, name) => `logs-forum:${forumId}:${name}`;
 
 /**
- * The permanent post of this category in a forum log channel, found by its id in
- * bot_kv or created (same pattern as infos-go). Sending in an archived post
- * unarchives it.
+ * The permanent post `name` of a forum log channel, found by its id in bot_kv or
+ * created with its welcome message (same pattern as infos-go).
  */
-function forumPost(guild, forum, name, payload, store, cache) {
-  const key = `logs-forum:${forum.id}:${name}`;
+function forumPost(guild, forum, name, store, cache) {
+  const key = postKey(forum.id, name);
   if (!cache.has(key)) {
     const found = (async () => {
       const knownId = await store.get(key).catch(() => null);
       const known = knownId ? await guild.channels.fetch(knownId).catch(() => null) : null;
       if (known) return { post: known, created: false };
-      const post = await forum.threads.create({ name, message: payload });
+      const message = { content: LOG_POSTS_WELCOME[name] ?? name, allowedMentions: { parse: [] } };
+      const post = await forum.threads.create({ name, message });
       await store.set(key, post.id).catch(() => {});
       return { post, created: true };
     })();
     found.catch(() => cache.delete(key)); // retry on the next log
     cache.set(key, found);
-    return found;
   }
-  return cache.get(key).then(({ post }) => ({ post, created: false }));
+  return cache.get(key);
 }
 
-/** Post a log embed in the guild's log channel for this kind, if any. */
-export async function sendLog(guild, kind, payload, store = dbStore, cache = forumPosts) {
-  const channelId = logChannelFor(guild, kind);
-  if (!channelId) return;
+/** Create the missing posts of a forum log channel, in order. Never duplicates. */
+export async function ensureLogPosts(guild, forum, store = dbStore) {
+  const out = [];
+  for (const name of Object.keys(LOG_POSTS_WELCOME)) {
+    const { post, created } = await forumPost(guild, forum, name, store, new Map());
+    out.push({ name, id: post.id, created });
+  }
+  return out;
+}
+
+/**
+ * Post in a log channel: a text channel as is, a forum in its post `postName`
+ * (sending in an archived post unarchives it). Never throws.
+ */
+export async function postToLogChannel(guild, channelId, postName, payload, store = dbStore, cache = forumPosts) {
   const channel = await guild.channels.fetch(channelId).catch(() => null);
   try {
     if (channel?.type === ChannelType.GuildForum) {
-      const name = logPostFor(kind);
-      const { post, created } = await forumPost(guild, channel, name, payload, store, cache);
-      if (created) return; // the log is the post's first message
+      const { post } = await forumPost(guild, channel, postName, store, cache);
       try {
         await post.send(payload);
       } catch (e) {
         if (e?.code !== 10003) throw e; // Unknown Channel: post deleted by hand
-        cache.delete(`logs-forum:${channel.id}:${name}`);
-        await forumPost(guild, channel, name, payload, store, cache);
+        cache.delete(postKey(channel.id, postName));
+        const { post: fresh } = await forumPost(guild, channel, postName, store, cache);
+        await fresh.send(payload);
       }
       return;
     }
     if (!channel?.isTextBased?.()) return;
     await channel.send(payload);
   } catch (e) {
-    console.error(`[serverLogs] Failed to send the ${kind} log:`, e?.message ?? e);
+    console.error(`[serverLogs] Failed to send the ${postName} log:`, e?.message ?? e);
   }
+}
+
+/** Post a log embed in the guild's log channel for this kind, if any. */
+export async function sendLog(guild, kind, payload, store, cache) {
+  const channelId = logChannelFor(guild, kind);
+  if (!channelId) return;
+  await postToLogChannel(guild, channelId, logPostFor(kind), payload, store, cache);
 }
 
 // Discord writes the audit entry a moment after the gateway event.

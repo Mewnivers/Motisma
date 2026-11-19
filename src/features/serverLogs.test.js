@@ -13,6 +13,8 @@ const {
   sendLog,
   logChannelFor,
   logPostFor,
+  LOG_POSTS_WELCOME,
+  ensureLogPosts,
   buildMessageDeleteEmbed,
   classifyRemoval,
   findAuditEntry,
@@ -109,14 +111,16 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   await sendLog(guild, 'leaves', { embeds: ['leave'] }, store);
   await sendLog(guild, 'joins', { embeds: ['join'] }, store);
   const byName = (name) => [...posts.values()].filter((p) => p.name === name);
+  const logsIn = (name) => byName(name)[0].sent.slice(1).map((m) => m.embeds[0]);
   assert.equal(posts.size, 2, 'one post per category, even for simultaneous first logs');
-  assert.deepEqual(byName('Modération')[0].sent.map((m) => m.embeds[0]), ['kick', 'ban']);
-  assert.deepEqual(byName('Arrivées et départs')[0].sent.map((m) => m.embeds[0]), ['leave', 'join']);
+  assert.equal(byName('Modération')[0].sent[0].content, LOG_POSTS_WELCOME['Modération'], 'post opens on its welcome');
+  assert.deepEqual(logsIn('Modération'), ['kick', 'ban']);
+  assert.deepEqual(logsIn('Arrivées et départs'), ['leave', 'join']);
 
   // After a restart (memory cleared), the stored id is reused, no new post.
   await sendLog(guild, 'moderation', { embeds: ['timeout'] }, store, new Map());
   assert.equal(posts.size, 2, 'stored post reused');
-  assert.equal(byName('Modération')[0].sent.length, 3);
+  assert.equal(byName('Modération')[0].sent.length, 4, 'welcome + 3 logs');
 
   // Post deleted by hand → a new one is created and stored.
   const oldId = kv.get('logs-forum:beta-log:Modération');
@@ -125,6 +129,55 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   assert.notEqual(kv.get('logs-forum:beta-log:Modération'), oldId, 'deleted post replaced');
   assert.equal(byName('Modération').length, 1);
   console.log('ok - forum posts per category');
+
+  // ensureLogPosts (scripts/logs-forum-init): the 4 posts, each with its
+  // welcome, ids stored; a second run creates nothing.
+  assert.deepEqual(Object.keys(LOG_POSTS_WELCOME), ['Arrivées et départs', 'Modération', 'Messages', 'Autres']);
+  const before = posts.size;
+  const first = await ensureLogPosts(guild, forum, store);
+  assert.deepEqual(first.map((r) => [r.name, r.created]), [
+    ['Arrivées et départs', false], ['Modération', false], ['Messages', true], ['Autres', true],
+  ]);
+  assert.equal(posts.size, before + 2, 'only the missing posts created');
+  assert.equal(posts.get(kv.get('logs-forum:beta-log:Autres')).sent[0].content, LOG_POSTS_WELCOME['Autres']);
+  assert.equal(posts.get(kv.get('logs-forum:beta-log:Autres')).sent.length, 1, 'welcome only, no log');
+  const again = await ensureLogPosts(guild, forum, store);
+  assert.ok(again.every((r) => !r.created), 'second run: nothing created');
+  assert.equal(posts.size, before + 2);
+  console.log('ok - ensureLogPosts');
+}
+
+// (a4) verification logs (verification.js) follow the same routing: a forum
+// log channel → the « Arrivées et départs » post, screenshots kept.
+{
+  const { sendVerificationLog } = await import('./verification.js');
+  const created = [];
+  const forum = {
+    id: 'verif-forum',
+    type: 15,
+    isTextBased: () => false,
+    threads: {
+      create: async ({ name, message }) => {
+        const post = { id: 'vp', name, sent: [message], send: async (m) => { post.sent.push(m); } };
+        created.push(post);
+        return post;
+      },
+    },
+  };
+  const guild = { id: config.guildId, channels: { fetch: async (id) => (id === 'verif-forum' ? forum : created.find((p) => p.id === id) ?? null) } };
+  config.logsVerification = true;
+  config.logChannelId = 'verif-forum';
+  const member = (id) => ({ toString: () => `<@${id}>`, user: { tag: `u${id}`, displayAvatarURL: () => 'https://cdn.example/a.png' } });
+  const data = { target: member('1'), mod: member('2'), name: 'Sacha', team: null, photoUrls: ['https://cdn.example/x.png'] };
+  await sendVerificationLog(guild, data);
+  await sendVerificationLog(guild, data);
+  assert.equal(created.length, 1, 'one post');
+  assert.equal(created[0].name, 'Arrivées et départs');
+  assert.equal(created[0].sent.length, 3, 'welcome + 2 verification logs');
+  assert.equal(created[0].sent[1].files.length, 1, 'screenshot attached');
+  assert.equal(created[0].sent[1].embeds.length, 1);
+  config.logChannelId = 'log-chan';
+  console.log('ok - verification logs in forum');
 }
 
 // (b) deleted-message embed: content fallback when empty, raw content otherwise.
