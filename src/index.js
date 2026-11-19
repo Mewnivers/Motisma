@@ -3,7 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ActivityType, Client, Collection, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { config } from './config.js';
 import { collectCommandPaths } from './loadCommands.js';
-import { initDb } from './db.js';
+import { initDb, getState, setState } from './db.js';
 import { hydrateConfig } from './guildConfig.js';
 import { registerVerification } from './features/verification.js';
 import { registerTempVoice } from './features/tempVoice.js';
@@ -18,6 +18,7 @@ import { registerYoutube } from './features/youtube.js';
 import { registerForumKeepAlive } from './features/forumKeepAlive.js';
 import { registerServerLogs } from './features/serverLogs.js';
 import { registerTranslateControls } from './features/translateControls.js';
+import { registerInfosGo, parseRules } from './features/infosGo.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -131,6 +132,10 @@ registerYoutube(client);
 registerForumKeepAlive(client);
 registerServerLogs(client);
 registerTranslateControls(client);
+registerInfosGo(client, {
+  rules: parseRules(process.env.INFOS_GO),
+  store: { get: getState, set: setState },
+});
 
 client.on(Events.InteractionCreate, async (interaction) => {
   // Autocomplétion des options de commande.

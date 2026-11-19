@@ -1,0 +1,328 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { parseRules, fileInfo, classify, THEMES } from './infosGo.js';
+
+const RULE = { guildId: 'gTest', sourceId: 'g47ix', forumId: 'forum' };
+const TAGS = THEMES.map((name, i) => ({ id: `tag${i}`, name }));
+
+function fakeMessage(over = {}) {
+  return {
+    id: 'm1',
+    guildId: 'gTest',
+    channelId: 'g47ix',
+    url: 'https://discord.com/channels/gTest/g47ix/m1',
+    content: 'Raid de Méga-Rayquaza ce week-end',
+    author: { id: 'source-webhook' },
+    attachments: new Map([['a1', { url: 'https://cdn/a.png?ex=1', name: 'a.png', contentType: 'image/png', size: 10 }]]),
+    embeds: [],
+    delete: async () => assert.fail("l'original ne doit pas être supprimé"),
+    ...over,
+  };
+}
+
+// Forum fake: records created posts, holds existing threads by id.
+function fakeWorld(existing = {}) {
+  const log = [];
+  const kv = new Map();
+  const threads = new Map();
+  const mkThread = (id, name) => ({
+    id,
+    name,
+    send: async (p) => log.push(['send', id, p]),
+    pin: async () => log.push(['pin', id]),
+    unpin: async () => log.push(['unpin', id]),
+    delete: async () => log.push(['delete', id]),
+  });
+  for (const [id, name] of Object.entries(existing)) threads.set(id, mkThread(id, name));
+  let n = 0;
+  const forum = {
+    id: 'forum',
+    availableTags: TAGS,
+    threads: {
+      create: async (opts) => {
+        const t = mkThread(`new${++n}`, opts.name);
+        threads.set(t.id, t);
+        log.push(['create', t.id, opts]);
+        return t;
+      },
+    },
+  };
+  return {
+    log,
+    kv,
+    deps: (theme) => ({
+      rules: [RULE],
+      classify: async () => theme,
+      store: { get: async (k) => kv.get(k) ?? null, set: async (k, v) => kv.set(k, v) },
+      download: async () => Buffer.from('img'),
+      fetchChannel: async (id) => {
+        if (id === 'forum') return forum;
+        const t = threads.get(id);
+        if (!t) throw new Error('Unknown Channel');
+        return t;
+      },
+    }),
+  };
+}
+
+test('INFOS_GO « guilde:source:forum » lu en règles, vide = aucune', () => {
+  assert.deepEqual(parseRules('1:2:3, 4:5:6'), [
+    { guildId: '1', sourceId: '2', forumId: '3' },
+    { guildId: '4', sourceId: '5', forumId: '6' },
+  ]);
+  assert.deepEqual(parseRules(''), []);
+  assert.deepEqual(parseRules(undefined), []);
+  assert.deepEqual(parseRules('1:2'), []);
+});
+
+test('message hors règle (autre serveur, autre salon) : rien ne bouge', async () => {
+  const w = fakeWorld();
+  await fileInfo(fakeMessage({ guildId: 'pogoPau' }), w.deps('Raids'));
+  await fileInfo(fakeMessage({ channelId: 'autre' }), w.deps('Raids'));
+  assert.deepEqual(w.log, []);
+});
+
+test('premier Raid : post « Raids » créé avec son tag, texte, image réenvoyée, lien Source', async () => {
+  const w = fakeWorld();
+  await fileInfo(fakeMessage(), w.deps('Raids'));
+  assert.equal(w.log.length, 1);
+  const [kind, id, opts] = w.log[0];
+  assert.equal(kind, 'create');
+  assert.equal(opts.name, 'Raids');
+  assert.deepEqual(opts.appliedTags, ['tag0']);
+  assert.match(opts.message.content, /Raid de Méga-Rayquaza ce week-end/);
+  assert.match(opts.message.content, /\[Source\]\(https:\/\/discord\.com\/channels\/gTest\/g47ix\/m1\)/);
+  assert.deepEqual(opts.message.files, [{ attachment: Buffer.from('img'), name: 'a.png' }]);
+  assert.deepEqual(opts.message.allowedMentions, { parse: [] });
+  assert.equal(w.kv.get('infos-go:gTest:Raids'), id);
+});
+
+test('post du thème déjà connu : nouveau message à la fin du post, pas de nouveau post', async () => {
+  const w = fakeWorld({ t9: 'Événements' });
+  w.kv.set('infos-go:gTest:Événements', 't9');
+  await fileInfo(fakeMessage(), w.deps('Événements'));
+  assert.equal(w.log.length, 1);
+  assert.equal(w.log[0][0], 'send');
+  assert.equal(w.log[0][1], 't9');
+  assert.match(w.log[0][2].content, /\[Source\]/);
+});
+
+test('post connu mais supprimé : recréé', async () => {
+  const w = fakeWorld();
+  w.kv.set('infos-go:gTest:Recherches', 'disparu');
+  await fileInfo(fakeMessage(), w.deps('Recherches'));
+  assert.equal(w.log[0][0], 'create');
+  assert.equal(w.log[0][2].name, 'Recherches');
+  assert.deepEqual(w.log[0][2].appliedTags, ['tag4']);
+});
+
+test('classement en erreur ou hors liste : Divers', async () => {
+  const w = fakeWorld();
+  const deps = w.deps('Raids');
+  deps.classify = async () => {
+    throw new Error('HTTP 529');
+  };
+  await fileInfo(fakeMessage(), deps);
+  assert.equal(w.log[0][2].name, 'Divers');
+  assert.deepEqual(w.log[0][2].appliedTags, [TAGS.find((t) => t.name === 'Divers').id]);
+
+  const w2 = fakeWorld();
+  await fileInfo(fakeMessage(), w2.deps('Pokémon du jour'));
+  assert.equal(w2.log[0][2].name, 'Divers');
+});
+
+test('image non téléchargeable : réenvoyée par son URL, info pas perdue', async () => {
+  const w = fakeWorld();
+  const deps = w.deps('Raids');
+  deps.download = async () => {
+    throw new Error('404');
+  };
+  await fileInfo(fakeMessage(), deps);
+  assert.deepEqual(w.log[0][2].message.files, [{ attachment: 'https://cdn/a.png?ex=1', name: 'a.png' }]);
+});
+
+test('programme de la semaine : nouveau post épinglé, le précédent désépinglé et gardé', async () => {
+  const w = fakeWorld({ old: 'Programme de la semaine' });
+  w.kv.set('infos-go:gTest:programme', 'old');
+  await fileInfo(fakeMessage(), w.deps('programme'));
+  const kinds = w.log.map(([k, id]) => `${k}:${id}`);
+  assert.deepEqual(kinds, ['create:new1', 'unpin:old', 'pin:new1']);
+  assert.ok(!kinds.includes('delete:old'), "l'ancien programme ne doit jamais être supprimé");
+  assert.equal(w.log[0][2].name, 'Programme de la semaine');
+  assert.equal(w.kv.get('infos-go:gTest:programme'), 'new1');
+});
+
+test('premier programme (aucun précédent) : créé et épinglé', async () => {
+  const w = fakeWorld();
+  await fileInfo(fakeMessage(), w.deps('programme'));
+  assert.deepEqual(w.log.map(([k]) => k), ['create', 'pin']);
+});
+
+test('texte long : message tronqué à 2000 caractères, lien Source gardé', async () => {
+  const w = fakeWorld();
+  await fileInfo(fakeMessage({ content: 'x'.repeat(2500) }), w.deps('Raids'));
+  const content = w.log[0][2].message.content;
+  assert.ok(content.length <= 2000);
+  assert.match(content, /\[Source\]/);
+});
+
+test('classify() : Haiku, sortie contrainte aux thèmes + programme, images en base64', async () => {
+  const saved = [process.env.ANTHROPIC_API_KEY, globalThis.fetch];
+  process.env.ANTHROPIC_API_KEY = 'test';
+  let sent;
+  globalThis.fetch = async (_url, opts) => {
+    sent = JSON.parse(opts.body);
+    return { ok: true, json: async () => ({ content: [{ type: 'text', text: '{"theme":"Heures vedettes"}' }] }) };
+  };
+  try {
+    const theme = await classify('Heure vedette Pikachu', [{ data: Buffer.from('img'), mediaType: 'image/png' }]);
+    assert.equal(theme, 'Heures vedettes');
+    assert.equal(sent.model, 'claude-haiku-5-5');
+    assert.deepEqual(sent.output_config.format.schema.properties.theme.enum, [...THEMES, 'programme', 'programme-mois']);
+    const image = sent.messages[0].content.find((b) => b.type === 'image');
+    assert.deepEqual(image.source, { type: 'base64', media_type: 'image/png', data: Buffer.from('img').toString('base64') });
+  } finally {
+    [process.env.ANTHROPIC_API_KEY, globalThis.fetch] = saved;
+    if (saved[0] === undefined) delete process.env.ANTHROPIC_API_KEY;
+  }
+});
+
+// --- Rattrapage (scripts/infos-go-rattrapage.mjs) ---
+import { parseBackfillArgs, selectBackfill, asBackfill } from './infosGo.js';
+
+test('rattrapage : arguments source, règle, --limit, --dry-run, --depuis', () => {
+  assert.deepEqual(parseBackfillArgs(['g47ix', '1:2:3']), {
+    source: 'g47ix', rule: { guildId: '1', sourceId: '2', forumId: '3' }, limit: 50, dryRun: false, depuis: null,
+  });
+  assert.deepEqual(parseBackfillArgs(['99', '1:2:3', '--limit', '10', '--dry-run', '--depuis', '42']), {
+    source: '99', rule: { guildId: '1', sourceId: '2', forumId: '3' }, limit: 10, dryRun: true, depuis: '42',
+  });
+  assert.throws(() => parseBackfillArgs(['99']), /usage/);
+  assert.throws(() => parseBackfillArgs(['99', '1:2']), /usage/);
+  assert.throws(() => parseBackfillArgs(['99', '1:2:3', '--limit', '0']), /usage/);
+  assert.throws(() => parseBackfillArgs(['99', '1:2:3', '--vite']), /usage/);
+});
+
+const msg = (id, type = 0) => ({ id, type });
+
+test('rattrapage : seulement les messages normaux, les N plus récents, du plus ancien au plus récent', () => {
+  // Discord rend du plus récent au plus ancien ; ids snowflake de longueurs différentes.
+  const fetched = [msg('1000'), msg('999', 12), msg('998'), msg('99'), msg('98', 7), msg('97')];
+  assert.deepEqual(selectBackfill(fetched, { limit: 50 }).map((m) => m.id), ['97', '99', '998', '1000']);
+  assert.deepEqual(selectBackfill(fetched, { limit: 2 }).map((m) => m.id), ['998', '1000']);
+});
+
+test('rattrapage : --depuis reprend à ce message (inclus)', () => {
+  const fetched = [msg('5'), msg('4'), msg('3'), msg('2')];
+  assert.deepEqual(selectBackfill(fetched, { limit: 50, depuis: '4' }).map((m) => m.id), ['4', '5']);
+});
+
+test('rattrapage : le message est rangé comme s’il venait du salon source de la règle, lien vers l’original', async () => {
+  const original = {
+    id: 'p1', guildId: 'pogoPau', channelId: 'g47ixProd', url: 'https://discord.com/channels/pogoPau/g47ixProd/p1',
+    content: 'Heure vedette', attachments: new Map(), embeds: [],
+    delete: async () => assert.fail('salon de prod en lecture seule'),
+  };
+  const view = asBackfill(original, RULE);
+  assert.equal(view.guildId, 'gTest');
+  assert.equal(view.channelId, 'g47ix');
+  assert.equal(view.url, original.url);
+  assert.equal(view.delete, undefined);
+
+  const w = fakeWorld();
+  await fileInfo(view, w.deps('Heures vedettes'));
+  assert.equal(w.log[0][2].name, 'Heures vedettes');
+  assert.match(w.log[0][2].message.content, /channels\/pogoPau\/g47ixProd\/p1/);
+  assert.equal(w.kv.has('infos-go:gTest:Heures vedettes'), true);
+});
+
+// --- Images et programme du mois (essai à blanc du 2026-11-17) ---
+const PNG = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.from('reste')]);
+
+test('type d’image lu dans les octets, pas dans le content-type de Discord ; inconnu = non envoyé à Claude', async () => {
+  const w = fakeWorld();
+  const deps = w.deps('Raids');
+  let seen;
+  deps.classify = async (_t, images) => {
+    seen = images;
+    return 'Raids';
+  };
+  deps.download = async (url) => (url.includes('png') ? PNG : Buffer.from('pas une image'));
+  const attachments = new Map([
+    ['a1', { url: 'https://cdn/IMG.png', name: 'IMG.png', contentType: 'image/jpeg', size: PNG.length }],
+    ['a2', { url: 'https://cdn/x.bin', name: 'x.bin', contentType: 'image/png', size: 13 }],
+  ]);
+  await fileInfo(fakeMessage({ attachments }), deps);
+  assert.deepEqual(seen, [{ data: PNG, mediaType: 'image/png' }]);
+  assert.equal(w.log[0][2].message.files.length, 2); // les deux fichiers sont quand même recopiés
+});
+
+test('image trop lourde pour le base64 : envoyée à Claude par son URL', async () => {
+  const w = fakeWorld();
+  const deps = w.deps('Raids');
+  let seen;
+  deps.classify = async (_t, images) => {
+    seen = images;
+    return 'Raids';
+  };
+  const big = Buffer.concat([PNG, Buffer.alloc(4 * 1024 * 1024)]);
+  deps.download = async () => big;
+  const attachments = new Map([['a1', { url: 'https://cdn/big.png?ex=1', name: 'big.png', contentType: 'image/png', size: big.length }]]);
+  await fileInfo(fakeMessage({ attachments }), deps);
+  // Pas de deepEqual sur un Buffer de 4 Mo : le diff d'échec ferait exploser la mémoire.
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0].url, 'https://cdn/big.png?ex=1');
+  assert.equal(seen[0].data, undefined);
+});
+
+function withFetch(responses, fn) {
+  return async () => {
+    const saved = [process.env.ANTHROPIC_API_KEY, globalThis.fetch];
+    process.env.ANTHROPIC_API_KEY = 'test';
+    const sent = [];
+    globalThis.fetch = async (_url, opts) => {
+      sent.push(JSON.parse(opts.body));
+      return responses.shift();
+    };
+    try {
+      await fn(sent);
+    } finally {
+      [process.env.ANTHROPIC_API_KEY, globalThis.fetch] = saved;
+      if (saved[0] === undefined) delete process.env.ANTHROPIC_API_KEY;
+    }
+  };
+}
+const ok = (theme) => ({ ok: true, json: async () => ({ content: [{ type: 'text', text: JSON.stringify({ theme }) }] }) });
+const bad = (message) => ({ ok: false, status: 400, json: async () => ({ error: { type: 'invalid_request_error', message } }) });
+
+test('classify() : image par URL envoyée en source url', withFetch([ok('Raids')], async (sent) => {
+  await classify('', [{ url: 'https://cdn/big.png?ex=1' }]);
+  assert.deepEqual(sent[0].messages[0].content[0], { type: 'image', source: { type: 'url', url: 'https://cdn/big.png?ex=1' } });
+}));
+
+test('classify() : 400 sur les images → nouvel essai sur le texte seul', withFetch([bad('image refusée'), ok('Recherches')], async (sent) => {
+  assert.equal(await classify('Étude de terrain', [{ data: PNG, mediaType: 'image/png' }]), 'Recherches');
+  assert.equal(sent.length, 2);
+  assert.equal(sent[1].messages[0].content.some((b) => b.type === 'image'), false);
+}));
+
+test('classify() : l’erreur garde le message de l’API', withFetch([bad('image refusée')], async () => {
+  await assert.rejects(classify('', [{ data: PNG, mediaType: 'image/png' }]), /HTTP 400 : image refusée/);
+}));
+
+test('classify() : programme du mois rangé dans Événements, pas épinglé', withFetch([ok('programme-mois')], async (sent) => {
+  assert.equal(await classify('Programme de NOVEMBRE', []), 'Événements');
+  assert.ok(sent[0].output_config.format.schema.properties.theme.enum.includes('programme-mois'));
+  assert.match(sent[0].system, /semaine/);
+}));
+
+test('Passe GO : son propre post « Passe GO » avec son tag, plus dans Événements', withFetch([ok('Passe GO')], async (sent) => {
+  assert.ok(THEMES.includes('Passe GO'));
+  assert.equal(await classify('## Passe GO : Octobre', []), 'Passe GO');
+  assert.ok(sent[0].output_config.format.schema.properties.theme.enum.includes('Passe GO'));
+  assert.match(sent[0].system, /« Passe GO »/);
+  const w = fakeWorld();
+  await fileInfo(fakeMessage({ content: '## Passe GO : Octobre' }), w.deps('Passe GO'));
+  assert.equal(w.log[0][2].name, 'Passe GO');
+  assert.deepEqual(w.log[0][2].appliedTags, [TAGS.find((t) => t.name === 'Passe GO').id]);
+}));
