@@ -12,6 +12,7 @@ const { config } = await import('../config.js');
 const {
   sendLog,
   logChannelFor,
+  logPostFor,
   buildMessageDeleteEmbed,
   classifyRemoval,
   findAuditEntry,
@@ -69,6 +70,61 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   await sendLog(guild, 'moderation', { embeds: [] });
   assert.equal(fetchedId, 'beta-log', 'listed guild → posted in its channel');
   console.log('ok - LOGS_GUILDS');
+}
+
+// (a3) forum log channel: one permanent post per category, found or created,
+// each log appended at the end. A text channel is untouched (see (a)).
+{
+  assert.equal(logPostFor('joins'), 'Arrivées et départs');
+  assert.equal(logPostFor('leaves'), 'Arrivées et départs');
+  assert.equal(logPostFor('moderation'), 'Modération', 'bans, débans, kicks, timeouts');
+  assert.equal(logPostFor('messages'), 'Messages');
+  for (const k of ['roles', 'channels', 'voice', 'boosts']) assert.equal(logPostFor(k), 'Autres', k);
+
+  const kv = new Map();
+  const store = { get: async (k) => kv.get(k) ?? null, set: async (k, v) => { kv.set(k, v); } };
+  const posts = new Map(); // id → { name, sent: [] }
+  let n = 0;
+  const forum = {
+    id: 'beta-log',
+    type: 15, // ChannelType.GuildForum
+    isTextBased: () => false,
+    threads: {
+      create: async ({ name, message }) => {
+        const post = { id: `p${++n}`, name, sent: [message], send: async (m) => { post.sent.push(m); } };
+        posts.set(post.id, post);
+        return post;
+      },
+    },
+  };
+  const guild = {
+    id: 'beta-guild',
+    channels: { fetch: async (id) => (id === 'beta-log' ? forum : posts.get(id) ?? null) },
+  };
+
+  await Promise.all([
+    sendLog(guild, 'moderation', { embeds: ['kick'] }, store),
+    sendLog(guild, 'moderation', { embeds: ['ban'] }, store),
+  ]);
+  await sendLog(guild, 'leaves', { embeds: ['leave'] }, store);
+  await sendLog(guild, 'joins', { embeds: ['join'] }, store);
+  const byName = (name) => [...posts.values()].filter((p) => p.name === name);
+  assert.equal(posts.size, 2, 'one post per category, even for simultaneous first logs');
+  assert.deepEqual(byName('Modération')[0].sent.map((m) => m.embeds[0]), ['kick', 'ban']);
+  assert.deepEqual(byName('Arrivées et départs')[0].sent.map((m) => m.embeds[0]), ['leave', 'join']);
+
+  // After a restart (memory cleared), the stored id is reused, no new post.
+  await sendLog(guild, 'moderation', { embeds: ['timeout'] }, store, new Map());
+  assert.equal(posts.size, 2, 'stored post reused');
+  assert.equal(byName('Modération')[0].sent.length, 3);
+
+  // Post deleted by hand → a new one is created and stored.
+  const oldId = kv.get('logs-forum:beta-log:Modération');
+  posts.delete(oldId);
+  await sendLog(guild, 'moderation', { embeds: ['unban'] }, store, new Map());
+  assert.notEqual(kv.get('logs-forum:beta-log:Modération'), oldId, 'deleted post replaced');
+  assert.equal(byName('Modération').length, 1);
+  console.log('ok - forum posts per category');
 }
 
 // (b) deleted-message embed: content fallback when empty, raw content otherwise.

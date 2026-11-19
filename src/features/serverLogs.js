@@ -1,6 +1,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import { Events, EmbedBuilder, AuditLogEvent, ChannelType } from 'discord.js';
 import { config } from '../config.js';
+import { getState, setState } from '../db.js';
 
 /**
  * Server event logs: posts embeds for 8 kinds of events.
@@ -9,6 +10,7 @@ import { config } from '../config.js';
  *   switch turned on takes effect at the next config refresh (5 min), no restart.
  * - Guilds listed in LOGS_GUILDS (test server): every kind, in their own channel.
  * Any other guild: nothing.
+ * A forum as log channel: one permanent post per category (logPostFor).
  *
  * Intents: GuildMembers (joins/leaves/roles/boosts/timeouts), GuildMessages
  * (+ MessageContent to read deleted/edited content), GuildModeration (bans),
@@ -64,6 +66,19 @@ export function logChannelFor(guild, kind) {
     return on && config.logChannelId ? config.logChannelId : null;
   }
   return config.logsGuilds?.[guild.id] ?? null;
+}
+
+// When the log channel is a forum: one permanent post per category.
+const LOG_POSTS = {
+  joins: 'Arrivées et départs',
+  leaves: 'Arrivées et départs',
+  moderation: 'Modération', // bans, débans, kicks, timeouts
+  messages: 'Messages',
+};
+
+/** Forum post name for a log kind. */
+export function logPostFor(kind) {
+  return LOG_POSTS[kind] ?? 'Autres'; // roles, channels, voice, boosts
 }
 
 /** Message content for an embed field, with an explicit fallback when empty. */
@@ -141,15 +156,57 @@ function infoEmbed(color, title, fields) {
 
 // --- Discord plumbing -------------------------------------------------------
 
+const dbStore = { get: getState, set: setState };
+// forum:post name → Promise<post>, so simultaneous first logs share one post.
+const forumPosts = new Map();
+
+/**
+ * The permanent post of this category in a forum log channel, found by its id in
+ * bot_kv or created (same pattern as infos-go). Sending in an archived post
+ * unarchives it.
+ */
+function forumPost(guild, forum, name, payload, store, cache) {
+  const key = `logs-forum:${forum.id}:${name}`;
+  if (!cache.has(key)) {
+    const found = (async () => {
+      const knownId = await store.get(key).catch(() => null);
+      const known = knownId ? await guild.channels.fetch(knownId).catch(() => null) : null;
+      if (known) return { post: known, created: false };
+      const post = await forum.threads.create({ name, message: payload });
+      await store.set(key, post.id).catch(() => {});
+      return { post, created: true };
+    })();
+    found.catch(() => cache.delete(key)); // retry on the next log
+    cache.set(key, found);
+    return found;
+  }
+  return cache.get(key).then(({ post }) => ({ post, created: false }));
+}
+
 /** Post a log embed in the guild's log channel for this kind, if any. */
-export async function sendLog(guild, kind, payload) {
+export async function sendLog(guild, kind, payload, store = dbStore, cache = forumPosts) {
   const channelId = logChannelFor(guild, kind);
   if (!channelId) return;
   const channel = await guild.channels.fetch(channelId).catch(() => null);
-  if (!channel?.isTextBased?.()) return;
-  await channel.send(payload).catch((e) =>
-    console.error(`[serverLogs] Failed to send the ${kind} log:`, e?.message ?? e),
-  );
+  try {
+    if (channel?.type === ChannelType.GuildForum) {
+      const name = logPostFor(kind);
+      const { post, created } = await forumPost(guild, channel, name, payload, store, cache);
+      if (created) return; // the log is the post's first message
+      try {
+        await post.send(payload);
+      } catch (e) {
+        if (e?.code !== 10003) throw e; // Unknown Channel: post deleted by hand
+        cache.delete(`logs-forum:${channel.id}:${name}`);
+        await forumPost(guild, channel, name, payload, store, cache);
+      }
+      return;
+    }
+    if (!channel?.isTextBased?.()) return;
+    await channel.send(payload);
+  } catch (e) {
+    console.error(`[serverLogs] Failed to send the ${kind} log:`, e?.message ?? e);
+  }
 }
 
 // Discord writes the audit entry a moment after the gateway event.
