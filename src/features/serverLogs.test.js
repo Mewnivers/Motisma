@@ -260,4 +260,39 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   console.log('ok - isRealEdit');
 }
 
+// (g) deletes and edits of messages by other bots and webhooks (Campfire…) are
+// logged; Motisma's own messages are not.
+{
+  const { registerServerLogs } = await import('./serverLogs.js');
+  const handlers = {};
+  registerServerLogs({ on: (event, fn) => { handlers[event] = fn; } });
+
+  const sent = [];
+  const guild = {
+    id: 'beta-guild',
+    channels: { fetch: async () => ({ isTextBased: () => true, send: async (p) => { sent.push(p); } }) },
+    fetchAuditLogs: async () => ({ entries: new Map() }),
+  };
+  const client = { user: { id: 'motisma' } };
+  const author = (id) => ({ id, bot: true, tag: `${id}#0000`, displayAvatarURL: () => null, toString: () => `<@${id}>` });
+  const msg = (authorId, extra = {}) => ({
+    guild, client, author: author(authorId), channelId: 'c1', channel: '#annonces', content: 'Raid à 18h',
+    createdTimestamp: 1000, url: 'https://discord.com/x', ...extra,
+  });
+  const edit = (authorId) => [
+    msg(authorId, { editedTimestamp: null }),
+    msg(authorId, { content: 'Raid à 19h', editedTimestamp: 5 }),
+  ];
+
+  await handlers.messageDelete(msg('campfire'));
+  assert.equal(sent.length, 1, 'other bot/webhook delete → logged');
+  await handlers.messageUpdate(...edit('campfire'));
+  assert.equal(sent.length, 2, 'other bot/webhook edit → logged');
+
+  await handlers.messageDelete(msg('motisma'));
+  await handlers.messageUpdate(...edit('motisma'));
+  assert.equal(sent.length, 2, "Motisma's own messages → not logged");
+  console.log('ok - bot and webhook messages');
+}
+
 console.log('\nAll server-logs self-checks passed.');

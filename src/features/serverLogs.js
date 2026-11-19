@@ -341,7 +341,7 @@ async function onGuildBanRemove(ban) {
 async function onMessageDelete(message) {
   const guild = message.guild;
   if (!logChannelFor(guild, 'messages')) return;
-  if (message.author?.bot) return;
+  if (message.author?.id === message.client?.user?.id) return; // Motisma itself; other bots and webhooks are logged
 
   // Who deleted it: a moderator's entry in the audit log (target = the author),
   // else the author. Unknown when the message was not cached (no author).
@@ -370,7 +370,7 @@ async function onMessageDelete(message) {
 async function onMessageUpdate(oldMessage, newMessage) {
   const guild = newMessage.guild;
   if (!logChannelFor(guild, 'messages')) return;
-  if (newMessage.author?.bot) return;
+  if (newMessage.author?.id === newMessage.client?.user?.id) return;
   if (!isRealEdit(oldMessage, newMessage)) return;
 
   const author = newMessage.author;
