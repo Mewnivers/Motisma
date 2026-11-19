@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRules, fileInfo, classify, THEMES } from './infosGo.js';
+import { parseRules, fileInfo, classify, THEMES, INFOS_GO_WELCOME, planWelcomeShift } from './infosGo.js';
 
 const RULE = { guildId: 'gTest', sourceId: 'g47ix', forumId: 'forum' };
 const TAGS = THEMES.map((name, i) => ({ id: `tag${i}`, name }));
@@ -82,19 +82,28 @@ test('message hors règle (autre serveur, autre salon) : rien ne bouge', async (
   assert.deepEqual(w.log, []);
 });
 
-test('premier Raid : post « Raids » créé avec son tag, texte, image réenvoyée, lien Source', async () => {
+test('premier Raid : post « Raids » créé sur son message d’accueil (tag), puis l’annonce en réponse (texte, image réenvoyée, lien Source)', async () => {
   const w = fakeWorld();
   await fileInfo(fakeMessage(), w.deps('Raids'));
-  assert.equal(w.log.length, 1);
-  const [kind, id, opts] = w.log[0];
-  assert.equal(kind, 'create');
+  assert.deepEqual(w.log.map(([k, id]) => `${k}:${id}`), ['create:new1', 'send:new1']);
+  const opts = w.log[0][2];
   assert.equal(opts.name, 'Raids');
   assert.deepEqual(opts.appliedTags, ['tag0']);
-  assert.match(opts.message.content, /Raid de Méga-Rayquaza ce week-end/);
-  assert.match(opts.message.content, /\[Source\]\(https:\/\/discord\.com\/channels\/gTest\/g47ix\/m1\)/);
-  assert.deepEqual(opts.message.files, [{ attachment: Buffer.from('img'), name: 'a.png' }]);
-  assert.deepEqual(opts.message.allowedMentions, { parse: [] });
-  assert.equal(w.kv.get('infos-go:gTest:Raids'), id);
+  assert.deepEqual(opts.message, { content: INFOS_GO_WELCOME.Raids, allowedMentions: { parse: [] } });
+  const reply = w.log[1][2];
+  assert.match(reply.content, /Raid de Méga-Rayquaza ce week-end/);
+  assert.match(reply.content, /\[Source\]\(https:\/\/discord\.com\/channels\/gTest\/g47ix\/m1\)/);
+  assert.deepEqual(reply.files, [{ attachment: Buffer.from('img'), name: 'a.png' }]);
+  assert.deepEqual(reply.allowedMentions, { parse: [] });
+  assert.equal(w.kv.get('infos-go:gTest:Raids'), 'new1');
+});
+
+test('message d’accueil : un par thème (sauf le programme), un seul emoji du serveur, une ou deux phrases', () => {
+  assert.deepEqual(Object.keys(INFOS_GO_WELCOME).sort(), [...THEMES].sort());
+  for (const [theme, text] of Object.entries(INFOS_GO_WELCOME)) {
+    assert.equal(text.match(/<a?:\w+:\d+>/g)?.length, 1, theme);
+    assert.ok(text.length <= 300, theme);
+  }
 });
 
 test('post du thème déjà connu : nouveau message à la fin du post, pas de nouveau post', async () => {
@@ -111,8 +120,9 @@ test('post connu mais supprimé : recréé', async () => {
   const w = fakeWorld();
   w.kv.set('infos-go:gTest:Recherches', 'disparu');
   await fileInfo(fakeMessage(), w.deps('Recherches'));
-  assert.equal(w.log[0][0], 'create');
+  assert.deepEqual(w.log.map(([k]) => k), ['create', 'send']);
   assert.equal(w.log[0][2].name, 'Recherches');
+  assert.equal(w.log[0][2].message.content, INFOS_GO_WELCOME.Recherches);
   assert.deepEqual(w.log[0][2].appliedTags, ['tag4']);
 });
 
@@ -138,7 +148,7 @@ test('image non téléchargeable : réenvoyée par son URL, info pas perdue', as
     throw new Error('404');
   };
   await fileInfo(fakeMessage(), deps);
-  assert.deepEqual(w.log[0][2].message.files, [{ attachment: 'https://cdn/a.png?ex=1', name: 'a.png' }]);
+  assert.deepEqual(w.log[1][2].files, [{ attachment: 'https://cdn/a.png?ex=1', name: 'a.png' }]);
 });
 
 test('programme de la semaine : nouveau post épinglé, le précédent désépinglé et gardé', async () => {
@@ -161,7 +171,7 @@ test('premier programme (aucun précédent) : créé et épinglé', async () => 
 test('texte long : message tronqué à 2000 caractères, lien Source gardé', async () => {
   const w = fakeWorld();
   await fileInfo(fakeMessage({ content: 'x'.repeat(2500) }), w.deps('Raids'));
-  const content = w.log[0][2].message.content;
+  const content = w.log[1][2].content;
   assert.ok(content.length <= 2000);
   assert.match(content, /\[Source\]/);
 });
@@ -232,7 +242,7 @@ test('rattrapage : le message est rangé comme s’il venait du salon source de 
   const w = fakeWorld();
   await fileInfo(view, w.deps('Heures vedettes'));
   assert.equal(w.log[0][2].name, 'Heures vedettes');
-  assert.match(w.log[0][2].message.content, /channels\/pogoPau\/g47ixProd\/p1/);
+  assert.match(w.log[1][2].content, /channels\/pogoPau\/g47ixProd\/p1/);
   assert.equal(w.kv.has('infos-go:gTest:Heures vedettes'), true);
 });
 
@@ -254,7 +264,7 @@ test('type d’image lu dans les octets, pas dans le content-type de Discord ; i
   ]);
   await fileInfo(fakeMessage({ attachments }), deps);
   assert.deepEqual(seen, [{ data: PNG, mediaType: 'image/png' }]);
-  assert.equal(w.log[0][2].message.files.length, 2); // les deux fichiers sont quand même recopiés
+  assert.equal(w.log[1][2].files.length, 2); // les deux fichiers sont quand même recopiés
 });
 
 test('image trop lourde pour le base64 : envoyée à Claude par son URL', async () => {
@@ -326,3 +336,19 @@ test('Passe GO : son propre post « Passe GO » avec son tag, plus dans Événem
   assert.equal(w.log[0][2].name, 'Passe GO');
   assert.deepEqual(w.log[0][2].appliedTags, [TAGS.find((t) => t.name === 'Passe GO').id]);
 }));
+
+// --- Posts existants : accueil en tête par décalage (scripts/infos-go-accueil.mjs) ---
+test('décalage : le 1er message devient l’accueil, chaque message reprend le précédent, le dernier est reposté à la fin', () => {
+  const m = (id) => ({ id, content: `annonce ${id}` });
+  // Discord rend du plus récent au plus ancien.
+  assert.deepEqual(planWelcomeShift([m('30'), m('20'), m('10')], 'Bienvenue'), [
+    { edit: '10', welcome: 'Bienvenue' },
+    { edit: '20', from: m('10') },
+    { edit: '30', from: m('20') },
+    { send: true, from: m('30') },
+  ]);
+});
+
+test('décalage : post qui commence déjà par l’accueil = rien à faire', () => {
+  assert.deepEqual(planWelcomeShift([{ id: '20', content: 'x' }, { id: '10', content: 'Bienvenue' }], 'Bienvenue'), []);
+});
