@@ -16,6 +16,7 @@ import { registerClassement } from './features/classement.js';
 import { registerLanguageWatch } from './features/languageWatch.js';
 import { registerYoutube } from './features/youtube.js';
 import { registerForumKeepAlive } from './features/forumKeepAlive.js';
+import { registerServerLogs } from './features/serverLogs.js';
 import { registerTranslateControls } from './features/translateControls.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -33,6 +34,8 @@ const intents = [
   GatewayIntentBits.GuildVoiceStates,
   // Non-privileged — lets participants DM the bot a screenshot to update stats.
   GatewayIntentBits.DirectMessages,
+  // Non-privileged — ban add/remove events for the server moderation logs.
+  GatewayIntentBits.GuildModeration,
 ];
 
 // Privileged — only declared when vision is configured, because declaring an
@@ -126,6 +129,7 @@ registerClassement(client);
 registerLanguageWatch(client);
 registerYoutube(client);
 registerForumKeepAlive(client);
+registerServerLogs(client);
 registerTranslateControls(client);
 
 client.on(Events.InteractionCreate, async (interaction) => {
