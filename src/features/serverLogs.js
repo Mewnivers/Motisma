@@ -82,13 +82,13 @@ const LOG_POSTS = {
  */
 export const LOG_POSTS_WELCOME = {
   'Arrivées et départs':
-    "<a:Pikahi:1519057356812587018> Ici, le carnet des allées et venues : chaque arrivée, chaque départ volontaire, et le journal des vérifications avec les captures envoyées. Pratique pour accueillir les nouveaux… et voir qui a filé à l'anglaise <a:Mewlove:1519057678410711171>",
+    "<a:Pikahi:1519057356812587018> Ici, le carnet des allées et venues : chaque arrivée, chaque départ volontaire, et le journal des vérifications avec les captures envoyées. Pratique pour accueillir les nouveaux… et voir qui a filé à l'anglaise.",
   'Modération':
-    "<:attention:1519020989680189651> Tout ce que fait la modération atterrit ici : bans, débans, expulsions et exclusions temporaires, avec qui l'a fait et pourquoi. On espère qu'il restera bien calme <:bouclier:1538921855669501953>",
+    "Tout ce que fait la modération atterrit ici : bans, débans, expulsions et exclusions temporaires, avec qui l'a fait et pourquoi. On espère qu'il restera bien calme <:bouclier:1538921855669501953>",
   'Messages':
-    "<:Pika_detective:1538907953162100806> Les messages supprimés et modifiés passent par ici, avec l'auteur, le salon et le contenu avant/après. Rien ne se perd, même ce qu'on aurait préféré effacer <:Ecto_oups:1529128340059848755>",
+    "<:Pika_detective:1538907953162100806> Les messages supprimés et modifiés passent par ici, avec l'auteur, le salon et le contenu avant/après. Rien ne se perd, même ce qu'on aurait préféré effacer !",
   'Autres':
-    "<:Eeveecool:1518360298837250068> Le reste de la vie du serveur : rôles ajoutés ou retirés, salons créés ou supprimés, passages en vocal et boosts. Moins urgent, mais utile pour savoir qui a touché à quoi <a:Pokemondance:1519057370754322503>",
+    "Le reste de la vie du serveur : rôles ajoutés ou retirés, salons créés ou supprimés, passages en vocal et boosts. Moins urgent, mais utile pour savoir qui a touché à quoi <a:Pokemondance:1519057370754322503>",
 };
 
 /** Forum post name for a log kind. */
