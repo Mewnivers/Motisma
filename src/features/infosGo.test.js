@@ -27,13 +27,24 @@ function fakeWorld(existing = {}) {
   const threads = new Map();
   const messagesOf = new Map(); // thread id -> its messages, oldest first
   const failSend = new Set();
+  const failArchive = new Set();
   const mkThread = (id, name) => ({
     id,
     name,
+    archived: false,
+    locked: false,
     messages: { fetch: async () => new Map([...(messagesOf.get(id) ?? [])].reverse().map((m) => [m.id, m])) },
-    send: async (p) => {
+    async send(p) {
       if (failSend.has(id)) throw new Error('Missing Access');
+      if (this.archived) throw new Error('Thread is archived');
       log.push(['send', id, p]);
+    },
+    async setArchived(v) {
+      if (failArchive.has(id)) throw new Error('Missing Permissions');
+      this.archived = v;
+    },
+    async setLocked(v) {
+      this.locked = v;
     },
     pin: async () => log.push(['pin', id]),
     unpin: async () => log.push(['unpin', id]),
@@ -57,7 +68,9 @@ function fakeWorld(existing = {}) {
     log,
     kv,
     messagesOf,
+    threads,
     failSend,
+    failArchive,
     deps: (theme) => ({
       rules: [RULE],
       classify: async () => theme,
@@ -179,6 +192,8 @@ test('nouvelle semaine : ancien programme recopié aux archives (créées avec a
   assert.equal(w.log[3][2].content, 'suite');
   assert.equal(w.kv.get('infos-go:gTest:programme'), 'new1');
   assert.equal(w.kv.get('infos-go:gTest:archives'), 'new2');
+  assert.equal(w.threads.get('new2').archived, true, 'archives créées puis archivées, pour rester en bas');
+  assert.equal(w.threads.get('new2').locked, false);
 });
 
 test('archives déjà créées : l’ancien programme est ajouté à la fin du post d’archives', async () => {
@@ -186,6 +201,19 @@ test('archives déjà créées : l’ancien programme est ajouté à la fin du p
   w.messagesOf.set('old', OLD_PROGRAMME.slice(0, 1));
   w.kv.set('infos-go:gTest:programme', 'old');
   w.kv.set('infos-go:gTest:archives', 'arch');
+  w.threads.get('arch').archived = true;
+  await fileInfo(fakeMessage(), w.deps('programme'));
+  assert.deepEqual(w.log.map(([k, id]) => `${k}:${id}`), ['create:new1', 'send:arch', 'delete:old', 'pin:new1']);
+  assert.equal(w.threads.get('arch').archived, true, 'désarchivées le temps de l’ajout, puis archivées');
+  assert.equal(w.threads.get('arch').locked, false);
+});
+
+test('réarchivage des archives en échec : noté, le programme est quand même archivé et la semaine continue', async () => {
+  const w = fakeWorld({ old: 'Programme de la semaine', arch: 'Archives des programmes' });
+  w.messagesOf.set('old', OLD_PROGRAMME.slice(0, 1));
+  w.kv.set('infos-go:gTest:programme', 'old');
+  w.kv.set('infos-go:gTest:archives', 'arch');
+  w.failArchive.add('arch');
   await fileInfo(fakeMessage(), w.deps('programme'));
   assert.deepEqual(w.log.map(([k, id]) => `${k}:${id}`), ['create:new1', 'send:arch', 'delete:old', 'pin:new1']);
 });

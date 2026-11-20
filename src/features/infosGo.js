@@ -184,11 +184,19 @@ export async function archivePost(forum, guildId, deps) {
   return post;
 }
 
-/** Append every message of a programme post to the archive post, oldest first. */
+/**
+ * Append every message of a programme post to the archive post, oldest first.
+ * The archive post is kept archived (not locked) so it stays at the bottom of the forum.
+ */
 async function archiveProgramme(old, forum, guildId, deps) {
   const messages = [...(await old.messages.fetch({ limit: 100 })).values()].sort(byId);
   const archive = await archivePost(forum, guildId, deps);
-  for (const m of messages) await archive.send(await copyMessage(m, deps.download));
+  if (archive.archived) await archive.setArchived(false);
+  try {
+    for (const m of messages) await archive.send(await copyMessage(m, deps.download));
+  } finally {
+    await archive.setArchived(true).catch((err) => console.error('[infos-go] archives non réarchivées :', err.message));
+  }
 }
 
 /**
