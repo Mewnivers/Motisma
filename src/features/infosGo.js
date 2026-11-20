@@ -148,12 +148,15 @@ export async function downloadBuffer(url) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-/** Message to post: text (cut to fit) + source link, files re-uploaded, rich embeds. */
+/** Content without the « [Source](…) » link nor its separator (members cannot open the source channel). */
+export function stripSource(content) {
+  return content.replace(/\s*(?:-#[ \t]*)?\[Source\]\(<?https?:\/\/[^\s)>]+>?\)/g, '').trim();
+}
+
+/** Message to post: text (cut to fit), files re-uploaded, rich embeds. */
 function buildPayload(message, files) {
-  const source = `\n-# [Source](${message.url})`;
-  const text = (message.content ?? '').slice(0, 2000 - source.length);
   return {
-    content: `${text}${source}`.trim(),
+    content: (message.content ?? '').slice(0, 2000).trim(),
     files,
     // Link previews (image, video…) come back from the URLs in the text.
     embeds: (message.embeds ?? []).filter((e) => (e.data?.type ?? e.type ?? 'rich') === 'rich'),
@@ -161,7 +164,7 @@ function buildPayload(message, files) {
   };
 }
 
-/** Copy of a posted message: same text (Source line included), files re-uploaded, rich embeds. */
+/** Copy of a posted message: same text, files re-uploaded, rich embeds. */
 export async function copyMessage(m, download) {
   const files = [];
   for (const a of m.attachments.values()) files.push({ attachment: await download(a.url), name: a.name });

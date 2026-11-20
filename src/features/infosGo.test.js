@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRules, fileInfo, classify, THEMES, INFOS_GO_WELCOME, planWelcomeShift, ARCHIVE_WELCOME } from './infosGo.js';
+import { parseRules, fileInfo, classify, THEMES, INFOS_GO_WELCOME, planWelcomeShift, ARCHIVE_WELCOME, stripSource } from './infosGo.js';
 
 const RULE = { guildId: 'gTest', sourceId: 'g47ix', forumId: 'forum' };
 const TAGS = THEMES.map((name, i) => ({ id: `tag${i}`, name }));
@@ -103,7 +103,7 @@ test('message hors règle (autre serveur, autre salon) : rien ne bouge', async (
   assert.deepEqual(w.log, []);
 });
 
-test('premier Raid : post « Raids » créé sur son message d’accueil (tag), puis l’annonce en réponse (texte, image réenvoyée, lien Source)', async () => {
+test('premier Raid : post « Raids » créé sur son message d’accueil (tag), puis l’annonce en réponse (texte, image réenvoyée, sans lien Source)', async () => {
   const w = fakeWorld();
   await fileInfo(fakeMessage(), w.deps('Raids'));
   assert.deepEqual(w.log.map(([k, id]) => `${k}:${id}`), ['create:new1', 'send:new1']);
@@ -112,8 +112,7 @@ test('premier Raid : post « Raids » créé sur son message d’accueil (tag), 
   assert.deepEqual(opts.appliedTags, ['tag0']);
   assert.deepEqual(opts.message, { content: INFOS_GO_WELCOME.Raids, allowedMentions: { parse: [] } });
   const reply = w.log[1][2];
-  assert.match(reply.content, /Raid de Méga-Rayquaza ce week-end/);
-  assert.match(reply.content, /\[Source\]\(https:\/\/discord\.com\/channels\/gTest\/g47ix\/m1\)/);
+  assert.equal(reply.content, 'Raid de Méga-Rayquaza ce week-end');
   assert.deepEqual(reply.files, [{ attachment: Buffer.from('img'), name: 'a.png' }]);
   assert.deepEqual(reply.allowedMentions, { parse: [] });
   assert.equal(w.kv.get('infos-go:gTest:Raids'), 'new1');
@@ -134,7 +133,7 @@ test('post du thème déjà connu : nouveau message à la fin du post, pas de no
   assert.equal(w.log.length, 1);
   assert.equal(w.log[0][0], 'send');
   assert.equal(w.log[0][1], 't9');
-  assert.match(w.log[0][2].content, /\[Source\]/);
+  assert.equal(w.log[0][2].content, 'Raid de Méga-Rayquaza ce week-end');
 });
 
 test('post connu mais supprimé : recréé', async () => {
@@ -241,12 +240,19 @@ test('premier programme (aucun précédent) : créé et épinglé', async () => 
   assert.deepEqual(w.log.map(([k]) => k), ['create', 'pin']);
 });
 
-test('texte long : message tronqué à 2000 caractères, lien Source gardé', async () => {
+test('texte long : message tronqué à 2000 caractères', async () => {
   const w = fakeWorld();
   await fileInfo(fakeMessage({ content: 'x'.repeat(2500) }), w.deps('Raids'));
-  const content = w.log[1][2].content;
-  assert.ok(content.length <= 2000);
-  assert.match(content, /\[Source\]/);
+  assert.equal(w.log[1][2].content, 'x'.repeat(2000));
+});
+
+test('stripSource() : retire la ligne Source et son séparateur, garde le reste', () => {
+  const url = 'https://discord.com/channels/1/2/3';
+  assert.equal(stripSource(`Programme :1913_Pokemon_Evolve:\n-# [Source](${url})`), 'Programme :1913_Pokemon_Evolve:');
+  assert.equal(stripSource(`Ligne 1\n\nLigne 2 <:e:12>\n-# [Source](<${url}>)`), 'Ligne 1\n\nLigne 2 <:e:12>');
+  assert.equal(stripSource(`Texte [Source](${url})`), 'Texte');
+  assert.equal(stripSource(`-# [Source](${url})`), '');
+  assert.equal(stripSource('Sans lien, [autre](https://x.y) gardé'), 'Sans lien, [autre](https://x.y) gardé');
 });
 
 test('classify() : Haiku, sortie contrainte aux thèmes + programme, images en base64', async () => {
@@ -300,7 +306,7 @@ test('rattrapage : --depuis reprend à ce message (inclus)', () => {
   assert.deepEqual(selectBackfill(fetched, { limit: 50, depuis: '4' }).map((m) => m.id), ['4', '5']);
 });
 
-test('rattrapage : le message est rangé comme s’il venait du salon source de la règle, lien vers l’original', async () => {
+test('rattrapage : le message est rangé comme s’il venait du salon source de la règle, sans lien Source', async () => {
   const original = {
     id: 'p1', guildId: 'pogoPau', channelId: 'g47ixProd', url: 'https://discord.com/channels/pogoPau/g47ixProd/p1',
     content: 'Heure vedette', attachments: new Map(), embeds: [],
@@ -315,7 +321,7 @@ test('rattrapage : le message est rangé comme s’il venait du salon source de 
   const w = fakeWorld();
   await fileInfo(view, w.deps('Heures vedettes'));
   assert.equal(w.log[0][2].name, 'Heures vedettes');
-  assert.match(w.log[1][2].content, /channels\/pogoPau\/g47ixProd\/p1/);
+  assert.equal(w.log[1][2].content, 'Heure vedette');
   assert.equal(w.kv.has('infos-go:gTest:Heures vedettes'), true);
 });
 
