@@ -54,11 +54,9 @@ const TEAM_MAP = {
 const BOOL_MAP = {
   forum_heart_enabled: 'forumHeartEnabled',
   logs_verification: 'logsVerification',
-  logs_joins: 'logsJoins',
   logs_leaves: 'logsLeaves',
   logs_messages: 'logsMessages',
   logs_moderation: 'logsModeration',
-  logs_roles: 'logsRoles',
   logs_channels: 'logsChannels',
   logs_voice: 'logsVoice',
   logs_boosts: 'logsBoosts',

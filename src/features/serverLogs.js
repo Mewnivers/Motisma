@@ -4,15 +4,16 @@ import { config } from '../config.js';
 import { getState, setState } from '../db.js';
 
 /**
- * Server event logs: posts embeds for 8 kinds of events.
+ * Server event logs: posts embeds for 6 kinds of events (member joins and
+ * role changes are not logged, Marine 2026-11-22).
  * - Main guild (GUILD_ID): in `config.logChannelId`, each kind gated by its own
- *   dashboard switch (guilds.logs_*, hydrated into config as logsJoins, …). A
+ *   dashboard switch (guilds.logs_*, hydrated into config as logsLeaves, …). A
  *   switch turned on takes effect at the next config refresh (5 min), no restart.
  * - Guilds listed in LOGS_GUILDS (test server): every kind, in their own channel.
  * Any other guild: nothing.
  * A forum as log channel: one permanent post per category (logPostFor).
  *
- * Intents: GuildMembers (joins/leaves/roles/boosts/timeouts), GuildMessages
+ * Intents: GuildMembers (leaves/boosts/timeouts), GuildMessages
  * (+ MessageContent to read deleted/edited content), GuildModeration (bans),
  * Guilds (channels), GuildVoiceStates (voice). Audit-log lookups need the bot to
  * have "View Audit Log"; they are best-effort and never throw.
@@ -20,7 +21,6 @@ import { getState, setState } from '../db.js';
 
 // One colour per kind, for readability (no per-guild customisation).
 const COLORS = {
-  join: 0x81c784, // green
   leave: 0xe57373, // red
   ban: 0xc62828, // dark red
   unban: 0x81c784,
@@ -29,7 +29,6 @@ const COLORS = {
   timeoutEnd: 0x81c784,
   messageDelete: 0xe57373,
   messageEdit: 0xffb74d,
-  roles: 0x64b5f6, // blue
   channelCreate: 0x81c784,
   channelDelete: 0xe57373,
   voice: 0x4dd0e1, // cyan
@@ -57,7 +56,7 @@ const channelTypeLabel = (t) => CHANNEL_TYPES[t] ?? 'Salon';
 /**
  * Log channel id for this guild and kind, or null when nothing must be posted.
  * @param {{id:string}|null} guild
- * @param {'joins'|'leaves'|'messages'|'moderation'|'roles'|'channels'|'voice'|'boosts'} kind
+ * @param {'leaves'|'messages'|'moderation'|'channels'|'voice'|'boosts'} kind
  */
 export function logChannelFor(guild, kind) {
   if (!guild) return null;
@@ -70,7 +69,7 @@ export function logChannelFor(guild, kind) {
 
 // When the log channel is a forum: one permanent post per category.
 const LOG_POSTS = {
-  joins: 'Arrivées et départs',
+  joins: 'Arrivées et départs', // verification logs (verification.js)
   leaves: 'Arrivées et départs',
   moderation: 'Modération', // bans, débans, kicks, timeouts
   messages: 'Messages',
@@ -93,7 +92,7 @@ export const LOG_POSTS_WELCOME = {
 
 /** Forum post name for a log kind. */
 export function logPostFor(kind) {
-  return LOG_POSTS[kind] ?? 'Autres'; // roles, channels, voice, boosts
+  return LOG_POSTS[kind] ?? 'Autres'; // channels, voice, boosts
 }
 
 /** Message content for an embed field, with an explicit fallback when empty. */
@@ -267,16 +266,6 @@ const seenDeleteCounts = new Map();
 
 // --- Handlers ---------------------------------------------------------------
 
-async function onMemberAdd(member) {
-  const user = member.user;
-  const embed = infoEmbed(COLORS.join, "📥 Arrivée d'un membre", [
-    { name: 'Membre', value: `${member} · ${user.tag}` },
-    { name: 'Compte créé', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
-    { name: 'Arrivé', value: `<t:${nowUnix()}:F>`, inline: true },
-  ]).setThumbnail(user.displayAvatarURL());
-  await sendLog(member.guild, 'joins', { embeds: [embed] });
-}
-
 async function onMemberRemove(member) {
   const guild = member.guild;
   if (!logChannelFor(guild, 'leaves') && !logChannelFor(guild, 'moderation')) return; // skip audit calls
@@ -386,28 +375,10 @@ async function onMessageUpdate(oldMessage, newMessage) {
   await sendLog(guild, 'messages', { embeds: [embed] });
 }
 
-// GuildMemberUpdate drives three independent concerns (roles / boosts /
-// timeouts), each behind its own switch. One listener dispatches by what changed.
+// GuildMemberUpdate drives two independent concerns (boosts / timeouts), each
+// behind its own switch. One listener dispatches by what changed.
 async function onGuildMemberUpdate(oldMember, newMember) {
   const guild = newMember.guild;
-
-  // --- Role changes (logs_roles) ---
-  if (logChannelFor(guild, 'roles') && oldMember.roles?.cache && newMember.roles?.cache) {
-    const before = oldMember.roles.cache;
-    const after = newMember.roles.cache;
-    const added = [...after.values()].filter((r) => !before.has(r.id));
-    const removed = [...before.values()].filter((r) => !after.has(r.id));
-    if (added.length || removed.length) {
-      const entry = await findAuditEntry(guild, AuditLogEvent.MemberRoleUpdate, newMember.id);
-      const fields = [
-        { name: 'Membre', value: `${newMember} · ${newMember.user.tag}` },
-        { name: 'Par', value: executorText(entry), inline: true },
-      ];
-      if (added.length) fields.push({ name: 'Rôles ajoutés', value: added.map((r) => `${r}`).join(', ') });
-      if (removed.length) fields.push({ name: 'Rôles retirés', value: removed.map((r) => `${r}`).join(', ') });
-      await sendLog(guild, 'roles', { embeds: [infoEmbed(COLORS.roles, '🏷️ Rôles modifiés', fields)] });
-    }
-  }
 
   // --- Boost changes (logs_boosts) ---
   if (logChannelFor(guild, 'boosts') && oldMember.premiumSinceTimestamp !== newMember.premiumSinceTimestamp) {
@@ -490,7 +461,6 @@ async function onVoiceStateUpdate(oldState, newState) {
  * @param {import('discord.js').Client} client
  */
 export function registerServerLogs(client) {
-  client.on(Events.GuildMemberAdd, onMemberAdd);
   client.on(Events.GuildMemberRemove, onMemberRemove);
   client.on(Events.GuildMemberUpdate, onGuildMemberUpdate);
   client.on(Events.GuildBanAdd, onGuildBanAdd);
