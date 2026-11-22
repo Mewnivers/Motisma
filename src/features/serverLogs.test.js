@@ -34,22 +34,22 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   const guild = { id: config.guildId, channels: { fetch: async () => { fetched = true; return channel; } } };
 
   config.logChannelId = 'log-chan';
-  config.logsJoins = false;
-  await sendLog(guild, 'joins', { embeds: [] });
+  config.logsLeaves = false;
+  await sendLog(guild, 'leaves', { embeds: [] });
   assert.equal(fetched, false, 'switch off → no channel fetch');
   assert.equal(sent, 0, 'switch off → nothing sent');
 
-  config.logsJoins = true;
+  config.logsLeaves = true;
   config.logChannelId = '';
-  await sendLog(guild, 'joins', { embeds: [] });
+  await sendLog(guild, 'leaves', { embeds: [] });
   assert.equal(sent, 0, 'empty logChannelId → nothing sent');
 
   config.logChannelId = 'log-chan';
-  await sendLog(guild, 'joins', { embeds: [] });
+  await sendLog(guild, 'leaves', { embeds: [] });
   assert.equal(sent, 1, 'switch on + channel set → sent once');
 
   // Unknown guild → no-op (and the throwing fetch is never reached).
-  await sendLog({ id: 'other', channels: { fetch: async () => { throw new Error('boom'); } } }, 'joins', { embeds: [] });
+  await sendLog({ id: 'other', channels: { fetch: async () => { throw new Error('boom'); } } }, 'leaves', { embeds: [] });
   assert.equal(sent, 1, 'other guild → still only one send');
   console.log('ok - sendLog gating');
 }
@@ -81,7 +81,7 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   assert.equal(logPostFor('leaves'), 'Arrivées et départs');
   assert.equal(logPostFor('moderation'), 'Modération', 'bans, débans, kicks, timeouts');
   assert.equal(logPostFor('messages'), 'Messages');
-  for (const k of ['roles', 'channels', 'voice', 'boosts']) assert.equal(logPostFor(k), 'Autres', k);
+  for (const k of ['channels', 'voice', 'boosts']) assert.equal(logPostFor(k), 'Autres', k);
 
   const kv = new Map();
   const store = { get: async (k) => kv.get(k) ?? null, set: async (k, v) => { kv.set(k, v); } };
@@ -293,6 +293,31 @@ const field = (embed, name) => embed.data.fields.find((f) => f.name === name)?.v
   await handlers.messageUpdate(...edit('motisma'));
   assert.equal(sent.length, 2, "Motisma's own messages → not logged");
   console.log('ok - bot and webhook messages');
+}
+
+// (h) member joins and role changes are no longer logged (Marine, 2026-11-22);
+// the other member-update logs (boosts) still are.
+{
+  const { registerServerLogs } = await import('./serverLogs.js');
+  const handlers = {};
+  registerServerLogs({ on: (event, fn) => { handlers[event] = fn; } });
+
+  const sent = [];
+  const guild = {
+    id: 'beta-guild',
+    channels: { fetch: async () => ({ isTextBased: () => true, send: async (p) => { sent.push(p); } }) },
+    fetchAuditLogs: async () => ({ entries: new Map() }),
+  };
+  const user = { id: 'u1', tag: 'u1#0000', createdTimestamp: 1000, displayAvatarURL: () => null, toString: () => '<@u1>' };
+  const roles = (...ids) => ({ cache: new Map(ids.map((id) => [id, { id, toString: () => `<@&${id}>` }])) });
+  const member = (extra) => ({ guild, id: 'u1', user, toString: () => '<@u1>', roles: roles(), premiumSinceTimestamp: null, ...extra });
+
+  assert.equal(handlers.guildMemberAdd, undefined, 'join → no listener');
+  await handlers.guildMemberUpdate(member({ roles: roles('a') }), member({ roles: roles('b') }));
+  assert.equal(sent.length, 0, 'role change → not logged');
+  await handlers.guildMemberUpdate(member(), member({ premiumSinceTimestamp: 5 }));
+  assert.equal(sent.length, 1, 'boost → still logged');
+  console.log('ok - no join or role logs');
 }
 
 console.log('\nAll server-logs self-checks passed.');

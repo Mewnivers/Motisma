@@ -76,11 +76,9 @@ export const config = {
   // (guilds.logs_*, hydrated by guildConfig.js). Defaults match the DB:
   // verification on, the others off.
   logsVerification: true,
-  logsJoins: false,
   logsLeaves: false,
   logsMessages: false,
   logsModeration: false,
-  logsRoles: false,
   logsChannels: false,
   logsVoice: false,
   logsBoosts: false,
